@@ -1,0 +1,12 @@
+Package: bayesMig
+Version: 0.0-1
+Date: 2016-7-8
+Title: Bayesian Projection of Migration
+Author: Jon Azose <jonazose@uw.edu>
+Maintainer: Jon Azose <jonazose@uw.edu>
+Depends: R (>= 2.14.2)
+Imports: coda, truncnorm 
+Suggests: 
+Description: 
+License: GPL (>= 2)
+URL: http://bayespop.csss.washington.edu
