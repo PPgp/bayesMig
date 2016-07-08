@@ -1,2 +1,8 @@
 import(coda)
 import(truncnorm)
+
+export(
+	run.mig.mcmc,
+	mig.predict,
+	mig.trajectories.plot.all
+)
