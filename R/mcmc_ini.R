@@ -57,7 +57,7 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
     #Pop and migration data
     data(popM);data(popF);
     data(migration);
-    countryCodeVec_bigCountries <- scan("./Data/countryCodeVec_bigCountries.txt")#This is the 201 "big" countries
+    data(countryCodeVec_bigCountries)# <- scan("./Data/countryCodeVec_bigCountries.txt")#This is the 201 "big" countries
     
     #Figure out the countries of overlap
     fullDataIndices=(fullCountryCodeVec %in% migration$country_code & fullCountryCodeVec %in% popM$country_code)
