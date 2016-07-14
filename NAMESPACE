@@ -4,5 +4,7 @@ import(truncnorm)
 export(
 	run.mig.mcmc,
 	mig.predict,
-	mig.trajectories.plot.all
+	mig.trajectories.plot.all,
+	get.mig.mcmc,
+	coda.list.mcmc
 )

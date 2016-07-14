@@ -65,7 +65,7 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
     fullCountryNameVec=as.character(fullCountryNameVec[fullDataIndices])
     
     countryIndices=seq(1,length(fullCountryCodeVec))
-    bigCountryIndices <- fullCountryCodeVec %in% countryCodeVec_bigCountries
+    bigCountryIndices <- fullCountryCodeVec %in% countryCodeVec_bigCountries[,1]
     
     #Construct a matrix of initial populations
     initialPopMat=matrix(0,nrow=length(fullCountryCodeVec),ncol=14)
@@ -118,7 +118,7 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
   sigma2.constraints.logical <- !is.na(sigma2Constraints)
   constraints.logical <- list(mu=mu.constraints.logical, phi=phi.constraints.logical, sigma2=sigma2.constraints.logical)
   constraints.numeric <- list(mu=muConstraints, phi=phiConstraints, sigma2=sigma2Constraints)
-  
+
   return(list(
     countryIndices=countryIndices,
     big.country.indices=bigCountryIndices,

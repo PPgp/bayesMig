@@ -206,7 +206,6 @@ coda.mcmc.bayesMig.mcmc <- function(mcmc, country=NULL, par.names=NULL,
                                             get.full.par.names.cs(par.names.cs, colnames(mcmc$traces))), th.burnin,
                                     thinning.index=index)
   }
-  
   # filter out unnecessary parameters here if needed.
 
   return(mcmc(values, end=mcmc$finished.iter, thin=thin, ...))
@@ -257,7 +256,7 @@ get.full.par.names <- function(par.names, full.par.names, index=FALSE) {
 
 get.burned.mig.traces <- function(mcmc, par.names, burnin=0, thinning.index=NULL) {
   # get traces that are already loaded in the mcmc object
-  traces <- matrix(mcmc$traces[, par.names],ncol=length(par.names))
+  traces <- matrix(mcmc$traces[, par.names],ncol=length(par.names), dimnames=list(NULL, par.names))
   discard <- burnin - mcmc$traces.burnin
   if (discard > 0)
     traces <- traces[-seq(1, discard),]
