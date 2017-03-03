@@ -27,7 +27,7 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
     bigC=length(fullCountryCodeVec)
     
     #Extract migration rates
-    mig.rates=d[,3:ncol(d)]
+    mig.rates=as.matrix(d[,3:ncol(d)])
     rownames(mig.rates)=fullCountryCodeVec
     
     #If a user input their own rates, assume they want to use all of them.
@@ -97,7 +97,7 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
     #Convert migration counts and initial populations to a matrix of migration "rates" (count/initial pop)
     # mig.rates<-migCountMat[,1:13]/initialPopMat[,1:13]  
     # do count/(end pop - mig)
-    mig.rates<-migCountMat/(initialPopMat - migCountMat)
+    mig.rates<-as.matrix(migCountMat/(initialPopMat - migCountMat))
   }
 
   #Establish some parameter constraints

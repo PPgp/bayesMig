@@ -24,24 +24,21 @@ mig.mcmc.sampling <- function(mcmc, thin=1, start.iter=2, verbose=FALSE, verbose
 
     unblock.gtk('bDem.Migmcmc')
     #Something about unblock.gtk here. (Necessary GUI stuff for bayesDem?)
-
     #Update all the mu_c values with Gibbs sampling.
     for(c in 1:bigC){
       mcmc.update.mu.c(c,mcenv)
     }
-    
     #Update sigma^2_mu with Gibbs sampling
     mcmc.update.sigma2.mu(mcenv)
-    
     #Update all the phi_c values with Gibbs sampling.
     for(c in 1:bigC){
       mcmc.update.phi.c(c,mcenv)
     }
-    
+
     #Update all the sigma^2_c values with Gibbs sampling.
     for(c in 1:bigC){
       mcmc.update.sigma2.c(c,mcenv)
-    }    
+    }
     
     #Update b with Gibbs sampling.
     mcmc.update.b(mcenv)
@@ -51,7 +48,6 @@ mig.mcmc.sampling <- function(mcmc, thin=1, start.iter=2, verbose=FALSE, verbose
     
     #Update mu_global with Gibbs sampling
     mcmc.update.mu.global(mcenv)
-    
     
     ################################################################### 
     # write samples simu/thin to disk
