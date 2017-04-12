@@ -75,7 +75,7 @@ mcmc.update.sigma2.c <- function(country, mcmc){
   #This is a problem we run into because some countries have only zeroes for migration rate data.
   #With all zeroes, we tend to push towards sigma^2_c=0 (exactly zero), which causes variance problems.
   if(sqrt(1/tau_c)<mcmc$meta$sigma.c.min){
-    mcmc$sigma2_c[country]=sigma.c.min^2
+    mcmc$sigma2_c[country]=mcmc$meta$sigma.c.min^2
   }else{
     mcmc$sigma2_c[country]=1/tau_c;    
   }
