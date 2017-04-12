@@ -27,7 +27,7 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
     bigC=length(fullCountryCodeVec)
     
     #Extract migration rates
-    mig.rates=d[,3:ncol(d)]
+    mig.rates=as.matrix(d[,3:ncol(d)])
     rownames(mig.rates)=fullCountryCodeVec
     
     #If a user input their own rates, assume they want to use all of them.
@@ -55,12 +55,12 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
     fullCountryNameVec <- UNlocations$name[UNlocations$location_type==4]
     
     #Pop and migration data
-    data(popM);data(popF);
+    data(pop)
     data(migration);
     data(countryCodeVec_bigCountries)# <- scan("./Data/countryCodeVec_bigCountries.txt")#This is the 201 "big" countries
     
     #Figure out the countries of overlap
-    fullDataIndices=(fullCountryCodeVec %in% migration$country_code & fullCountryCodeVec %in% popM$country_code)
+    fullDataIndices=(fullCountryCodeVec %in% migration$country_code & fullCountryCodeVec %in% pop$country_code)
     fullCountryCodeVec=fullCountryCodeVec[fullDataIndices]
     fullCountryNameVec=as.character(fullCountryNameVec[fullDataIndices])
     
@@ -68,31 +68,36 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
     bigCountryIndices <- fullCountryCodeVec %in% countryCodeVec_bigCountries[,1]
     
     #Construct a matrix of initial populations
-    initialPopMat=matrix(0,nrow=length(fullCountryCodeVec),ncol=14)
+    initialPopMat <- merge(data.frame(country_code=fullCountryCodeVec), pop, sort=FALSE)
+    initialPopMat <- initialPopMat[,-which(colnames(pop) %in% c("country_code", "name", "1950"))] # need end-period pop
+    
+    #initialPopMat=matrix(0,nrow=length(fullCountryCodeVec),ncol=14)
     rownames(initialPopMat)=fullCountryCodeVec;
-    colnames(initialPopMat)=seq(1950,2015,5);
-    for(i in 1:length(fullCountryCodeVec)){
-      initialPopMat[i,]=colSums(popM[popM$country_code==fullCountryCodeVec[i],4:17])+colSums(popF[popF$country_code==fullCountryCodeVec[i],4:17])
-    }
+    #colnames(initialPopMat)=seq(1950,2015,5);
+    #for(i in 1:length(fullCountryCodeVec)){
+    #  initialPopMat[i,]=colSums(popM[popM$country_code==fullCountryCodeVec[i],4:17])+colSums(popF[popF$country_code==fullCountryCodeVec[i],4:17])
+    #}
     
     #Convert from thousands to raw counts
     initialPopMat=initialPopMat*1000
     
     #Construct a matrix of total migration counts
-    migCountMat=matrix(0,nrow=length(fullCountryCodeVec),ncol=13)
+    migCountMat <- merge(data.frame(country_code=fullCountryCodeVec), migration[,1:which(colnames(migration)=="2010-2015")], sort=FALSE)[,-c(1,2)]
+    #migCountMat=matrix(0,nrow=length(fullCountryCodeVec),ncol=13)
     rownames(migCountMat)=fullCountryCodeVec;
-    colnames(migCountMat)=seq(1950,2010,5);
+    #colnames(migCountMat)=seq(1950,2010,5);
     
-    for(i in 1:length(fullCountryCodeVec)){
-      migCountMat[i,]=as.numeric(migration[which(migration$country_code==fullCountryCodeVec[i]),3:15])
-    }
+    #for(i in 1:length(fullCountryCodeVec)){
+    #  migCountMat[i,]=as.numeric(migration[which(migration$country_code==fullCountryCodeVec[i]),3:15])
+    #}
     
     #Convert from thousands to raw counts
     migCountMat=migCountMat*1000
     
     #Convert migration counts and initial populations to a matrix of migration "rates" (count/initial pop)
-    mig.rates<-migCountMat[,1:13]/initialPopMat[,1:13]  
-    
+    # mig.rates<-migCountMat[,1:13]/initialPopMat[,1:13]  
+    # do count/(end pop - mig)
+    mig.rates<-as.matrix(migCountMat/(initialPopMat - migCountMat))
   }
 
   #Establish some parameter constraints
