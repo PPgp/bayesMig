@@ -32,7 +32,7 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
     
     #If a user input their own rates, assume they want to use all of them.
     countryIndices=1:bigC
-    big.country.indices=1:bigC
+    big.country.indices=rep(TRUE, bigC)
   }else{
     #If we get here, then the user didn't input their own migration file.
     
