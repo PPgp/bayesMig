@@ -2,6 +2,24 @@
 #MIGRATION
 ###############
 
+#' @title Run Markov chain Monte Carlo for parameters of net migration rate model
+#'
+#' @description Runs (or continues running) MCMCs for simulating the net migration rate of all countries of the
+#' world, using a Bayesian hierarchical model.
+#' 
+#' @param nr.chains An integer number of independent Markov chains to run.
+#' @param iter The number of iterations to run per Markov chain.
+#' @param thin Thinning interval -- A chain with 1000 iterations thinned by 20 will return a 
+#' final count of 50 iterations.
+#' @param verbose Whether or not to print status updates to console window while code is running.
+#' @param verbose.iter If verbose is TRUE, the number of iterations to wait between printing updates.
+#' @param output.dir A file path pointing to the directory in which to store results.
+#' @param replace.output If the specified output directory already exists, should it be overwritten?
+#' @param parallel (NOT CURRENTLY IMPLEMENTED) Whether to run code in parallel, if available.
+#' @param ... Other arguments passed to \code{\link{run.mig.mcmc}}
+#' @return An object of class \code{bayesMig.mcmc.set} containing the sampled posterior parameter values
+#' @examples
+#' run.mig.mcmc(nr.chains=2, iter=30, thin=1)
 run.mig.mcmc <- function(nr.chains=3, iter=1000, 
                          thin=1, verbose=TRUE, verbose.iter=10,
                          # meta parameters

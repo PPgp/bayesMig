@@ -106,6 +106,9 @@ store.mcmc <- local({
     flushed <- FALSE
     if (flush.buffer || (counter >= buffer.size)) {
       do.flush.buffers(mcmc, append=append, verbose=verbose)
+      #The pair of assignments below looks very silly. 
+      #The first one is here to avoid an R CMD check note, which reads "no visible binding for '<<-' assignment to 'counter'"
+      counter <- 0
       counter <<- 0 #Don't waste energy resetting the whole buffer. Just set the counter back to zero and write over it.
       flushed <- TRUE
     }

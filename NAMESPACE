@@ -1,5 +1,10 @@
 import(coda)
+import(grDevices)
+import(graphics)
+import(stats)
 import(truncnorm)
+import(utils)
+import(wpp2017)
 
 export(
 	run.mig.mcmc,

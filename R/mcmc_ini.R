@@ -10,13 +10,13 @@ mcmc.meta.ini <- function(...) {
   mcmc.input <- list()
   for (arg in names(args)) mcmc.input[[arg]] <- args[[arg]]
   
-  meta <- do.meta.ini(mcmc.input, verbose=verbose)
+  meta <- do.meta.ini(mcmc.input, verbose=FALSE)
   return(structure(c(mcmc.input, meta), class='bayesMig.mcmc.meta'))
 }
 
 
 do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
-                        wpp.year=2015, my.mig.file = NULL) {
+                        wpp.year=2017, my.mig.file = NULL) {
   #If the user input their own migration file:
   if(!is.null(my.mig.file)){
     d=read.table(my.mig.file,header=TRUE)
@@ -36,28 +36,31 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
   }else{
     #If we get here, then the user didn't input their own migration file.
     
-    if(! wpp.year == 2015){
-      #Only wpp2015 is supported at the moment.
-      error(stop("Only 2015 revision of WPP is supported by bayesMig."))
+    if(! wpp.year == 2017){
+      #Only wpp2017 is supported at the moment.
+      stop("Only 2017 revision of WPP is currently supported by bayesMig.")
     }
     
-    #If we get here, then wpp.year is 2015.
+    #If we get here, then wpp.year is 2017.
     ###########
     #I suspect this solution won't play nicely if the user has already loaded a different version of wpp.
     ###########
-    if(wpp.year==2015){
-      library(wpp2015)
+    if(wpp.year==2017){
+      #library(wpp2017)
+    } else {
+      stop("Only WPP2017 data supported in this version.")
     }
     
     #List of all possible countries
-    data(UNlocations)
+    UNlocations=load.bdem.dataset('UNlocations', wpp.year=2017)
     fullCountryCodeVec <- UNlocations$country_code[UNlocations$location_type==4]
     fullCountryNameVec <- UNlocations$name[UNlocations$location_type==4]
     
     #Pop and migration data
-    data(pop)
-    data(migration);
-    data(countryCodeVec_bigCountries)# <- scan("./Data/countryCodeVec_bigCountries.txt")#This is the 201 "big" countries
+    pop=load.bdem.dataset('pop', wpp.year=2017)
+    migration=load.bdem.dataset('migration',wpp.year=2017)
+    countryCodeVec_bigCountries = bayesMig::countryCodeVec_bigCountries
+    #data("countryCodeVec_bigCountries")# <- scan("./Data/countryCodeVec_bigCountries.txt")#This is the 201 "big" countries
     
     #Figure out the countries of overlap
     fullDataIndices=(fullCountryCodeVec %in% migration$country_code & fullCountryCodeVec %in% pop$country_code)
@@ -65,7 +68,7 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
     fullCountryNameVec=as.character(fullCountryNameVec[fullDataIndices])
     
     countryIndices=seq(1,length(fullCountryCodeVec))
-    bigCountryIndices <- fullCountryCodeVec %in% countryCodeVec_bigCountries[,1]
+    bigCountryIndices <- fullCountryCodeVec %in% countryCodeVec_bigCountries
     
     #Construct a matrix of initial populations
     initialPopMat <- merge(data.frame(country_code=fullCountryCodeVec), pop, sort=FALSE)

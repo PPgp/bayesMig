@@ -38,6 +38,20 @@ get.country.object <- function(country, meta=NULL, country.table=NULL, index=FAL
   return(list(name=country.name, index=country.idx, code=country.code))
 }
 
+#' @title Access MCMC results
+#'
+#' @description This function retrieves results of an MCMC simulation and creates an object of class
+#' \code{bayesMig.mcmc.set}. 
+#' 
+#' @usage get.mig.mcmc(sim.dir=file.path(getwd(), 'bayesMig.output'), chain.ids=NULL,
+#' burnin=0, verbose=FALSE)
+#' 
+#' @param sim.dir Directory where simulation results are stored
+#' @param chain.ids Chain identifiers in case only specific chains should be included
+#' in the resulting object. By default, all available chains are included.
+#' @param burnin Burn-in used for loading traces.
+#' @param verbose Logical value. Switches log messages on and off.
+#' 
 
 get.mig.mcmc <- function(sim.dir=file.path(getwd(), 'bayesMig.output'), chain.ids=NULL,
                          burnin=0, verbose=FALSE) {
@@ -265,6 +279,31 @@ get.burned.mig.traces <- function(mcmc, par.names, burnin=0, thinning.index=NULL
   return(traces)
 }
 
+#' Conversion to coda-formatted objects
+#' 
+#' @usage coda.list.mcmc(mcmc=NULL, country=NULL, chain.ids=NULL, 
+#' sim.dir=file.path(getwd(), 'bayesMig.output'),
+#' par.names=mig.parameter.names(), 
+#' par.names.cs=mig.parameter.names.cs(), 
+#' rm.const.pars=FALSE, burnin=0, ...)
+#' 
+#' @param mcmc A list of objects of class \code{bayesMig.mcmc}. If \code{NULL}, the MCMCs are
+#' loaded from \code{sim.dir}. Either \code{mcmc} or \code{sim.dir} must be given.
+#' @param country Country name or code. Used in connection with the \code{par.names.cs} argument
+#' (see below)
+#' @param chain.ids Vector of chain identifiers. By default, all chains available in the \code{mcmc.list}
+#' object are included
+#' @param sim.dir Directory with the MCMC simulation results. Only used if \code{mcmc} is \code{NULL}
+#' @param par.names Names of country-independent parameters to be included. Default names are
+#' those returned by the \code{mig.parameter.names} function, which includes all country-independent
+#' parameters in the BHM.
+#' @param par.names.cs Names of country-specific parameters to be included. The argument \code{country}
+#' is used to filter out traces that correspond to a specific country. If \code{country} is not given, 
+#' traces of each parameter are given for all countries. Default names are those returned by 
+#' \code{mig.parameter.names.cs()}, which includes all country-specific parameters in the BHM.
+#' @param rm.const.pars Logical indicating if parameters with constant values should be removed.
+#' @param burnin Number of iterations that should be removed from the beginning of each chain.
+#' @param ... Other variables passed to called functions
 
 coda.list.mcmc <- function(mcmc=NULL, country=NULL, chain.ids=NULL,
                            sim.dir=file.path(getwd(), 'bayesMig.output'), 

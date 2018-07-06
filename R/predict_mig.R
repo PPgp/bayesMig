@@ -1,3 +1,46 @@
+#' @title Generate posterior trajectories of net migration rates
+#'
+#' @description Using the posterior parameter samples simulated by \code{\link{run.mig.mcmc}},
+#' generate posterior trajectories for the net migration rates for all countries of
+#' the world. This code \emph{does not} adjust trajectories to ensure that net
+#' migration counts sum to zero. That adjustment is handled in the \code{bayesPop} package.
+#' 
+#' @param mcmc.set Object of class \code{bayesMig.mcmc.set} corresponding to sampled
+#' parameter values for net migration model. If it is \code{NULL}, the object
+#' is loaded from the directory specified in \code{sim.dir}
+#' @param end.year End year of the prediction
+#' @param sim.dir Directory with MCMC simulation results. It should be the same as
+#' the \code{output.dir} argument in \code{\link{run.mig.mcmc}}
+#' @param replace.output Logical value. If \code{TRUE}, existing predictions in
+#' \code{output.dir} will be replaced by results of this run.
+#' @param start.year Start year of the prediction. By default the prediction is 
+#' started at the next time period after \code{present.year} set in the estimation
+#' step. If \code{start.year} is smaller than the default, projections for countries
+#'and time periods that have data available after \code{start.year} are set to those data.
+#' @param nr.traj Number of trajectories to be generated. 
+#' If \code{NULL}, the argument \code{thin} is taken to determine the number of 
+#' trajectories. If both are \code{NULL}, the number of trajectories
+#' corresponds to the size of the parameter sample.
+#' @param thin Thinning interval used for determining the number of trajectories. 
+#' Only relevant if \code{nr.traj} is \code{NULL}.
+#' @param burnin Number of iterations to be discarded from the beginning of the parameter traces.
+#' @param save.as.ascii Either a number determining how many trajectories should be
+#' converted into an ASCII file, or 'all' in which case all trajectories are converted.
+#' It should be set to 0 if no conversion is desired.
+#' @param output.dir Directory into which the resulting prediction object and the 
+#' trajectories are stored. If it is \code{NULL}, it is set to either \code{sim.dir},
+#' or to \code{output.dir} of \code{mcmc.set$meta} if \code{mcmc.set} is given.
+#' @param seed Seed of the random number generator. If \code{NULL} no seed is set. 
+#' Can be used to generate reproducible projections.
+#' @param verbose Logical value. Switches log messages on and off.
+#' @param ... Other arguments passed to \code{\link{mig.predict}}
+#' @return A list with 9 components. Key result component is an array of quantiles with dimensions
+#' (number of countries) x (number of computed quantiles) x (number of projected time points).
+#' First time point in the sequence is not a projection, but an observed time period -- by default, 2010-2015.
+#' 
+#' Other key result components include \code{traj.mean.sd}, a summary of means and standard deviations for each country
+#' at each time point.
+
 mig.predict <- function(mcmc.set=NULL, end.year=2100,
 						sim.dir=file.path(getwd(), 'bayesMig.output'),
 						replace.output=FALSE,
@@ -243,7 +286,7 @@ store.traj.ascii <- function(trajectories, n, output.dir, country.code, meta, in
 }
 
 get.all.prediction.years <- function(pred) {
-	return(get.prediction.years(pred$mcmc.set$meta, pred$nr.projections+1, pred$present.year.index))
+	return(get.prediction.years(pred$mcmc.set$meta, pred$nr.projections+1))
 }
 
 get.prediction.years <- function(meta, n) {

@@ -55,6 +55,23 @@ get.traj.quantiles <- function(mig.pred, country.index, country.code, trajectori
   return(cqp)
 }
 
+#' @title Graphical output of posterior distribution of migration trajectories
+#'
+#' @description This function plots the posterior distribution of migration trajectories for all countries,
+#' including their median and given probability intervals
+#' 
+#' @usage mig.trajectories.plot.all(mig.pred, output.dir=file.path(getwd(), 'migTrajectories'),
+#' output.type="png", main=NULL, verbose=FALSE, ...)
+#' 
+#' @param mig.pred Prediction object of class \code{bayesMig.prediction}
+#' @param output.dir Directory into which resulting plots are written
+#' @param output.type Type of the resulting plot files. Can be "png", "pdf", "jpeg", "bmp",
+#' "tiff", or "postscript"
+#' @param main Main title for the plots. Any occurrence of the string "XXX" is replaced by the
+#' name of the appropriate country.
+#' @param verbose Logical value. Switches log messages on and off.
+#' @param ... Other variables passed to called functions
+
 mig.trajectories.plot.all <- function(mig.pred, 
                                       output.dir=file.path(getwd(), 'migTrajectories'),
                                       output.type="png", main=NULL, verbose=FALSE, ...) {

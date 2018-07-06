@@ -1,12 +1,14 @@
 Package: bayesMig
 Version: 0.0-1
-Date: 2016-7-8
+Date: 2018-07-05
 Title: Bayesian Projection of Migration
 Author: Jon Azose <jonazose@uw.edu>
 Maintainer: Jon Azose <jonazose@uw.edu>
 Depends: R (>= 2.14.2)
-Imports: coda, truncnorm 
+Imports: coda, truncnorm, wpp2017
 Suggests: 
-Description: 
+Description: Producing probabilistic projections of net migration rate for all countries of the world using a Bayesian hierarchical model.
 License: GPL (>= 2)
 URL: http://bayespop.csss.washington.edu
+RoxygenNote: 6.0.1
+LazyData: true
