@@ -273,9 +273,9 @@ get.burned.mig.traces <- function(mcmc, par.names, burnin=0, thinning.index=NULL
   traces <- matrix(mcmc$traces[, par.names],ncol=length(par.names), dimnames=list(NULL, par.names))
   discard <- burnin - mcmc$traces.burnin
   if (discard > 0)
-    traces <- traces[-seq(1, discard),]
+    traces <- traces[-seq(1, discard),, drop = FALSE]
   if(!is.null(thinning.index))
-    traces <- traces[thinning.index,]
+    traces <- traces[thinning.index, , drop = FALSE]
   return(traces)
 }
 

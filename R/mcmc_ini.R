@@ -15,11 +15,14 @@ mcmc.meta.ini <- function(...) {
 }
 
 
-do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
-                        wpp.year=2017, my.mig.file = NULL) {
+do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
+    present.year <- meta$present.year
+    wpp.year <- meta$wpp.year
+    my.mig.file <- meta$my.mig.file
   #If the user input their own migration file:
   if(!is.null(my.mig.file)){
-    d=read.table(my.mig.file,header=TRUE)
+      d <- read.delim(file=my.mig.file, comment.char='#', check.names=FALSE)
+    #d=read.table(my.mig.file,header=TRUE)
     
     #Extract country names and codes
     fullCountryCodeVec=d$country_code
@@ -36,29 +39,29 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
   }else{
     #If we get here, then the user didn't input their own migration file.
     
-    if(! wpp.year == 2017){
+    if(! wpp.year %in% c(2017, 2019)){
       #Only wpp2017 is supported at the moment.
-      stop("Only 2017 revision of WPP is currently supported by bayesMig.")
+      stop("Only 2017 and 2019 revisions of WPP are currently supported by bayesMig.")
     }
     
-    #If we get here, then wpp.year is 2017.
+    #If we get here, then wpp.year is 2017 or 2019.
     ###########
     #I suspect this solution won't play nicely if the user has already loaded a different version of wpp.
     ###########
-    if(wpp.year==2017){
+    #if(wpp.year==2017){
       #library(wpp2017)
-    } else {
-      stop("Only WPP2017 data supported in this version.")
-    }
+    #} else {
+    #  stop("Only WPP2017 data supported in this version.")
+    #}
     
     #List of all possible countries
-    UNlocations=load.bdem.dataset('UNlocations', wpp.year=2017)
+    UNlocations=load.bdem.dataset('UNlocations', wpp.year=wpp.year)
     fullCountryCodeVec <- UNlocations$country_code[UNlocations$location_type==4]
     fullCountryNameVec <- UNlocations$name[UNlocations$location_type==4]
     
     #Pop and migration data
-    pop=load.bdem.dataset('pop', wpp.year=2017)
-    migration=load.bdem.dataset('migration',wpp.year=2017)
+    pop=load.bdem.dataset('pop', wpp.year=wpp.year)
+    migration=load.bdem.dataset('migration',wpp.year=wpp.year)
     countryCodeVec_bigCountries = bayesMig::countryCodeVec_bigCountries
     #data("countryCodeVec_bigCountries")# <- scan("./Data/countryCodeVec_bigCountries.txt")#This is the 201 "big" countries
     
@@ -85,7 +88,8 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
     initialPopMat=initialPopMat*1000
     
     #Construct a matrix of total migration counts
-    migCountMat <- merge(data.frame(country_code=fullCountryCodeVec), migration[,1:which(colnames(migration)=="2010-2015")], sort=FALSE)[,-c(1,2)]
+    migCountMat <- merge(data.frame(country_code=fullCountryCodeVec), 
+                         migration[,1:which(colnames(migration)==paste0(present.year - 5, "-", present.year))], sort=FALSE)[,-c(1,2)]
     #migCountMat=matrix(0,nrow=length(fullCountryCodeVec),ncol=13)
     rownames(migCountMat)=fullCountryCodeVec;
     #colnames(migCountMat)=seq(1950,2010,5);
@@ -102,7 +106,6 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
     # do count/(end pop - mig)
     mig.rates<-as.matrix(migCountMat/(initialPopMat - migCountMat))
   }
-
   #Establish some parameter constraints
   muConstraints <- rep(NA,length(fullCountryNameVec));
   phiConstraints <- rep(NA,length(fullCountryNameVec));
@@ -116,7 +119,7 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
   # #Fix phi_c=0 for the following countries
   # phiConstraints[fullCountryNameVec %in%
   #                  c("Montserrat","Andorra","Saint Pierre and Miquelon","Niue","Tokelau","Marshall Islands")] <- 0
-  # #Fix sigma_c=0 for the collowing countries
+  # #Fix sigma_c=0 for the following countries
   # sigma2Constraints[fullCountryNameVec %in% c("Montserrat")] <- 0
   
   #Compile constraints into logical vectors (that just say whether a constraint exists), and
@@ -133,7 +136,7 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE,
     nr.big.countries=sum(bigCountryIndices),
     regions=list(country_code=fullCountryCodeVec,country_name=fullCountryNameVec),
     mig.rates = mig.rates,
-    present.year = 2015,
+    present.year = present.year,
     bigT=ncol(mig.rates),
     nr.countries=nrow(mig.rates),
     fullCountryCodeVec = fullCountryCodeVec,

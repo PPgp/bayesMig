@@ -155,7 +155,7 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	# fill the result array with observed data 
   for(country in prediction.countries){
     country.obj <- get.country.object(country, meta, index=TRUE)
-    all.mig_ps[country, 1,] = meta$mig.rates[which(rownames(meta$mig.rates) == country.obj$code),13]
+    all.mig_ps[country, 1,] = meta$mig.rates[which(rownames(meta$mig.rates) == country.obj$code),paste0(present.year - 5, "-", present.year)]
     #JA:The 13 in the line above is a magic constant since we assume the historical data to consist of 13 observations.
   }
 

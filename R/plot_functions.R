@@ -131,7 +131,7 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   #   y1.part2 <- tfr_matrix_reconstructed[p2idx,country$index]
   #   names(y1.part2) <- rownames(tfr_matrix_reconstructed)[p2idx]
   # }
-  x1 <- seq(1952.5,2012.5,5)
+  x1 <- seq(1952.5,2017.5,5)
   x2 <- as.numeric(dimnames(mig.pred$quantiles)[[3]])
   trajectories <- get.trajectories(mig.pred, country$code, nr.traj=nr.traj)
   # plot historical data: observed
