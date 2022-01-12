@@ -22,7 +22,6 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
   #If the user input their own migration file:
   if(!is.null(my.mig.file)){
       d <- read.delim(file=my.mig.file, comment.char='#', check.names=FALSE)
-    #d=read.table(my.mig.file,header=TRUE)
     
     #Extract country names and codes
     fullCountryCodeVec=d$country_code
@@ -46,13 +45,6 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     
     #If we get here, then wpp.year is 2017 or 2019.
     ###########
-    #I suspect this solution won't play nicely if the user has already loaded a different version of wpp.
-    ###########
-    #if(wpp.year==2017){
-      #library(wpp2017)
-    #} else {
-    #  stop("Only WPP2017 data supported in this version.")
-    #}
     
     #List of all possible countries
     UNlocations=load.bdem.dataset('UNlocations', wpp.year=wpp.year)

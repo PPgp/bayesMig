@@ -23,11 +23,7 @@
 run.mig.mcmc <- function(nr.chains=3, iter=1000, 
                          thin=1, verbose=TRUE, verbose.iter=10,
                          # meta parameters
-                         #start.year=1950, 
                          present.year=2020, wpp.year=2019, my.mig.file = NULL,
-                         # starting values (length of 1 or nr.chains)
-                         #                         S.ini=NULL, a.ini=NULL, b.ini=NULL, 
-                         #                         verbose=FALSE, verbose.iter = 10, 
                          output.dir=file.path(getwd(), 'bayesMig.output'), replace.output=FALSE,
                          parallel=FALSE, ...){
   
