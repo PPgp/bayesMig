@@ -155,16 +155,13 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	# fill the result array with observed data 
   for(country in prediction.countries){
     country.obj <- get.country.object(country, meta, index=TRUE)
-    all.mig_ps[country, 1,] = meta$mig.rates[which(rownames(meta$mig.rates) == country.obj$code),paste0(present.year - 5, "-", present.year)]
-    #JA:The 13 in the line above is a magic constant since we assume the historical data to consist of 13 observations.
+    all.mig_ps[country, 1,] = meta$mig.rates[which(rownames(meta$mig.rates) == country.obj$code), as.character(present.year - 2)]
   }
 
 	mu.c <- phi.c <- sigma.c <- rep(NA, nr_countries)
 
 	traj.counter <- 0
 	country.loop.max <- 20
-	status.for.gui <- paste('out of', nr_simu, 'trajectories.')
-	gui.options <- list()
 	if (verbose) {
 		verbose.iter <- max(1, nr_simu/100)
 		if(interactive()) cat('\n')
@@ -173,14 +170,6 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	#########################################
 	for (s in 1:nr_simu){ # Iterate over trajectories
 	#########################################
-		if(getOption('bDem.TFRpred', default=FALSE)) {
-			# This is to unblock the GUI, if the run is invoked from bayesDem
-			# and pass info about its status
-			# In such a case the gtk libraries are already loaded
-			traj.counter <- traj.counter + 1
-			gui.options$bDem.migpred.status <- paste('finished', traj.counter, status.for.gui)
-			unblock.gtk('bDem.migpred', gui.options)
-		}
 		if (verbose) {
 			if(interactive()) cat('\rProjecting migration trajectories ... ', round(s/nr_simu * 100), ' %')
 			else {
@@ -241,11 +230,11 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 			
 	if(write.to.disk) {
 		store.bayesMig.prediction(bayesMig.prediction, outdir)
-		do.convert.trajectories(pred=bayesMig.prediction, n=save.as.ascii, output.dir=outdir, verbose=verbose)
-		if(write.summary.files)
+	    bayesTFR:::do.convert.trajectories(pred=bayesMig.prediction, n=save.as.ascii, output.dir=outdir, verbose=verbose)
+		#if(write.summary.files)
 		  #JA: Used to be tfr.write.projection.summary.and.parameters
 		  #    Parameter summary didn't translate nicely, so now the default only writes projection summary
-			mig.write.projection.summary(pred=bayesMig.prediction, output.dir=outdir)
+		mig.write.projection.summary(pred=bayesMig.prediction, output.dir=outdir)
 		cat('\nPrediction stored into', outdir, '\n')
 	}
 	invisible(bayesMig.prediction)
@@ -253,16 +242,13 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 
 
 remove.mig.traces <- function(mcmc.set) {
-	for (i in 1:length(mcmc.set$mcmc.list)) {
+	for (i in 1:length(mcmc.set$mcmc.list))
 		mcmc.set$mcmc.list[[i]]$traces <- 0
-		mcmc.set$mcmc.list[[i]]$burnin <- 0
-	}
 	invisible(mcmc.set)
 }
 
-"get.traj.ascii.header" <- function(meta, ...) UseMethod("get.traj.ascii.header")
 get.traj.ascii.header.bayesMig.mcmc.meta <- function(meta, ...) 
-	return (list(country_code='LocID', period='Period', year='Year', trajectory='Trajectory', mig='Mig'))
+	return (list(country_code='LocID', period='Period', year='Year', trajectory='Trajectory', tfr='Mig'))
 		
 store.traj.ascii <- function(trajectories, n, output.dir, country.code, meta, index, append=FALSE, present.index=NULL) {
 	# Store trajectories into ASCII files of a specific UN format 
@@ -299,12 +285,10 @@ get.prediction.periods <- function(meta, n, ...) {
 }
 
 
-
-
-
 mig.write.projection.summary <- function(pred, output.dir) {
 	# one summary file
-	do.write.projection.summary(pred, output.dir)
+	#do.write.projection.summary(pred, output.dir)
+    bayesTFR:::do.write.projection.summary(pred, output.dir)
 }
 
 
@@ -355,18 +339,26 @@ get.estimation.years <- function(meta)
   return(as.numeric(colnames(meta$mig.rates))+2.5)
 
 
-"get.projection.summary.header" <- function(pred, ...) UseMethod("get.projection.summary.header")
 get.projection.summary.header.bayesMig.prediction <- function(pred, ...) 
-  return (list(country='LocID', year='TimeID', mig='Value'))
+  return (list(revision='RevID', variant='VarID', country='LocID', year='TimeID', indicator='IndicatorID', sex='SexID', tfr='Value'))
 
-"get.friendly.variant.names" <- function(pred, ...) UseMethod("get.friendly.variant.names")
 get.friendly.variant.names.bayesMig.prediction <- function(pred, ...)
   return(c('median', 'lower 80', 'upper 80', 'lower 95', 'upper 95','constant'))
+
+get.UN.variant.names.bayesMig.prediction <- function(pred, ...) 
+    return(c('BHM median', 'BHM80 lower',  'BHM80 upper', 'BHM95 lower',  'BHM95 upper', 'Zero migration'))
+
 
 get.mig.periods <- function(meta) {
   mid.years <- get.estimation.years(meta)
   return (paste(mid.years-2.5, mid.years+2.5, sep='-'))
 }
+
+get.data.imputed.bayesMig.prediction <- function(pred, ...)
+    return(get.data.matrix(pred$mcmc.set$meta))
+
+get.data.for.country.imputed.bayesMig.prediction <- function(pred, country.index, ...)
+    return(get.data.matrix(pred$mcmc.set$meta)[, country.index])
 
 
 do.convert.trajectories <- function(pred, n, output.dir, countries=NULL, verbose=FALSE) {

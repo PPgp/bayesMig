@@ -71,7 +71,7 @@ store.mcmc <- local({
       } else {
         values <- buffer[[par]][1:counter,]
       }
-      write.values.into.file.cindep(par, values, output.dir, mode=open, 
+      bayesTFR:::write.values.into.file.cindep(par, values, output.dir, mode=open, 
                                     compression.type=mcmc$compression.type)
     }
     countryIndices <- mcmc$meta$countryIndices
@@ -84,7 +84,7 @@ store.mcmc <- local({
         } else {
           values <- buffer.cs[[par]][[country]][1:counter,]
         }
-        write.values.into.file.cdep(par, values, output.dir, 
+        bayesTFR:::write.values.into.file.cdep(par, values, output.dir, 
                                     get.country.object(country, meta=mcmc$meta, index=TRUE)$code, mode=open, 
                                     compression.type=mcmc$compression.type)
       }
@@ -117,48 +117,8 @@ store.mcmc <- local({
   
 })
 
-.get.compression.settings <- function(compression.type='None') {
-  if(is.null(compression.type)) compression.type <- 'None'
-  return(switch(compression.type,
-                None=c('file', '', ''),
-                xz = c('xzfile', '.xz', 'b'),
-                bz = c('bzfile', '.bz2','b'),
-                gz = c('gzfile', '.gz', 'b')))
-}
-
-do.write.values.into.file <- function(filename, data, mode, compression.type='None') {
-  cmd.suffix.mode <- .get.compression.settings(compression.type)
-  #con <- bzfile(filename, open=mode)
-  con <- do.call(cmd.suffix.mode[1], list(paste(filename, cmd.suffix.mode[2], sep=''), 
-                                          open=paste(mode, cmd.suffix.mode[3], sep='')))
-  write.table(data, file=con, row.names=FALSE, col.names = FALSE, sep=" ")
-  close(con)
-}
-
-write.values.into.file.cindep <- function(par, data, output.dir, mode='w', compression.type='None') {
-  do.write.values.into.file(file.path(output.dir, paste(par,'txt', sep='.')), data, mode=mode, 
-                            compression.type=compression.type)
-}
-
-write.table.into.file.cindep <- function(data, ...) {
-  for (par in colnames(data))
-    write.values.into.file.cindep(par, data[,par], mode='w', ...)
-}
-
-write.values.into.file.cdep <- function(par, data, output.dir, country.code, mode='w', compression.type='None') {
-  do.write.values.into.file(file.path(output.dir, paste(par,"_country", country.code, ".txt",sep = "")), 
-                            data, mode=mode, compression.type=compression.type)
-}
-
-write.table.into.file.cdep <- function(data, ...) {
-  for (par in colnames(data))
-    write.values.into.file.cdep(par, data[,par], mode='w', ...)
-}
-
 store.bayesMig.object <- function(mcmc, output.dir) {
   bayesMig.mcmc <- mcmc
-#  for (item in bayesMig.mcmc$dontsave)  # don't save meta and some other data
-#    bayesMig.mcmc[[item]] <- NULL
   bayesMig.mcmc$meta <- NULL
   save(bayesMig.mcmc, file=file.path(output.dir, 'bayesMig.mcmc.rda'))
 }

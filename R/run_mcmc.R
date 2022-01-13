@@ -20,12 +20,15 @@
 #' @return An object of class \code{bayesMig.mcmc.set} containing the sampled posterior parameter values
 #' @examples
 #' run.mig.mcmc(nr.chains=2, iter=30, thin=1)
-run.mig.mcmc <- function(nr.chains=3, iter=1000, 
-                         thin=1, verbose=TRUE, verbose.iter=10,
+run.mig.mcmc <- function(nr.chains=3, iter=1000, output.dir=file.path(getwd(), 'bayesMig.output'), 
+                         thin=1, replace.output=FALSE, 
                          # meta parameters
-                         present.year=2020, wpp.year=2019, my.mig.file = NULL,
-                         output.dir=file.path(getwd(), 'bayesMig.output'), replace.output=FALSE,
-                         parallel=FALSE, ...){
+                         start.year = 1950, present.year=2020, wpp.year=2019, my.mig.file = NULL,
+                         # starting values and ranges for truncations
+                         sigma.c.min = 0.0001, a.up = 10, a.ini = NULL,
+                         mu.range = c(-0.5, 0.5), sigma.mu.range = c(0, 0.5), mu.ini = NULL,
+                         seed = NULL, parallel=FALSE, nr.nodes=nr.chains, 
+                         verbose=TRUE, verbose.iter=10, ...){
   
   if(file.exists(output.dir)) {
     if(length(list.files(output.dir)) > 0 & !replace.output)
@@ -37,22 +40,33 @@ run.mig.mcmc <- function(nr.chains=3, iter=1000,
   
   #Auto run stuff goes here.
   
+  init.values.between.low.and.up <- function(low, up)
+    ifelse(rep(nr.chains==1, nr.chains), (low + up)/2, seq(low, to=up, length=nr.chains))
+  
+  
   if (verbose) {
     cat('\nStarting Bayesian Hierarchical Model Migration.\n')
     cat('========================================================\n')
     cat('Initialize simulation -', nr.chains, 'chain(s) in total.\n')
   }
   
-  #  if(!is.null(seed)) set.seed(seed)
+  if(!is.null(seed)) set.seed(seed)
   
   #A bunch of initializations, which should be fed into some initialization later.
   # starting values (length of 1 or nr.chains)
-  #  if(missing(mu_c.ini) || is.null(mu_c.ini)){
-  #    mu_c.ini=something
-  #  }
+  if(missing(mu.ini) || is.null(mu.ini)){
+      mu.ini <- init.values.between.low.and.up(mu.range[1], mu.range[2])
+  }
+  if(missing(a.ini) || is.null(a.ini)){
+    a.ini <- init.values.between.low.and.up(1.001, 5)
+  }
   
-  bayesMig.mcmc.meta = mcmc.meta.ini(output.dir=output.dir, wpp.year = wpp.year,
-                                     present.year = present.year, my.mig.file = my.mig.file)
+  bayesMig.mcmc.meta <- mcmc.meta.ini(output.dir=output.dir, wpp.year = wpp.year,
+                                      start.year=start.year, present.year = present.year, 
+                                      my.mig.file = my.mig.file,
+                                     sigma.c.min = sigma.c.min, a.up = a.up,
+                                     mu.range = mu.range, sigma.mu.range = sigma.mu.range,
+                                     mu.ini = mu.ini, a.ini = a.ini)
   #cat(bayesMig.mcmc.meta$mig.rates)
   
   #Storage  
@@ -93,8 +107,9 @@ mcmc.run.chain=function(chain.id, meta, thin=1, iter=100,
   if (verbose) {
     cat('************\n')
     cat('Starting values:\n')
-    cat('(Not implemented yet.)\n')
-    #Print starting values here.
+    sv <- c(meta$mu.ini[chain.id], meta$a.ini[chain.id])
+    names(sv) <- c('mu', 'a')
+    print(sv)
   }
   
   #This will eventually get updated with a lot more parameters.

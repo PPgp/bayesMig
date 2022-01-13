@@ -72,41 +72,16 @@ get.traj.quantiles <- function(mig.pred, country.index, country.code, trajectori
 #' @param verbose Logical value. Switches log messages on and off.
 #' @param ... Other variables passed to called functions
 
+
 mig.trajectories.plot.all <- function(mig.pred, 
-                                      output.dir=file.path(getwd(), 'migTrajectories'),
-                                      output.type="png", main=NULL, verbose=FALSE, ...) {
-  # plots migration predictions for all countries
-  .do.plot.all(mig.pred$mcmc.set$meta, output.dir, mig.trajectories.plot, output.type=output.type, 
-               verbose=verbose, mig.pred=mig.pred, ...)
+                                     output.dir=file.path(getwd(), 'migTrajectories'),
+                                     output.type="png", verbose=FALSE, ...) {
+  
+  # plots e0 trajectories for all countries
+  bayesTFR:::.do.plot.all(mig.pred$mcmc.set$meta, output.dir, mig.trajectories.plot, output.type=output.type, 
+                          file.prefix='Migplot', plot.type='Mig graph', verbose=verbose, mig.pred=mig.pred, ...)
 }
 
-.do.plot.all <- function(meta, ...) {
-  # processes plotting function func for all countries
-  .do.plot.all.country.loop(country.names(meta), meta, ...)				
-}
-
-.do.plot.all.country.loop <- function(country.names, meta, output.dir, func, output.type="png", 
-                                      file.prefix='Migplot', plot.type='Mig graph', country.table=NULL,
-                                      main=NULL, verbose=FALSE, ...) {					
-  if(!file.exists(output.dir)) dir.create(output.dir, recursive=TRUE)
-  postfix <- output.type
-  if(output.type=='postscript') postfix <- 'ps'
-  main.arg <- main
-  for (country in country.names) {
-    country.obj <- if(!is.null(meta)) get.country.object(country, meta)
-    else get.country.object(country, country.table=country.table)
-    if(verbose)
-      cat('Creating', plot.type, 'for', country, '(', country.obj$code, ')\n')
-    if(!is.null(main) && grepl('XXX', main, fixed=TRUE))
-      main.arg <- gsub('XXX', as.character(country.obj$name), main, fixed=TRUE)
-    do.call(output.type, list(file.path(output.dir, 
-                                        paste(file.prefix,'_c', country.obj$code, '.', postfix, sep=''))))
-    do.call(func, list(country=country.obj$code, main=main.arg, ...))
-    dev.off()
-  }
-  if(verbose)
-    cat('\nPlots stored into', output.dir, '\n')	
-}
 
 mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95), 
                                   nr.traj=10,
@@ -131,7 +106,8 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   #   y1.part2 <- tfr_matrix_reconstructed[p2idx,country$index]
   #   names(y1.part2) <- rownames(tfr_matrix_reconstructed)[p2idx]
   # }
-  x1 <- seq(1952.5,2017.5,5)
+
+  x1 <- as.integer(names(mig_observed))
   x2 <- as.numeric(dimnames(mig.pred$quantiles)[[3]])
   trajectories <- get.trajectories(mig.pred, country$code, nr.traj=nr.traj)
   # plot historical data: observed
@@ -182,3 +158,32 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
     legend('bottomleft', legend=legend, lty=lty, bty='n', col=cols, pch=pch, lwd=lwds)
   }
 }
+
+mig.trajectories.table <- function(mig.pred, country, pi=c(80, 95), ...) {
+  return(tfr.trajectories.table(mig.pred, country=country, pi=pi, half.child.variant = FALSE, ...))
+}
+
+
+mig.partraces.plot <- function(mcmc.list=NULL, sim.dir=file.path(getwd(), 'bayesMig.output'), 
+                               chain.ids=NULL, par.names=mig.parameter.names(), 
+                               nr.points=NULL, dev.ncol=3, ...) {
+  if (is.null(mcmc.list))
+    mcmc.list <- get.mig.mcmc(sim.dir)
+  bayesTFR:::do.plot.tfr.partraces(mcmc.list, load.mig.parameter.traces, chain.ids=chain.ids, 
+                        nr.points=nr.points, par.names=par.names, dev.ncol=dev.ncol, ...)
+}
+
+mig.partraces.cs.plot <- function(country, mcmc.list=NULL, sim.dir=file.path(getwd(), 'bayesMig.output'),
+                                  chain.ids=NULL, par.names=mig.parameter.names.cs(),
+                                  nr.points=NULL, dev.ncol=3, ...) {
+  if (is.null(mcmc.list))
+    mcmc.list <- get.mig.mcmc(sim.dir)
+  mcmc.list <- get.mcmc.list(mcmc.list)
+  country.obj <- get.country.object(country, mcmc.list[[1]]$meta)
+  if (is.null(country.obj$name))
+    stop('Country ', country, ' not found.')
+  bayesTFR:::do.plot.tfr.partraces(mcmc.list, load.mig.parameter.traces.cs, 
+                        main.postfix=paste0('(',country.obj$name,')'), chain.ids=chain.ids, nr.points=nr.points, 
+                        country=country.obj$code, par.names=par.names, dev.ncol=dev.ncol, ...)
+}
+

@@ -4,8 +4,8 @@ Date: 2018-07-05
 Title: Bayesian Projection of Migration
 Author: Jon Azose <jonazose@uw.edu>
 Maintainer: Jon Azose <jonazose@uw.edu>
-Depends: R (>= 2.14.2)
-Imports: coda, truncnorm, wpp2017
+Depends: R (>= 2.14.2), bayesTFR
+Imports: coda, truncnorm, wpp2019
 Suggests: 
 Description: Producing probabilistic projections of net migration rate for all countries of the world using a Bayesian hierarchical model.
 License: GPL (>= 2)

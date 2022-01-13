@@ -16,6 +16,7 @@ mcmc.meta.ini <- function(...) {
 
 
 do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
+    start.year <- meta$start.year # TODO: take this into account
     present.year <- meta$present.year
     wpp.year <- meta$wpp.year
     my.mig.file <- meta$my.mig.file
@@ -25,11 +26,13 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     
     #Extract country names and codes
     fullCountryCodeVec=d$country_code
-    fullCountryNameVec=d$country
+    if("country" %in% colnames(d)) colnames(d)[colnames(d) == "country"] <- "name" # rename country column to "name"
+    if(! "name" %in% colnames(d)) d$name <- d$country_code
+    fullCountryNameVec=d$name
     bigC=length(fullCountryCodeVec)
     
     #Extract migration rates
-    mig.rates=as.matrix(d[,3:ncol(d)])
+    mig.rates=as.matrix(d[,setdiff(colnames(d), c("country_code", "name"))])
     rownames(mig.rates)=fullCountryCodeVec
     
     #If a user input their own rates, assume they want to use all of them.
@@ -98,6 +101,8 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     # do count/(end pop - mig)
     mig.rates<-as.matrix(migCountMat/(initialPopMat - migCountMat))
   }
+    
+  colnames(mig.rates) <- as.integer(substr(colnames(mig.rates), 1, 4)) + 3 # set column names to the middle of the periods
   #Establish some parameter constraints
   muConstraints <- rep(NA,length(fullCountryNameVec));
   phiConstraints <- rep(NA,length(fullCountryNameVec));
@@ -128,19 +133,23 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     nr.big.countries=sum(bigCountryIndices),
     regions=list(country_code=fullCountryCodeVec,country_name=fullCountryNameVec),
     mig.rates = mig.rates,
+    start.year = start.year,
     present.year = present.year,
+    user.data = !is.null(my.mig.file),
     bigT=ncol(mig.rates),
     nr.countries=nrow(mig.rates),
     fullCountryCodeVec = fullCountryCodeVec,
     fullCountryNameVec = fullCountryNameVec,
     constraints.logical = constraints.logical,
     constraints.numeric = constraints.numeric,
-    sigma.c.min = 0.0001,
-    mu.global.lower = -0.5,
-    mu.global.upper = 0.5,
-    sigma.mu.lower=0,
-    sigma.mu.upper=0.5,
-    a.upper=10
+    sigma.c.min = meta$sigma.c.min,
+    mu.global.lower = meta$mu.range[1],
+    mu.global.upper = meta$mu.range[2],
+    sigma.mu.lower=meta$sigma.mu.range[1],
+    sigma.mu.upper=meta$sigma.mu.range[2],
+    a.upper=meta$a.up,
+    mu.ini = meta$mu.ini,
+    a.ini = meta$a.ini
   ))
   
 }
@@ -150,13 +159,13 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
 mcmc.ini <- function(chain.id, mcmc.meta,iter=1000) {
   bigC=nrow(mcmc.meta$mig.rates)
 
-  #Reasonable starting points.
-  #(TO DO: Allow these to take different values)
-  mu_c=rep(0,bigC)
-  phi_c=rep(0.5,bigC)
-  mu_global=0
-  a=1.5
-  b=0.5
+  # Starting points
+  mu_c <- rep(mcmc.meta$mu.ini[chain.id], bigC)
+  phi_c <- runif(bigC, 0, 1)
+  mu_global <- mcmc.meta$mu.ini[chain.id]
+  a <- mcmc.meta$a.ini[chain.id]
+  b <- a - 1
+
   sigma2_mu=var(as.numeric(rowMeans(mcmc.meta$mig.rates)))
 
   sigma2_c=as.numeric(apply(mcmc.meta$mig.rates,1,var))
