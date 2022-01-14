@@ -19,7 +19,11 @@ export(
 	mig.partraces.cs.plot,
 	has.mig.mcmc,
 	has.mig.prediction,
-	get.mig.prediction
+	get.mig.prediction,
+	get.mig.parameter.traces,
+    get.mig.parameter.traces.cs,
+	mig.parameter.names,
+    mig.parameter.names.cs
 )
 
 S3method(get.mcmc.list, bayesMig.mcmc.set)

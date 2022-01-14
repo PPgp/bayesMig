@@ -160,10 +160,10 @@ mcmc.update.b <- function(mcmc){
 #   return()
 # }
 
-mcmc.update.a <- function(mcmc, proposal.half.width=0.01){
+mcmc.update.a <- function(mcmc){
   bigC=mcmc$meta$nr.big.countries
   aCurrent=mcmc$a
-  
+  proposal.half.width=mcmc$meta$a.half.width
   #Metropolis step with a flat proposal distribution on the possible range of (a-proposal.half.width, a+proposal.half.width).
   #Automatically return the current value if we're outside the range (2b+1, a.upper)
   proposal=runif(n=1,min=aCurrent-proposal.half.width,

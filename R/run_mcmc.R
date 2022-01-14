@@ -25,7 +25,7 @@ run.mig.mcmc <- function(nr.chains=3, iter=1000, output.dir=file.path(getwd(), '
                          # meta parameters
                          start.year = 1950, present.year=2020, wpp.year=2019, my.mig.file = NULL,
                          # starting values and ranges for truncations
-                         sigma.c.min = 0.0001, a.up = 10, a.ini = NULL,
+                         sigma.c.min = 0.0001, a.up = 10, a.ini = NULL, a.half.width = 0.4,
                          mu.range = c(-0.5, 0.5), sigma.mu.range = c(0, 0.5), mu.ini = NULL,
                          seed = NULL, parallel=FALSE, nr.nodes=nr.chains, 
                          verbose=TRUE, verbose.iter=10, ...){
@@ -66,7 +66,7 @@ run.mig.mcmc <- function(nr.chains=3, iter=1000, output.dir=file.path(getwd(), '
                                       my.mig.file = my.mig.file,
                                      sigma.c.min = sigma.c.min, a.up = a.up,
                                      mu.range = mu.range, sigma.mu.range = sigma.mu.range,
-                                     mu.ini = mu.ini, a.ini = a.ini)
+                                     mu.ini = mu.ini, a.ini = a.ini, a.half.width = a.half.width)
   #cat(bayesMig.mcmc.meta$mig.rates)
   
   #Storage  

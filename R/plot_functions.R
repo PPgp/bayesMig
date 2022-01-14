@@ -2,58 +2,6 @@
 #MIGRATION
 ##########
 
-get.trajectories <- function(mig.pred, country, nr.traj=NULL, base.name='traj') {
-  traj.file <- file.path(mig.pred$output.directory, paste(base.name, '_country', country, '.rda', sep=''))
-  if (!file.exists(traj.file)) return(list(trajectories=NULL))
-  load(traj.file)
-  thintraj <- get.thinning.index(nr.traj, dim(trajectories)[2]) 
-  if (thintraj$nr.points == 0) return(list(trajectories=NULL))
-  traj.idx <- thintraj$index
-
-  if(!is.null(trajectories)) {
-    rownames(trajectories) <- get.prediction.years(mig.pred$mcmc.set$meta, dim(trajectories)[1])
-  }
-  return(list(trajectories=trajectories, index=traj.idx))
-}
-
-
-get.quantile.from.prediction <- function(mig.pred, quantile, country.index) {
-  quant.values <- mig.pred$quantiles[country.index, as.character(quantile),]
-  return(quant.values)
-}
-
-get.median.from.prediction <- function(mig.pred, country.index) {
-  return(get.quantile.from.prediction(mig.pred, quantile=0.5, country.index=country.index))
-}
-
-get.traj.quantiles <- function(mig.pred, country.index, country.code, trajectories=NULL, pi=80) {
-  al <- (1-pi/100)/2
-  quantile.values <- as.numeric(dimnames(mig.pred$quantiles)[[2]])
-  alidx<-round(quantile.values,6)==round(al,6)
-  cqp <- NULL
-  if (any(alidx)) { # pre-saved quantiles
-    alidx2 <- round(quantile.values,6)==round(1-al,6)
-    cqp <- rbind(mig.pred$quantiles[country.index, alidx,], 
-                 mig.pred$quantiles[country.index, alidx2,])
-  } else { # non-standard quantiles
-    reload <- FALSE
-    if (is.null(trajectories)) {
-      if(mig.pred$nr.traj > 0) reload <- TRUE
-    } else { 
-      if (dim(trajectories)[2] < 2000 && mig.pred$nr.traj > dim(trajectories)[2]) reload <- TRUE
-    }
-    if(reload) {
-      #load 2000 trajectories maximum for computing quantiles
-      traj.reload <- get.trajectories(mig.pred, mig.pred$mcmc.set$meta$regions$country_code[country.index], 2000)
-      trajectories <- traj.reload$trajectories
-    }
-    if (!is.null(trajectories)) {
-      cqp <- apply(trajectories, 1, 
-                   quantile, c(al, 1-al), na.rm = TRUE)
-    }
-  }
-  return(cqp)
-}
 
 #' @title Graphical output of posterior distribution of migration trajectories
 #'
@@ -109,7 +57,7 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
 
   x1 <- as.integer(names(mig_observed))
   x2 <- as.numeric(dimnames(mig.pred$quantiles)[[3]])
-  trajectories <- get.trajectories(mig.pred, country$code, nr.traj=nr.traj)
+  trajectories <- bayesTFR:::get.trajectories(mig.pred, country$code, nr.traj=nr.traj)
   # plot historical data: observed
   if (!add) {
     if(is.null(xlim)) xlim <- c(min(x1,x2), max(x1,x2))
@@ -135,7 +83,7 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   # plot given CIs
   lty <- 2:(length(pi)+1)
   for (i in 1:length(pi)) {
-    cqp <- get.traj.quantiles(mig.pred, country$index, country$code, trajectories$trajectories, pi[i])
+    cqp <- bayesTFR:::get.traj.quantiles(mig.pred, country$index, country$code, trajectories$trajectories, pi[i])
     if (!is.null(cqp)) {
       lines(x2, cqp[1,], type='l', col=col[3], lty=lty[i], lwd=lwd[3])
       lines(x2, cqp[2,], type='l', col=col[3], lty=lty[i], lwd=lwd[3])
@@ -166,7 +114,7 @@ mig.trajectories.table <- function(mig.pred, country, pi=c(80, 95), ...) {
 
 mig.partraces.plot <- function(mcmc.list=NULL, sim.dir=file.path(getwd(), 'bayesMig.output'), 
                                chain.ids=NULL, par.names=mig.parameter.names(), 
-                               nr.points=NULL, dev.ncol=3, ...) {
+                               nr.points=NULL, dev.ncol=2, ...) {
   if (is.null(mcmc.list))
     mcmc.list <- get.mig.mcmc(sim.dir)
   bayesTFR:::do.plot.tfr.partraces(mcmc.list, load.mig.parameter.traces, chain.ids=chain.ids, 

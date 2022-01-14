@@ -149,7 +149,8 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     sigma.mu.upper=meta$sigma.mu.range[2],
     a.upper=meta$a.up,
     mu.ini = meta$mu.ini,
-    a.ini = meta$a.ini
+    a.ini = meta$a.ini, 
+    a.half.width = meta$a.half.width
   ))
   
 }

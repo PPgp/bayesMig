@@ -133,7 +133,7 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
   quantiles.to.keep <- c(0,0.025,0.05,0.1,0.2,0.25,0.3,0.4,0.5,0.6,0.7,0.75,0.8,0.9,0.95,0.975,1)
 	PIs_cqp <- array(NA, c(nr_countries, length(quantiles.to.keep), nr_project+1))
 	dimnames(PIs_cqp)[[2]] <- quantiles.to.keep
-	proj.middleyears <- get.prediction.years(meta, nr_project+1)
+	proj.middleyears <- bayesTFR:::get.prediction.years(meta, nr_project+1)
 	dimnames(PIs_cqp)[[3]] <- proj.middleyears
 	mean_sd <- array(NA, c(nr_countries, 2, nr_project+1))
 	hasNAs <- rep(FALSE, nr_simu)
@@ -250,89 +250,11 @@ remove.mig.traces <- function(mcmc.set) {
 get.traj.ascii.header.bayesMig.mcmc.meta <- function(meta, ...) 
 	return (list(country_code='LocID', period='Period', year='Year', trajectory='Trajectory', tfr='Mig'))
 		
-store.traj.ascii <- function(trajectories, n, output.dir, country.code, meta, index, append=FALSE, present.index=NULL) {
-	# Store trajectories into ASCII files of a specific UN format 
-	#header <- list(country_code='LocID', period='Period', year='Year', trajectory='Trajectory', tfr='TF')
-	header <- get.traj.ascii.header(meta)
-	nyears <- dim(trajectories)[1]
-	pred.years <- get.prediction.years(meta, nyears)
-	pred.period <- get.prediction.periods(meta, nyears)
-	results <- NULL
-	for (traj in 1:length(index)) {
-		results <- rbind(results, cbind(country_code=rep(country.code, nyears), 
-								period=pred.period, year=pred.years, 
-								trajectory=rep(index[traj], nyears), 
-								mig=round(trajectories[,index[traj]], 5)))
-	}
-	#match column names and header
-	colnames(results)[colnames(results)==names(header)] <- header
-	write.table(results, file=file.path(output.dir, 'ascii_trajectories.csv'), sep=',', 
-					quote=FALSE, row.names=FALSE, col.names=!append, append=append)
-	return(results)
-}
-
-get.all.prediction.years <- function(pred) {
-	return(get.prediction.years(pred$mcmc.set$meta, pred$nr.projections+1))
-}
-
-get.prediction.years <- function(meta, n) {
-	return (seq(meta$present.year-2.5, length=n, by=5))
-}
-
-get.prediction.periods <- function(meta, n, ...) {
-	mid.years <- get.prediction.years(meta, n, ...)
-	return (paste(mid.years-2.5, mid.years+2.5, sep='-'))
-}
-
 
 mig.write.projection.summary <- function(pred, output.dir) {
 	# one summary file
 	#do.write.projection.summary(pred, output.dir)
     bayesTFR:::do.write.projection.summary(pred, output.dir)
-}
-
-
-do.write.projection.summary <- function(pred, output.dir) {
-  #JA: As in other places, we assume that observed history covers 1950--2015 and projections cover 2015--2100
-  #JA: I dropped the non-user-friendly output (result2 in predict_tfr)
-	cat('Creating summary files ...\n')
-	nr.proj <- pred$nr.projections+1
-	mig.rates <- pred$mcmc.set$meta$mig.rates
-	mig.years <- seq(1952.5,2097.5,5)
-	lmig <- length(seq(1952.5,2012.5,5))-1
-	nr.proj.all <- nr.proj + lmig
-	pred.period <- get.prediction.periods(pred$mcmc.set$meta, nr.proj)
-	header1 <- list(country.name='country_name',  country.code='country_code', variant='variant')
-	for (i in 1:nr.proj) {
-		header1[[paste('year', i, sep='')]] <- pred.period[i]
-	}
-  revision=2015
-	friendly.variant.names <- get.friendly.variant.names(pred)
-	nr.var=length(friendly.variant.names)
-	result1 <- NULL
-	for (country in 1:get.nr.countries(pred$mcmc.set$meta)) {
-		country.obj <- get.country.object(country, pred$mcmc.set$meta, index=TRUE)
-		this.mig <- mig.rates[country.obj$index,1:lmig]
-		this.result1 <- cbind(
-				country.name=rep(country.obj$name, nr.var), 
-				country.code=rep(country.obj$code, nr.var),
-				variant=friendly.variant.names)
-		median <- get.median.from.prediction(pred, country.obj$index)
-		proj.result <- rbind(median, 
-							   get.traj.quantiles(pred, country.obj$index, country.obj$code, pi=80),
-							   get.traj.quantiles(pred, country.obj$index, country.obj$code, pi=95))
-		proj.result <- round(rbind(proj.result,
-							   		rep(median[1], nr.proj)), 4)
-		colnames(proj.result) <- grep('year', names(header1), value=TRUE)
-		this.result1 <- cbind(this.result1, proj.result)
-		result1 <- rbind(result1, this.result1)
-	}
-	colnames(result1)[colnames(result1)==names(header1)] <- header1
-	file1 <- paste('projection_summary_user_friendly', '.csv', sep='')
-	write.table(result1, file=file.path(output.dir, file1), sep=',', 
-				row.names=FALSE, col.names=TRUE)
-	cat('Projection summaries stored into: \n\t\t', 
-			file.path(output.dir, file1), '\n\t\t')
 }
 
 get.estimation.years <- function(meta)
@@ -361,60 +283,3 @@ get.data.for.country.imputed.bayesMig.prediction <- function(pred, country.index
     return(get.data.matrix(pred$mcmc.set$meta)[, country.index])
 
 
-do.convert.trajectories <- function(pred, n, output.dir, countries=NULL, verbose=FALSE) {
-  # Converts all trajectory rda files into UN ascii, selecting n trajectories by equal spacing.
-  if(n==0) return(NULL)
-  nr.simu <- pred$nr.traj
-  has.na <- rep(FALSE, nr.simu)
-  #has.na[pred$na.index] <- TRUE#JA: No NA's
-  if (n=='all') n <- nr.simu
-  selected.traj <- get.thinning.index(n, nr.simu)
-  is.selected <- rep(FALSE, nr.simu)
-  is.selected[selected.traj$index] <- TRUE
-  
-  index <- (1:nr.simu)[is.selected]
-  country.codes <- country.names <- c()
-  result.wide <- c()
-  header <- get.traj.ascii.header(pred$mcmc.set$meta)
-  convert.countries <- if(is.null(countries)) pred$mcmc.set$meta$regions$country_code else countries
-  lcountries <- length(convert.countries)
-  if(verbose && interactive()) cat('\n')
-  for (icountry in 1:lcountries) {
-    country <- convert.countries[icountry]
-    country.obj <- get.country.object(country, pred$mcmc.set$meta)
-    if(verbose) {
-      if(interactive()) cat('\rConverting trajectories ... ', round(icountry/lcountries * 100), ' %')
-      else cat('Converting trajectories for', country.obj$name, '(code', country.obj$code, '),', round(icountry/lcountries * 100), '% processed\n')
-    }
-    trajectories <- get.trajectories(pred, country.obj$code)$trajectories
-    if (is.null(trajectories)) {
-      warning('No trajectories for ', country.obj$name, ' (code ', country.obj$code, ')')
-    } else {
-      append <- length(country.codes) > 0
-      country.codes <- c(country.codes, country.obj$code)
-      country.names <- c(country.names, country.obj$name)			
-      result <- store.traj.ascii(trajectories, n, output.dir, country.obj$code, 
-                                 pred$mcmc.set$meta, index=index, append=append, present.index=pred$present.year.index)
-      if(!append) {
-        result.wide <- result[,2:5]
-      } else {
-        result.wide <- cbind(result.wide, result[,header$mig])
-      }
-    }
-  }
-  if(verbose && interactive()) cat('\n')
-  # order result.wide by country name
-  o <- order(country.names)
-  result.wide[,4:ncol(result.wide)] <- result.wide[,3+o]
-  # write transposed version
-  file.wide <- file.path(output.dir, 'ascii_trajectories_wide.csv')
-  colnames(result.wide) <- c('Period', 'Year', 'Trajectory', country.names[o])
-  write.table(rbind(c(' ', ' ', 'LocID', country.codes[o]), colnames(result.wide)), 
-              file=file.wide, sep=',', 
-              quote=TRUE, row.names=FALSE, col.names=FALSE)
-  write.table(result.wide, file=file.wide, sep=',', 
-              quote=FALSE, row.names=FALSE, col.names=FALSE, append=TRUE)
-  
-  if(verbose) cat('Number of trajectories stored for each country:', length(index), '\n')
-  cat('Converted trajectories stored into', file.path(output.dir, 'ascii_trajectories(_wide).csv'), '\n')
-}
