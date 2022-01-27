@@ -20,13 +20,13 @@
 #' @return An object of class \code{bayesMig.mcmc.set} containing the sampled posterior parameter values
 #' @examples
 #' run.mig.mcmc(nr.chains=2, iter=30, thin=1)
-run.mig.mcmc <- function(nr.chains=3, iter=1000, output.dir=file.path(getwd(), 'bayesMig.output'), 
+run.mig.mcmc <- function(nr.chains=3, iter=50000, output.dir=file.path(getwd(), 'bayesMig.output'), 
                          thin=1, replace.output=FALSE, 
-                         # meta parameters
                          start.year = 1950, present.year=2020, wpp.year=2019, my.mig.file = NULL,
                          # starting values and ranges for truncations
-                         sigma.c.min = 0.0001, a.up = 10, a.ini = NULL, a.half.width = 0.4,
+                         sigma.c.min = 0.0001, a.up = 10, a.ini = NULL, a.half.width = 0.3,
                          mu.range = c(-0.5, 0.5), sigma.mu.range = c(0, 0.5), mu.ini = NULL,
+                         # other settings
                          seed = NULL, parallel=FALSE, nr.nodes=nr.chains, 
                          buffer.size = 1000, verbose=TRUE, verbose.iter=10, ...){
   
