@@ -1,6 +1,6 @@
 Package: bayesMig
-Version: 0.0-1
-Date: 2018-07-05
+Version: 0.1-0
+Date: 2022-01-27
 Title: Bayesian Projection of Migration
 Author: Jon Azose <jonazose@uw.edu>
 Maintainer: Jon Azose <jonazose@uw.edu>

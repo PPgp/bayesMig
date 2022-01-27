@@ -20,7 +20,7 @@
 #' 
 
 get.mig.mcmc <- function(sim.dir=file.path(getwd(), 'bayesMig.output'), chain.ids=NULL,
-                         burnin=0, verbose=FALSE) {
+                         burnin=0, verbose=FALSE, ...) {
   ############
   # Returns an object of class bayesMig.mcmc.set
   ############
@@ -106,6 +106,25 @@ has.mig.mcmc <- function(sim.dir) {
 }
 
 
+get.mig.convergence.all <- function(sim.dir=file.path(getwd(), 'bayesMig.output')) {
+  return(bayesTFR:::.do.get.convergence.all('mig', 'bayesMig', sim.dir=sim.dir))
+}
+
+get.mig.convergence <- function(sim.dir=file.path(getwd(), 'bayesMig.output'), 
+                               thin=225, burnin=10000) {
+  file.name <- file.path(sim.dir, 'diagnostics', paste('bayesMig.convergence_', 
+                                                       thin, '_', burnin, '.rda', sep=''))
+  if(!file.exists(file.name)){
+    warning('Convergence diagnostics in ', sim.dir, ' for burnin=', burnin, 
+            ' and thin=', thin, ' does not exist.')
+    return(NULL)
+  }
+  bayesMig.convergence <- local({load(file.name)
+                                  bayesMig.convergence})
+  return(bayesMig.convergence)
+}
+
+
 get.thinned.burnin <- function(mcmc, burnin) {
   if (burnin==0) return(0)
   if (mcmc$thin == 1) return(burnin)
@@ -129,10 +148,6 @@ load.mig.parameter.traces.all <- function(mcmc, par.names=mig.parameter.names(),
   return (result)
 }
 
-"get.countries.index" <- function(meta, ...) UseMethod("get.countries.index")
-
-get.countries.index.bayesMig.mcmc.meta  <- function(meta, ...) 
-  return (meta$countryIndices)
 
 mig.parameter.names <- function() {
   # Return all country-independent parameter names. 
@@ -599,6 +614,9 @@ print.summary.bayesMig.prediction <- function(x, digits = 3, ...) {
   }
 }
 
+summary.bayesMig.convergence <- function(object, expand=FALSE, ...) {
+  return(bayesTFR:::summary.bayesTFR.convergence(object, expand=expand, ...))
+}
 
 get.nr.countries.bayesMig.mcmc.meta <- function(meta, ...) 
   return(meta$nr.countries)
@@ -610,6 +628,8 @@ country.names.bayesMig.mcmc.meta <- function(meta) {
   #JA: This assumes we produce projections for all listed countries.
   return(meta$fullCountryNameVec)
 }
+get.countries.index.bayesMig.mcmc.meta  <- function(meta, ...) 
+  return (meta$countryIndices)
 
 get.countries.table.bayesMig.mcmc.set <- function(object, ...) 
   return(bayesTFR:::get.countries.table.bayesTFR.mcmc.set(object,...))

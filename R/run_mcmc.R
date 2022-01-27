@@ -28,7 +28,7 @@ run.mig.mcmc <- function(nr.chains=3, iter=1000, output.dir=file.path(getwd(), '
                          sigma.c.min = 0.0001, a.up = 10, a.ini = NULL, a.half.width = 0.4,
                          mu.range = c(-0.5, 0.5), sigma.mu.range = c(0, 0.5), mu.ini = NULL,
                          seed = NULL, parallel=FALSE, nr.nodes=nr.chains, 
-                         verbose=TRUE, verbose.iter=10, ...){
+                         buffer.size = 1000, verbose=TRUE, verbose.iter=10, ...){
   
   if(file.exists(output.dir)) {
     if(length(list.files(output.dir)) > 0 & !replace.output)
@@ -63,10 +63,11 @@ run.mig.mcmc <- function(nr.chains=3, iter=1000, output.dir=file.path(getwd(), '
   
   bayesMig.mcmc.meta <- mcmc.meta.ini(output.dir=output.dir, wpp.year = wpp.year,
                                       start.year=start.year, present.year = present.year, 
-                                      my.mig.file = my.mig.file,
+                                      my.mig.file = my.mig.file, 
                                      sigma.c.min = sigma.c.min, a.up = a.up,
                                      mu.range = mu.range, sigma.mu.range = sigma.mu.range,
-                                     mu.ini = mu.ini, a.ini = a.ini, a.half.width = a.half.width)
+                                     mu.ini = mu.ini, a.ini = a.ini, a.half.width = a.half.width,
+                                     buffer.size = buffer.size)
   #cat(bayesMig.mcmc.meta$mig.rates)
   
   #Storage  

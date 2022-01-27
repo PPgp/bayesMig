@@ -283,3 +283,6 @@ get.data.for.country.imputed.bayesMig.prediction <- function(pred, country.index
     return(get.data.matrix(pred$mcmc.set$meta)[, country.index])
 
 
+mig.counts <- function(pred, my.pop.file = NULL) {
+    if(!is.null(my.pop.file)){}
+}

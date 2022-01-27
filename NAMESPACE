@@ -23,7 +23,13 @@ export(
 	get.mig.parameter.traces,
     get.mig.parameter.traces.cs,
 	mig.parameter.names,
-    mig.parameter.names.cs
+    mig.parameter.names.cs,
+	mig.diagnose,
+	mig.raftery.diag,
+	store.bayesMig.convergence,
+    store.bayesMig.prediction,
+	get.mig.convergence.all,
+    get.mig.convergence
 )
 
 S3method(get.mcmc.list, bayesMig.mcmc.set)
@@ -45,7 +51,7 @@ S3method(summary, bayesMig.mcmc.set)
 S3method(summary, bayesMig.mcmc.meta)
 S3method(summary, bayesMig.mcmc)
 S3method(summary, bayesMig.prediction)
-#S3method(summary, bayesMig.convergence)
+S3method(summary, bayesMig.convergence)
 
 S3method(print, bayesMig.mcmc)
 S3method(print, bayesMig.mcmc.set)
@@ -58,6 +64,7 @@ S3method(print, summary.bayesMig.mcmc)
 
 S3method(get.nr.countries, bayesMig.mcmc.meta)
 S3method(get.nrest.countries, bayesMig.mcmc.meta)
+S3method(get.countries.index, bayesMig.mcmc.meta)
 
 S3method(bdem.parameter.traces, bayesMig.mcmc)
 S3method(get.traj.ascii.header, bayesMig.mcmc.meta)

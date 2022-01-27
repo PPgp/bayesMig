@@ -150,7 +150,8 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     a.upper=meta$a.up,
     mu.ini = meta$mu.ini,
     a.ini = meta$a.ini, 
-    a.half.width = meta$a.half.width
+    a.half.width = meta$a.half.width,
+    buffer.size = meta$buffer.size
   ))
   
 }
