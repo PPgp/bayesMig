@@ -18,6 +18,7 @@
 #' @param burnin Burn-in used for loading traces.
 #' @param verbose Logical value. Switches log messages on and off.
 #' 
+#' @export
 
 get.mig.mcmc <- function(sim.dir=file.path(getwd(), 'bayesMig.output'), chain.ids=NULL,
                          burnin=0, verbose=FALSE, ...) {
@@ -68,6 +69,7 @@ get.mig.mcmc <- function(sim.dir=file.path(getwd(), 'bayesMig.output'), chain.id
                         mcmc.list=mcmc.chains), class='bayesMig.mcmc.set'))
 }
 
+#' @export
 get.mig.prediction <- function(mcmc=NULL, sim.dir=NULL, mcmc.dir=NULL) {
   ############
   # Returns an object of class bayesMig.prediction
@@ -101,15 +103,17 @@ get.mig.prediction <- function(mcmc=NULL, sim.dir=NULL, mcmc.dir=NULL) {
   return(pred)
 }
 
+#' @export
 has.mig.mcmc <- function(sim.dir) {
   return(file.exists(file.path(sim.dir, 'bayesMig.mcmc.meta.rda')))
 }
 
-
+#' @export
 get.mig.convergence.all <- function(sim.dir=file.path(getwd(), 'bayesMig.output')) {
   return(bayesTFR:::.do.get.convergence.all('mig', 'bayesMig', sim.dir=sim.dir))
 }
 
+#' @export
 get.mig.convergence <- function(sim.dir=file.path(getwd(), 'bayesMig.output'), 
                                thin=225, burnin=10000) {
   file.name <- file.path(sim.dir, 'diagnostics', paste('bayesMig.convergence_', 
@@ -148,12 +152,13 @@ load.mig.parameter.traces.all <- function(mcmc, par.names=mig.parameter.names(),
   return (result)
 }
 
-
+#' @export
 mig.parameter.names <- function() {
   # Return all country-independent parameter names. 
   return(c("a","b","mu_global","sigma2_mu"))
 }
 
+#' @export
 mig.parameter.names.cs <- function(country.code=NULL) {
   #Return all country-specific parameter names. 
   #If country is not NULL, it must be a country code.
@@ -177,13 +182,14 @@ load.mig.parameter.traces.cs <- function(mcmc, country, par.names=NULL, burnin=0
                                burnin=burnin, thinning.index=thinning.index))
 }
 
+#' @export
 bdem.parameter.traces.bayesMig.mcmc <- function(mcmc, par.names, ...) {
   # Load traces from the disk
   all.standard.names <- c(mig.parameter.names(), mig.parameter.names.cs())
   return(bayesTFR:::.do.get.traces(mcmc, par.names=par.names, ..., all.standard.names = all.standard.names))
 }
 
-
+#' @export
 coda.mcmc.bayesMig.mcmc <- function(mcmc, country=NULL, par.names=NULL, 
                                     par.names.cs=NULL, burnin=0, thin=1, ...
                                     ) {
@@ -192,6 +198,28 @@ coda.mcmc.bayesMig.mcmc <- function(mcmc, country=NULL, par.names=NULL,
   return(bayesTFR:::coda.mcmc.bayesTFR.mcmc(mcmc, country = country, par.names = par.names, 
                                             par.names.cs = par.names.cs, ...))
 }
+
+#' Conversion to coda-formatted objects
+#' 
+#' 
+#' @param mcmc A list of objects of class \code{bayesMig.mcmc}. If \code{NULL}, the MCMCs are
+#' loaded from \code{sim.dir}. Either \code{mcmc} or \code{sim.dir} must be given.
+#' @param country Country name or code. Used in connection with the \code{par.names.cs} argument
+#' (see below)
+#' @param chain.ids Vector of chain identifiers. By default, all chains available in the \code{mcmc.list}
+#' object are included
+#' @param sim.dir Directory with the MCMC simulation results. Only used if \code{mcmc} is \code{NULL}
+#' @param par.names Names of country-independent parameters to be included. Default names are
+#' those returned by the \code{mig.parameter.names} function, which includes all country-independent
+#' parameters in the BHM.
+#' @param par.names.cs Names of country-specific parameters to be included. The argument \code{country}
+#' is used to filter out traces that correspond to a specific country. If \code{country} is not given, 
+#' traces of each parameter are given for all countries. Default names are those returned by 
+#' \code{mig.parameter.names.cs()}, which includes all country-specific parameters in the BHM.
+#' @param rm.const.pars Logical indicating if parameters with constant values should be removed.
+#' @param burnin Number of iterations that should be removed from the beginning of each chain.
+#' @param ... Other variables passed to called functions
+#' @export
 
 mig.coda.list.mcmc <- function(mcmc.list = NULL, country = NULL, chain.ids = NULL,
                               sim.dir = file.path(getwd(), 'bayesMig.output'), 
@@ -260,92 +288,13 @@ get.burned.mig.traces <- function(mcmc, par.names, burnin=0, thinning.index=NULL
   return(traces)
 }
 
-#' Conversion to coda-formatted objects
-#' 
-#' @usage coda.list.mcmc(mcmc=NULL, country=NULL, chain.ids=NULL, 
-#' sim.dir=file.path(getwd(), 'bayesMig.output'),
-#' par.names=mig.parameter.names(), 
-#' par.names.cs=mig.parameter.names.cs(), 
-#' rm.const.pars=FALSE, burnin=0, ...)
-#' 
-#' @param mcmc A list of objects of class \code{bayesMig.mcmc}. If \code{NULL}, the MCMCs are
-#' loaded from \code{sim.dir}. Either \code{mcmc} or \code{sim.dir} must be given.
-#' @param country Country name or code. Used in connection with the \code{par.names.cs} argument
-#' (see below)
-#' @param chain.ids Vector of chain identifiers. By default, all chains available in the \code{mcmc.list}
-#' object are included
-#' @param sim.dir Directory with the MCMC simulation results. Only used if \code{mcmc} is \code{NULL}
-#' @param par.names Names of country-independent parameters to be included. Default names are
-#' those returned by the \code{mig.parameter.names} function, which includes all country-independent
-#' parameters in the BHM.
-#' @param par.names.cs Names of country-specific parameters to be included. The argument \code{country}
-#' is used to filter out traces that correspond to a specific country. If \code{country} is not given, 
-#' traces of each parameter are given for all countries. Default names are those returned by 
-#' \code{mig.parameter.names.cs()}, which includes all country-specific parameters in the BHM.
-#' @param rm.const.pars Logical indicating if parameters with constant values should be removed.
-#' @param burnin Number of iterations that should be removed from the beginning of each chain.
-#' @param ... Other variables passed to called functions
-
-coda.list.mcmc <- function(mcmc=NULL, country=NULL, chain.ids=NULL,
-                           sim.dir=file.path(getwd(), 'bayesMig.output'), 
-                           par.names=mig.parameter.names(), 
-                           par.names.cs=mig.parameter.names.cs(), 
-                           rm.const.pars=FALSE,
-                           burnin=0, 
-                           ...) {
-  # return a list of mcmc objects that can be analyzed using the coda package
-  mcmc.list <- mcmc
-  if (is.null(mcmc.list)) {
-    mcmc.list <- get.mig.mcmc(sim.dir, chain.ids=chain.ids, burnin=burnin)$mcmc.list
-  } else {
-    mcmc.list <- get.mcmc.list(mcmc.list)
-    if (!is.null(chain.ids)) {
-      mcmc.list <- mcmc.list[chain.ids]
-    }
-  }
-  result <- list()
-  i <- 1
-  for(mc in mcmc.list) {
-    result[[i]] <- coda.mcmc(mc, country=country, par.names=par.names, par.names.cs=par.names.cs,
-                             burnin=burnin, ...)
-    
-    #########EDIT
-    if (rm.const.pars) {
-      # remove parameters that are constant for all iterations
-      if (is.null(dim(result[[i]]))) { # one parameter in the chain
-        if(all(result[[i]]==result[[i]][1]))  { # no parameters are kept
-          result[[i]] <- NULL
-          i <- i - 1
-        }
-      } else { # multiple parameters in the chain
-        if (dim(result[[i]])[2]==1) {
-          colindex <- !all(result[[i]][,1] == result[[i]][1,1])
-        } else {
-          colindex <- !apply(t(apply(result[[i]], 1, '==', result[[i]][1,])), 2, all)
-        }
-        if (sum(colindex) == 0) { # no parameters are kept
-          result[[i]] <- NULL
-          i <- i - 1
-        } else {
-          result[[i]] <- result[[i]][,colindex]
-        }
-      }
-    }
-    i <- i+1
-  }
-  return(mcmc.list(result))
-}
-
+#' @export
 get.mcmc.list.bayesMig.mcmc.set <- function(mcmc.list, ...) return(mcmc.list$mcmc.list)
+#' @export
 get.mcmc.list.bayesMig.mcmc <- function(mcmc.list, ...) return(list(mcmc.list))
+#' @export
 get.mcmc.list.bayesMig.prediction <- function(mcmc.list, ...) return(mcmc.list$mcmc.set$mcmc.list)
 
-
-get.total.iterations <- function(mcmc.list, burnin=0) {
-  # Return total number of iterations sum-up over chains after discarding burnin in each chain
-  get.iter <- function(x) return(x$finished.iter - burnin)
-  return(sum(sapply(mcmc.list, get.iter)))
-}
 
 get.thinned.mig.mcmc <- function(mcmc.set, thin=1, burnin=0) {
   dir.name <- file.path(mcmc.set$meta$output.dir, paste('thinned_mcmc', thin, burnin, sep='_'))
@@ -353,14 +302,7 @@ get.thinned.mig.mcmc <- function(mcmc.set, thin=1, burnin=0) {
   return(NULL)
 }
 
-get.stored.mcmc.length <- function(mcmc.list, burnin=0) {
-  # Return total number of iterations sum-up over chains after discarding burnin in each chain,
-  # taking into account the original value of thin.
-  # It should correspond to the total length of all chains stored on disk, minus burnin.
-  get.iter <- function(x) return(x$length - get.thinned.burnin(x, burnin))
-  return(sum(sapply(mcmc.list, get.iter)))
-}
-
+#' @export
 has.mig.prediction <- function(mcmc=NULL, sim.dir=NULL) {
   if (!is.null(mcmc)) sim.dir <- if(is.character(mcmc)) mcmc else mcmc$meta$output.dir
   if (is.null(sim.dir)) stop('Either mcmc or directory must be given.')
@@ -369,7 +311,7 @@ has.mig.prediction <- function(mcmc=NULL, sim.dir=NULL) {
 }
 
 
-
+#' @export
 get.mig.parameter.traces <- function(mcmc.list, par.names=NULL, 
                                      burnin=0, thinning.index=NULL, thin=NULL) {
   # get parameter traces either from disk or from memory, if they were already loaded
@@ -379,6 +321,7 @@ get.mig.parameter.traces <- function(mcmc.list, par.names=NULL,
                                      burnin=burnin, thinning.index=thinning.index, thin=thin))
 }
 
+#' @export
 get.mig.parameter.traces.cs <- function(mcmc.list, country.obj, par.names=NULL, 
                                         burnin=0, thinning.index=NULL, thin=NULL) {
   # country.obj is result of get.country.object()
@@ -455,40 +398,8 @@ create.thinned.mig.mcmc <- function(mcmc.set, thin=1, burnin=0, output.dir=NULL,
   invisible(structure(list(meta=meta, mcmc.list=list(thinned.mcmc)), class='bayesMig.mcmc.set'))
 }
 
-# .update.thinned.extras <- function (mcmc.set, country.index, burnin, nr.points, dir, verbose=TRUE) {
-#   if(verbose) cat('done.\nStoring country-specific parameters for extra countries ...')
-#   # thin mcmc for extra countries (they can have different length than the other countries)
-#   par.names.cs <- mig.parameter.names.cs()
-#   for (country in country.index){
-#     country.obj <- get.country.object(country, mcmc.set$meta, index=TRUE)
-#     for (par in par.names.cs) {
-#       values <- get.mig.parameter.traces.cs(mcmc.set$mcmc.list, country.obj, par, 
-#                                             burnin=burnin)
-#       selected.simu <- get.thinning.index(nr.points, dim(values)[1])
-#       if (length(selected.simu$index) < nr.points)
-#         selected.simu$index <- sample(selected.simu$index, nr.points, replace=TRUE)
-#       values <- values[selected.simu$index,]
-#       write.values.into.file.cdep(par, values, dir, country.code=country.obj$code, 
-#                                   compression.type='None')
-#     }
-#   }
-#   if(verbose) cat('done.\n')
-# }
 
-# get.thinning.index <- function(nr.points, all.points) {
-#   if (!is.null(nr.points)) {
-#     nr.points <- ifelse(nr.points >= all.points, all.points, nr.points)
-#   } else {
-#     nr.points <- all.points
-#   }
-#   if (nr.points > 0) {
-#     step <- all.points/nr.points
-#     idx <- floor(seq(floor(step), all.points, by=step))
-#   } else idx<-NULL
-#   return(list(nr.points=nr.points, index=idx))
-# }
-
-
+#' @export
 summary.bayesMig.mcmc <- function(object, country = NULL, 
                                    par.names = NULL, par.names.cs = NULL, thin = 1, burnin = 0, ...) {
   res <- list()
@@ -506,6 +417,7 @@ summary.bayesMig.mcmc <- function(object, country = NULL,
   return(res)
 }
 
+#' @export
 summary.bayesMig.mcmc.set <- function(object, country=NULL, chain.id=NULL, 
                                        par.names = NULL, 
                                        par.names.cs = NULL, 
@@ -537,6 +449,7 @@ summary.bayesMig.mcmc.set <- function(object, country=NULL, chain.id=NULL,
   return(res)
 }
 
+#' @export
 summary.bayesMig.mcmc.meta <- function(object, ...) {
   res <- list(est.period = paste(object$start.year, object$present.year, sep = '-'),
               nr.countries = object$nr.countries,
@@ -547,6 +460,7 @@ summary.bayesMig.mcmc.meta <- function(object, ...) {
   return(res)
 }
 
+#' @export
 print.summary.bayesMig.mcmc.meta <- function(x, ...) {
   cat('\nNumber of countries:', x$nr.countries)
   cat('\nData source:', x$data.source, x$wpp.year)
@@ -554,6 +468,7 @@ print.summary.bayesMig.mcmc.meta <- function(x, ...) {
   cat('\n')
 }
 
+#' @export
 print.summary.bayesMig.mcmc.set <- function(x, ...) {
   print(x$meta)
   if(!is.null(x$chain.info)) bayesTFR:::print.summary.chain.info(x$chain.info)
@@ -566,10 +481,12 @@ print.summary.bayesMig.mcmc.set <- function(x, ...) {
   if(!is.null(x$results)) print(x$results)
 }
 
+#' @export
 print.bayesMig.mcmc <- function(x, ...) {
   print(summary(x, ...))
 }
 
+#' @export
 print.summary.bayesMig.mcmc <- function(x, ...) {
   if(!is.null(x$country.name)){
     cat('\nCountry:', x$country.name, '\n')
@@ -580,18 +497,22 @@ print.summary.bayesMig.mcmc <- function(x, ...) {
     print(x$results)
 }
 
+#' @export
 print.bayesMig.mcmc.set <- function(x, ...) {
   print(summary(x, ...))
 }
 
+#' @export
 print.bayesMig.mcmc.meta <- function(x, ...) {
   print(summary(x, ...))
 }
 
+#' @export
 print.bayesMig.prediction <- function(x, ...) {
   print(summary(x, ...))
 }
 
+#' @export
 summary.bayesMig.prediction <- function(object, country = NULL, compact = TRUE, ...) {
   res <- bayesTFR:::get.prediction.summary.data(object, 
                                                 unchanged.pars=c('burnin', 'nr.traj'), 
@@ -600,6 +521,7 @@ summary.bayesMig.prediction <- function(object, country = NULL, compact = TRUE, 
   return(bayesTFR:::.update.summary.data.by.shift(res, object, country))
 }
 
+#' @export
 print.summary.bayesMig.prediction <- function(x, digits = 3, ...) {
   cat('\nProjections:', length(x$projection.years), '(', x$projection.years[1], '-', 
       x$projection.years[length(x$projection.years)], ')')
@@ -614,59 +536,52 @@ print.summary.bayesMig.prediction <- function(x, digits = 3, ...) {
   }
 }
 
+#' @export
 summary.bayesMig.convergence <- function(object, expand=FALSE, ...) {
   return(bayesTFR:::summary.bayesTFR.convergence(object, expand=expand, ...))
 }
 
+#' @export
 get.nr.countries.bayesMig.mcmc.meta <- function(meta, ...) 
   return(meta$nr.countries)
 
+#' @export
 get.nrest.countries.bayesMig.mcmc.meta <- function(meta, ...) 
   return(meta$nr.countries)
 
+#' @export
 country.names.bayesMig.mcmc.meta <- function(meta) {
   #JA: This assumes we produce projections for all listed countries.
   return(meta$fullCountryNameVec)
 }
+
+#' @export
 get.countries.index.bayesMig.mcmc.meta  <- function(meta, ...) 
   return (meta$countryIndices)
 
+#' @export
 get.countries.table.bayesMig.mcmc.set <- function(object, ...) 
   return(bayesTFR:::get.countries.table.bayesTFR.mcmc.set(object,...))
+
+#' @export
 get.countries.table.bayesMig.prediction <- function(object, ...) 
   return(bayesTFR:::get.countries.table.bayesTFR.prediction(object,...))
 
+#' @export
 get.data.matrix.bayesMig.mcmc.meta <- function(meta, ...) return (t(meta$mig.rates))
 
+#' @export
 get.mcmc.meta.bayesMig.mcmc.set <- function(meta, ...) return(meta$meta)
+
+#' @export
 get.mcmc.meta.bayesMig.mcmc.meta <- function(meta, ...) return(meta)
+
+#' @export
 get.mcmc.meta.bayesMig.mcmc <- function(meta, ...) return(meta$meta)
+
+#' @export
 get.mcmc.meta.list <- function(meta, ...) return(meta[[1]]$meta)
+
+#' @export
 get.mcmc.meta.bayesMig.prediction <- function(meta, ...) return(meta$mcmc.set$meta)
 
-
-
-#########
-#Test code!
-#########
-
-#load("./bayesMig.output/bayesMig.mcmc.meta.rda")
-#load("./bayesMig.output/mc1/bayesMig.mcmc.rda")
-#mc <- c(bayesMig.mcmc, list(meta=bayesMig.mcmc.meta))
-#class(mc) <- class(bayesMig.mcmc)
-#result=load.mig.parameter.traces.all(mc)
-
-#mcmc=get.mig.mcmc()
-#result=load.mig.parameter.traces.all(mcmc[[1]])
-
-#o=get.mig.mcmc(verbose=TRUE)
-
-#o=coda.list.mcmc()#Grabs from default directory.
-
-# do.get.mig.parameter.traces(is.cs=TRUE, mcmc.list=mcmc.set$mcmc.list, par.names=c("mu_c","phi_c"), 
-#                             country.obj=get.country.object(1,meta=mcmc$meta,index=TRUE), 
-#                                         burnin=0, thinning.index=NULL, thin=NULL)
-# 
-# load.mig.parameter.traces.cs(mcmc=load.mcmc.set$mcmc.list[[1]],
-#                              country=4,
-#                              par.names=c("mu_c","phi_c"))

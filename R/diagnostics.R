@@ -2,6 +2,7 @@
 #MIGRATION
 ###############
 
+#' @export
 mig.raftery.diag <- function(mcmc=NULL, 
                              sim.dir=file.path(getwd(), 'bayesMig.output'),
                              burnin=0, country=NULL,
@@ -41,6 +42,7 @@ mig.raftery.diag <- function(mcmc=NULL,
 #' \dontrun{
 #' mig.diagnose(sim.dir='./bayesMig.output', burnin=100, thin=1)
 #' }
+#' @export
 
 mig.diagnose <- function(sim.dir, thin=80, burnin=2000, express=FALSE, 
                          country.sampling.prop=NULL, keep.thin.mcmc=FALSE, verbose=TRUE) {
@@ -49,22 +51,3 @@ mig.diagnose <- function(sim.dir, thin=80, burnin=2000, express=FALSE,
                          country.sampling.prop=country.sampling.prop, keep.thin.mcmc=keep.thin.mcmc,	verbose=verbose))
 }
 
-
-#########
-#Test code
-#########
-
-#source("mcmc_ini.R")
-#source("mcmc_update.R")
-#source("mcmc_sampling.R")
-#source("mcmc_storage.R")
-#source("get_outputs.R")
-
-#o=mig.raftery.diag(sim.dir=file.path(getwd(),'bayesMig.diagnosis'))
-
-#Test. Something's going wrong with Montserrat because all of its parameters are constant.
-#mcmc.set=get.mig.mcmc(sim.dir='bayesMig.output')
-#get.country.object(175, mcmc.set$meta, index=TRUE)#Montserrat's code is 500.
-#coda.mc.cs = coda.list.mcmc(mcmc.set, country=500, rm.const.pars=TRUE,
-#                            par.names=NULL, par.names.cs=mig.parameter.names.cs(),
-#                            burnin=0)

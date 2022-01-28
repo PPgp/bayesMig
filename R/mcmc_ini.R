@@ -219,24 +219,3 @@ mig.parameter.names.cs <- function(){
   return(c("mu_c","phi_c","sigma2_c"))
 }
 
-###############
-#Test code goes here.
-###############
-
-#mcmc.meta=mcmc.meta.ini()
-#mcmc=mcmc.ini(mcmc.meta)
-#names(mcmc$meta)
-#names(mcmc)
-#mcenv=as.environment(mcmc)
-
-
-#Write example migration file based on wpp2015 data.
-# d=data.frame(country=fullCountryNameVec,
-#              country_code=fullCountryCodeVec,
-#              mig.rates)
-# colnames(d)=c("country","country_code",
-#               "1950-1955","1955-1960","1960-1965","1965-1970",
-#               "1970-1975","1975-1980","1980-1985","1985-1990",
-#               "1990-1995","1995-2000","2000-2005","2005-2010",
-#               "2010-2015")
-# write.table(d,"my_mig_example.txt",sep="\t",row.names=FALSE)

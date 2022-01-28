@@ -4,27 +4,49 @@
 \alias{run.mig.mcmc}
 \title{Run Markov chain Monte Carlo for parameters of net migration rate model}
 \usage{
-run.mig.mcmc(nr.chains = 3, iter = 1000, thin = 1, verbose = TRUE,
-  verbose.iter = 10, output.dir = file.path(getwd(), "bayesMig.output"),
-  replace.output = FALSE, parallel = FALSE, ...)
+run.mig.mcmc(
+  nr.chains = 3,
+  iter = 50000,
+  output.dir = file.path(getwd(), "bayesMig.output"),
+  thin = 1,
+  replace.output = FALSE,
+  start.year = 1950,
+  present.year = 2020,
+  wpp.year = 2019,
+  my.mig.file = NULL,
+  sigma.c.min = 1e-04,
+  a.up = 10,
+  a.ini = NULL,
+  a.half.width = 0.3,
+  mu.range = c(-0.5, 0.5),
+  sigma.mu.range = c(0, 0.5),
+  mu.ini = NULL,
+  seed = NULL,
+  parallel = FALSE,
+  nr.nodes = nr.chains,
+  buffer.size = 1000,
+  verbose = TRUE,
+  verbose.iter = 10,
+  ...
+)
 }
 \arguments{
 \item{nr.chains}{An integer number of independent Markov chains to run.}
 
 \item{iter}{The number of iterations to run per Markov chain.}
 
+\item{output.dir}{A file path pointing to the directory in which to store results.}
+
 \item{thin}{Thinning interval -- A chain with 1000 iterations thinned by 20 will return a 
 final count of 50 iterations.}
-
-\item{verbose}{Whether or not to print status updates to console window while code is running.}
-
-\item{verbose.iter}{If verbose is TRUE, the number of iterations to wait between printing updates.}
-
-\item{output.dir}{A file path pointing to the directory in which to store results.}
 
 \item{replace.output}{If the specified output directory already exists, should it be overwritten?}
 
 \item{parallel}{(NOT CURRENTLY IMPLEMENTED) Whether to run code in parallel, if available.}
+
+\item{verbose}{Whether or not to print status updates to console window while code is running.}
+
+\item{verbose.iter}{If verbose is TRUE, the number of iterations to wait between printing updates.}
 
 \item{...}{Other arguments passed to \code{\link{run.mig.mcmc}}}
 }

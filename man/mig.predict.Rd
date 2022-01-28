@@ -4,10 +4,21 @@
 \alias{mig.predict}
 \title{Generate posterior trajectories of net migration rates}
 \usage{
-mig.predict(mcmc.set = NULL, end.year = 2100, sim.dir = file.path(getwd(),
-  "bayesMig.output"), replace.output = FALSE, start.year = NULL,
-  nr.traj = NULL, thin = NULL, burnin = 2000, save.as.ascii = 1000,
-  output.dir = NULL, seed = NULL, verbose = TRUE, ...)
+mig.predict(
+  mcmc.set = NULL,
+  end.year = 2100,
+  sim.dir = file.path(getwd(), "bayesMig.output"),
+  replace.output = FALSE,
+  start.year = NULL,
+  nr.traj = NULL,
+  thin = NULL,
+  burnin = 20000,
+  save.as.ascii = 1000,
+  output.dir = NULL,
+  seed = NULL,
+  verbose = TRUE,
+  ...
+)
 }
 \arguments{
 \item{mcmc.set}{Object of class \code{bayesMig.mcmc.set} corresponding to sampled

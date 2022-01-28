@@ -20,6 +20,7 @@
 #' @return An object of class \code{bayesMig.mcmc.set} containing the sampled posterior parameter values
 #' @examples
 #' run.mig.mcmc(nr.chains=2, iter=30, thin=1)
+#' @export
 run.mig.mcmc <- function(nr.chains=3, iter=50000, output.dir=file.path(getwd(), 'bayesMig.output'), 
                          thin=1, replace.output=FALSE, 
                          start.year = 1950, present.year=2020, wpp.year=2019, my.mig.file = NULL,
@@ -129,19 +130,3 @@ mcmc.run.chain=function(chain.id, meta, thin=1, iter=100,
   return(mcmc)
 }
 
-
-
-##############
-#Test code here
-##############
-
-#source("mcmc_ini.R")
-#source("mcmc_update.R")
-#source("mcmc_sampling.R")
-#source("mcmc_storage.R")
-#source("get_outputs.R")
-
-#Run some chains
-#run.mig.mcmc(replace.output=TRUE)
-#run.mig.mcmc(replace.output=TRUE, thin=10, iter=1000, verbose.iter=100,
-#             output.dir=file.path(getwd(), 'bayesMig.output'))

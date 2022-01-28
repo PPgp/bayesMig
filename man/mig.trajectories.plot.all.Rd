@@ -15,12 +15,12 @@ output.type="png", main=NULL, verbose=FALSE, ...)
 \item{output.type}{Type of the resulting plot files. Can be "png", "pdf", "jpeg", "bmp",
 "tiff", or "postscript"}
 
-\item{main}{Main title for the plots. Any occurrence of the string "XXX" is replaced by the
-name of the appropriate country.}
-
 \item{verbose}{Logical value. Switches log messages on and off.}
 
 \item{...}{Other variables passed to called functions}
+
+\item{main}{Main title for the plots. Any occurrence of the string "XXX" is replaced by the
+name of the appropriate country.}
 }
 \description{
 This function plots the posterior distribution of migration trajectories for all countries,

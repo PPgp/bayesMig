@@ -4,8 +4,15 @@
 \alias{mig.diagnose}
 \title{MCMC convergence diagnostics}
 \usage{
-mig.diagnose(sim.dir, thin = 80, burnin = 2000, express = FALSE,
-  country.sampling.prop = NULL, keep.thin.mcmc = FALSE, verbose = TRUE)
+mig.diagnose(
+  sim.dir,
+  thin = 80,
+  burnin = 2000,
+  express = FALSE,
+  country.sampling.prop = NULL,
+  keep.thin.mcmc = FALSE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{sim.dir}{Directory with MCMC simulation results.}

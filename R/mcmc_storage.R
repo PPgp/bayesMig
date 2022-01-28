@@ -128,6 +128,7 @@ store.bayesMig.meta.object <- function(meta, output.dir) {
   save(bayesMig.mcmc.meta, file=file.path(output.dir, 'bayesMig.mcmc.meta.rda'))
 }
 
+#' @export
 store.bayesMig.convergence <- function(diag, thin, burnin, output.dir){
   save.file <- file.path(output.dir, paste('bayesTFR.convergence_', thin, '_', burnin, '.rda', sep=''))
   bayesTFR.convergence <- diag
@@ -135,6 +136,7 @@ store.bayesMig.convergence <- function(diag, thin, burnin, output.dir){
   return(save.file)
 }
 
+#' @export
 store.bayesMig.prediction <- function(pred, output.dir=NULL) {
   bayesMig.prediction <- pred
   if (is.null(output.dir)) output.dir <- pred$output.directory

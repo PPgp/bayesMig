@@ -40,6 +40,7 @@
 #' 
 #' Other key result components include \code{traj.mean.sd}, a summary of means and standard deviations for each country
 #' at each time point.
+#' @export
 
 mig.predict <- function(mcmc.set=NULL, end.year=2100,
 						sim.dir=file.path(getwd(), 'bayesMig.output'),
@@ -247,10 +248,11 @@ remove.mig.traces <- function(mcmc.set) {
 	invisible(mcmc.set)
 }
 
+#' @export
 get.traj.ascii.header.bayesMig.mcmc.meta <- function(meta, ...) 
 	return (list(country_code='LocID', period='Period', year='Year', trajectory='Trajectory', tfr='Mig'))
 		
-
+#' @export
 mig.write.projection.summary <- function(pred, output.dir) {
 	# one summary file
 	#do.write.projection.summary(pred, output.dir)
@@ -260,13 +262,15 @@ mig.write.projection.summary <- function(pred, output.dir) {
 get.estimation.years <- function(meta)
   return(as.numeric(colnames(meta$mig.rates))+2.5)
 
-
+#' @export
 get.projection.summary.header.bayesMig.prediction <- function(pred, ...) 
   return (list(revision='RevID', variant='VarID', country='LocID', year='TimeID', indicator='IndicatorID', sex='SexID', tfr='Value'))
 
+#' @export
 get.friendly.variant.names.bayesMig.prediction <- function(pred, ...)
   return(c('median', 'lower 80', 'upper 80', 'lower 95', 'upper 95','constant'))
 
+#' @export
 get.UN.variant.names.bayesMig.prediction <- function(pred, ...) 
     return(c('BHM median', 'BHM80 lower',  'BHM80 upper', 'BHM95 lower',  'BHM95 upper', 'Zero migration'))
 
@@ -276,9 +280,11 @@ get.mig.periods <- function(meta) {
   return (paste(mid.years-2.5, mid.years+2.5, sep='-'))
 }
 
+#' @export
 get.data.imputed.bayesMig.prediction <- function(pred, ...)
     return(get.data.matrix(pred$mcmc.set$meta))
 
+#' @export
 get.data.for.country.imputed.bayesMig.prediction <- function(pred, country.index, ...)
     return(get.data.matrix(pred$mcmc.set$meta)[, country.index])
 

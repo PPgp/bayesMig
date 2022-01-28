@@ -4,7 +4,9 @@
 \name{countryCodeVec_bigCountries}
 \alias{countryCodeVec_bigCountries}
 \title{List of default country codes}
-\format{An object of class \code{numeric} of length 201.}
+\format{
+An object of class \code{numeric} of length 201.
+}
 \usage{
 countryCodeVec_bigCountries
 }

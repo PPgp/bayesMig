@@ -19,6 +19,7 @@
 #' name of the appropriate country.
 #' @param verbose Logical value. Switches log messages on and off.
 #' @param ... Other variables passed to called functions
+#' @export
 
 
 mig.trajectories.plot.all <- function(mig.pred, 
@@ -30,7 +31,7 @@ mig.trajectories.plot.all <- function(mig.pred,
                           file.prefix='Migplot', plot.type='Mig graph', verbose=verbose, mig.pred=mig.pred, ...)
 }
 
-
+#' @export
 mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95), 
                                   nr.traj=10,
                                   xlim=NULL, ylim=NULL, type='b', 
@@ -107,11 +108,12 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   }
 }
 
+#' @export
 mig.trajectories.table <- function(mig.pred, country, pi=c(80, 95), ...) {
   return(tfr.trajectories.table(mig.pred, country=country, pi=pi, half.child.variant = FALSE, ...))
 }
 
-
+#' @export
 mig.partraces.plot <- function(mcmc.list=NULL, sim.dir=file.path(getwd(), 'bayesMig.output'), 
                                chain.ids=NULL, par.names=mig.parameter.names(), 
                                nr.points=NULL, dev.ncol=2, ...) {
@@ -121,6 +123,7 @@ mig.partraces.plot <- function(mcmc.list=NULL, sim.dir=file.path(getwd(), 'bayes
                         nr.points=nr.points, par.names=par.names, dev.ncol=dev.ncol, ...)
 }
 
+#' @export
 mig.partraces.cs.plot <- function(country, mcmc.list=NULL, sim.dir=file.path(getwd(), 'bayesMig.output'),
                                   chain.ids=NULL, par.names=mig.parameter.names.cs(),
                                   nr.points=NULL, dev.ncol=3, ...) {
