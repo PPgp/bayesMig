@@ -21,6 +21,7 @@ run.mig.mcmc(
   mu.range = c(-0.5, 0.5),
   sigma.mu.range = c(0, 0.5),
   mu.ini = NULL,
+  exclude.from.world = NULL,
   seed = NULL,
   parallel = FALSE,
   nr.nodes = nr.chains,
@@ -42,7 +43,34 @@ final count of 50 iterations.}
 
 \item{replace.output}{If the specified output directory already exists, should it be overwritten?}
 
+\item{start.year}{Start year for using historical data.}
+
+\item{present.year}{End year for using historical data.}
+
+\item{wpp.year}{Year for which WPP data is used if no user data is provided via \code{my.mig.file}. 
+In such a case, the function loads a package called \pkg{wpp}\eqn{x} where \eqn{x} is the \code{wpp.year} and generates 
+historical migration rates using the 
+\code{\link[wpp2019]{migration}} and \code{\link[wpp2019]{pop}} datasets.}
+
+\item{my.mig.file}{File name containing user-specified historical time series of migration rates 
+for all locations that should be included in the simulation.}
+
+\item{sigma.c.min, a.up, a.ini, a.half.width, mu.range, sigma.mu.range, mu.ini}{Settings for the parameters
+of the model (see Azose & Raftery 2015), such as minimum value, truncation ranges, slicing half width and initial values.
+Initial values (*.ini) can be given as a vector of length \code{nr.chains}, giving one initial value per chain.
+By default the initial values are equidistantly spread between their respective ranges.}
+
+\item{exclude.from.world}{Vector of country codes that should not influence the hyperparameters. 
+However, country-specific parameters will be generated for these countries.}
+
+\item{seed}{Seed of the random number generator. If \code{NULL} no seed is set. It can be used to generate reproducible results.}
+
 \item{parallel}{(NOT CURRENTLY IMPLEMENTED) Whether to run code in parallel, if available.}
+
+\item{nr.nodes}{Relevant only if \code{parallel} is \code{TRUE}. It gives the number of nodes for running the simulation in parallel. 
+By default it equals to the number of chains.}
+
+\item{buffer.size}{Buffer size (in number of iterations) for keeping data in the memory before flushing to disk.}
 
 \item{verbose}{Whether or not to print status updates to console window while code is running.}
 
@@ -54,7 +82,7 @@ final count of 50 iterations.}
 An object of class \code{bayesMig.mcmc.set} containing the sampled posterior parameter values
 }
 \description{
-Runs (or continues running) MCMCs for simulating the net migration rate of all countries of the
+Runs MCMCs for simulating the net migration rate of all countries of the
 world, using a Bayesian hierarchical model.
 }
 \examples{

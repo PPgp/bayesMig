@@ -8,7 +8,7 @@
 #'
 #' @author Jon Azose, Hana Sevcikova and Adrian Raftery
 #'
-#' @maintainer: Hana Sevcikova <hanas@uw.edu>
+#' Maintainer: Hana Sevcikova <hanas@uw.edu>
 #' 
 #' @docType package
 #' @import coda truncnorm wpp2019

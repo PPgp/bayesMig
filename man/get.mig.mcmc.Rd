@@ -4,8 +4,13 @@
 \alias{get.mig.mcmc}
 \title{Access MCMC results}
 \usage{
-get.mig.mcmc(sim.dir=file.path(getwd(), 'bayesMig.output'), chain.ids=NULL,
-burnin=0, verbose=FALSE)
+get.mig.mcmc(
+  sim.dir = file.path(getwd(), "bayesMig.output"),
+  chain.ids = NULL,
+  low.memory = TRUE,
+  burnin = 0,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{sim.dir}{Directory where simulation results are stored}
@@ -13,7 +18,9 @@ burnin=0, verbose=FALSE)
 \item{chain.ids}{Chain identifiers in case only specific chains should be included
 in the resulting object. By default, all available chains are included.}
 
-\item{burnin}{Burn-in used for loading traces.}
+\item{low.memory}{Logical. If \code{FALSE} full MCMC traces are loaded into memory.}
+
+\item{burnin}{Burn-in used for loading traces. Only relevant, if \code{low.memory=FALSE}.}
 
 \item{verbose}{Logical value. Switches log messages on and off.}
 }

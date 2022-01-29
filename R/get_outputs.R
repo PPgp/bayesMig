@@ -9,19 +9,17 @@
 #' @description This function retrieves results of an MCMC simulation and creates an object of class
 #' \code{bayesMig.mcmc.set}. 
 #' 
-#' @usage get.mig.mcmc(sim.dir=file.path(getwd(), 'bayesMig.output'), chain.ids=NULL,
-#' burnin=0, verbose=FALSE)
-#' 
 #' @param sim.dir Directory where simulation results are stored
 #' @param chain.ids Chain identifiers in case only specific chains should be included
 #' in the resulting object. By default, all available chains are included.
-#' @param burnin Burn-in used for loading traces.
+#' @param low.memory Logical. If \code{FALSE} full MCMC traces are loaded into memory.
+#' @param burnin Burn-in used for loading traces. Only relevant, if \code{low.memory=FALSE}.
 #' @param verbose Logical value. Switches log messages on and off.
 #' 
 #' @export
 
 get.mig.mcmc <- function(sim.dir=file.path(getwd(), 'bayesMig.output'), chain.ids=NULL,
-                         burnin=0, verbose=FALSE, ...) {
+                         low.memory = TRUE, burnin = 0, verbose = FALSE) {
   ############
   # Returns an object of class bayesMig.mcmc.set
   ############
@@ -51,11 +49,14 @@ get.mig.mcmc <- function(sim.dir=file.path(getwd(), 'bayesMig.output'), chain.id
       bayesMig.mcmc})
     mc <- c(bayesMig.mcmc, list(meta=bayesMig.mcmc.meta))
     class(mc) <- class(bayesMig.mcmc)
-    #load full mcmc traces
-    #th.burnin <- get.thinned.burnin(mc, burnin)
-    #mc$traces <- load.mig.parameter.traces.all(mc, burnin=th.burnin)
-    th.burnin <- 0 # low memory (traces will be loaded as they are needed)
-    mc$traces <- 0
+    if (!low.memory) { # load full mcmc traces
+      #load full mcmc traces
+      th.burnin <- bayesTFR:::get.thinned.burnin(mc, burnin)
+      mc$traces <- load.mig.parameter.traces.all(mc, burnin=th.burnin)
+    } else {
+      th.burnin <- 0 # low memory (traces will be loaded as they are needed)
+      mc$traces <- 0
+    }
     mc$traces.burnin <- th.burnin
     
     mc$output.dir <- mc.dirs.short[counter]
@@ -201,14 +202,16 @@ coda.mcmc.bayesMig.mcmc <- function(mcmc, country=NULL, par.names=NULL,
 
 #' Conversion to coda-formatted objects
 #' 
-#' 
-#' @param mcmc A list of objects of class \code{bayesMig.mcmc}. If \code{NULL}, the MCMCs are
+#' @description The functions convert MCMC traces (simulated using \code{\link{run.mig.mcmc}}) into 
+#' objects that can be used with the \pkg{coda} package.
+#' @param mcmc.list A list of objects of class \code{bayesMig.mcmc}, or an object of class \code{\link{bayesMig.mcmc.set}} or \code{\link{bayesMig.prediction}}.
+#' If \code{NULL}, the MCMCs are
 #' loaded from \code{sim.dir}. Either \code{mcmc} or \code{sim.dir} must be given.
 #' @param country Country name or code. Used in connection with the \code{par.names.cs} argument
-#' (see below)
+#' (see below).
 #' @param chain.ids Vector of chain identifiers. By default, all chains available in the \code{mcmc.list}
-#' object are included
-#' @param sim.dir Directory with the MCMC simulation results. Only used if \code{mcmc} is \code{NULL}
+#' object are included.
+#' @param sim.dir Directory with the MCMC simulation results. Only used if \code{mcmc.list} is \code{NULL}.
 #' @param par.names Names of country-independent parameters to be included. Default names are
 #' those returned by the \code{mig.parameter.names} function, which includes all country-independent
 #' parameters in the BHM.
@@ -216,9 +219,10 @@ coda.mcmc.bayesMig.mcmc <- function(mcmc, country=NULL, par.names=NULL,
 #' is used to filter out traces that correspond to a specific country. If \code{country} is not given, 
 #' traces of each parameter are given for all countries. Default names are those returned by 
 #' \code{mig.parameter.names.cs()}, which includes all country-specific parameters in the BHM.
-#' @param rm.const.pars Logical indicating if parameters with constant values should be removed.
-#' @param burnin Number of iterations that should be removed from the beginning of each chain.
-#' @param ... Other variables passed to called functions
+#' @param low.memory Logical indicating if the function should run in a memory-efficient mode.
+#' @param \dots Additional arguments passed to the \pkg{coda}'s \code{\link[coda]{mcmc}} function, such as \code{burnin} and \code{thin}.
+#' 
+#' @return Returns an object of class \dQuote{mcmc.list} defined in the \pkg{coda} package.
 #' @export
 
 mig.coda.list.mcmc <- function(mcmc.list = NULL, country = NULL, chain.ids = NULL,
@@ -227,7 +231,7 @@ mig.coda.list.mcmc <- function(mcmc.list = NULL, country = NULL, chain.ids = NUL
                               low.memory = FALSE, ...) {
   # return a list of mcmc objects that can be analyzed using the coda package
   if (is.null(mcmc.list)) {
-    mcmc.list <- get.mig.mcmc(sim.dir, chain.ids=chain.ids)$mcmc.list
+    mcmc.list <- get.mig.mcmc(sim.dir, chain.ids=chain.ids, low.memory = low.memory)$mcmc.list
   } else {
     mcmc.list <- get.mcmc.list(mcmc.list)
     if (!is.null(chain.ids)) {
@@ -379,7 +383,7 @@ create.thinned.mig.mcmc <- function(mcmc.set, thin=1, burnin=0, output.dir=NULL,
   }
   if(verbose) cat('done.\nStoring country-specific parameters ...')
   par.names.cs <- mig.parameter.names.cs()
-  for (country in mcmc.set$meta$countryIndices){
+  for (country in 1:mcmc.set$meta$nr.countries){
     country.obj <- get.country.object(country, mcmc.set$meta, index=TRUE)
     for (par in par.names.cs) {
       values <- get.mig.parameter.traces.cs(mcmc.set$mcmc.list, country.obj, par, 
@@ -557,7 +561,7 @@ country.names.bayesMig.mcmc.meta <- function(meta) {
 
 #' @export
 get.countries.index.bayesMig.mcmc.meta  <- function(meta, ...) 
-  return (meta$countryIndices)
+  return (1:meta$nr.countries)
 
 #' @export
 get.countries.table.bayesMig.mcmc.set <- function(object, ...) 

@@ -4,18 +4,36 @@
 
 #' @title Run Markov chain Monte Carlo for parameters of net migration rate model
 #'
-#' @description Runs (or continues running) MCMCs for simulating the net migration rate of all countries of the
+#' @description Runs MCMCs for simulating the net migration rate of all countries of the
 #' world, using a Bayesian hierarchical model.
 #' 
 #' @param nr.chains An integer number of independent Markov chains to run.
 #' @param iter The number of iterations to run per Markov chain.
 #' @param thin Thinning interval -- A chain with 1000 iterations thinned by 20 will return a 
 #' final count of 50 iterations.
+#' @param start.year Start year for using historical data.
+#' @param present.year End year for using historical data.
+#' @param wpp.year Year for which WPP data is used if no user data is provided via \code{my.mig.file}. 
+#' In such a case, the function loads a package called \pkg{wpp}\eqn{x} where \eqn{x} is the \code{wpp.year} and generates 
+#' historical migration rates using the 
+#' \code{\link[wpp2019]{migration}} and \code{\link[wpp2019]{pop}} datasets.
+#' @param my.mig.file File name containing user-specified historical time series of migration rates 
+#' for all locations that should be included in the simulation. 
+#' @param sigma.c.min,a.up,a.ini,a.half.width,mu.range,sigma.mu.range,mu.ini Settings for the parameters
+#' of the model (see Azose & Raftery 2015), such as minimum value, truncation ranges, slicing half width and initial values.
+#' Initial values (*.ini) can be given as a vector of length \code{nr.chains}, giving one initial value per chain.
+#' By default the initial values are equidistantly spread between their respective ranges.
+#' @param exclude.from.world Vector of country codes that should not influence the hyperparameters. 
+#' However, country-specific parameters will be generated for these countries.
+#' @param seed Seed of the random number generator. If \code{NULL} no seed is set. It can be used to generate reproducible results.
 #' @param verbose Whether or not to print status updates to console window while code is running.
 #' @param verbose.iter If verbose is TRUE, the number of iterations to wait between printing updates.
 #' @param output.dir A file path pointing to the directory in which to store results.
 #' @param replace.output If the specified output directory already exists, should it be overwritten?
 #' @param parallel (NOT CURRENTLY IMPLEMENTED) Whether to run code in parallel, if available.
+#' @param nr.nodes Relevant only if \code{parallel} is \code{TRUE}. It gives the number of nodes for running the simulation in parallel. 
+#' By default it equals to the number of chains.
+#' @param buffer.size Buffer size (in number of iterations) for keeping data in the memory before flushing to disk.
 #' @param ... Other arguments passed to \code{\link{run.mig.mcmc}}
 #' @return An object of class \code{bayesMig.mcmc.set} containing the sampled posterior parameter values
 #' @examples
@@ -28,6 +46,7 @@ run.mig.mcmc <- function(nr.chains=3, iter=50000, output.dir=file.path(getwd(), 
                          sigma.c.min = 0.0001, a.up = 10, a.ini = NULL, a.half.width = 0.3,
                          mu.range = c(-0.5, 0.5), sigma.mu.range = c(0, 0.5), mu.ini = NULL,
                          # other settings
+                         exclude.from.world = NULL,
                          seed = NULL, parallel=FALSE, nr.nodes=nr.chains, 
                          buffer.size = 1000, verbose=TRUE, verbose.iter=10, ...){
   
@@ -68,7 +87,7 @@ run.mig.mcmc <- function(nr.chains=3, iter=50000, output.dir=file.path(getwd(), 
                                      sigma.c.min = sigma.c.min, a.up = a.up,
                                      mu.range = mu.range, sigma.mu.range = sigma.mu.range,
                                      mu.ini = mu.ini, a.ini = a.ini, a.half.width = a.half.width,
-                                     buffer.size = buffer.size)
+                                     exclude.from.world = exclude.from.world, buffer.size = buffer.size)
   #cat(bayesMig.mcmc.meta$mig.rates)
   
   #Storage  

@@ -3,11 +3,11 @@
 ###############
 
 mig.mcmc.sampling <- function(mcmc, thin=1, start.iter=2, verbose=FALSE, verbose.iter=10) {
-  #Draw a sample of length mcmc$nSimulations from all parameter values.
+  #Draw a sample of length mcmc$iter from all parameter values.
   
   #Look at mcmc_sampling in bayesTFR. A bunch of initializations happen here.
   nSimulations=mcmc$iter
-  bigC=length(mcmc$mu_c)
+  nC=length(mcmc$mu_c)
   
   mcenv <- as.environment(mcmc) # Create an environment for the mcmc stuff in order to avoid 
   # copying of the mcmc list 
@@ -22,18 +22,18 @@ mig.mcmc.sampling <- function(mcmc, thin=1, start.iter=2, verbose=FALSE, verbose
       cat('\nIteration:', simu, '--', date(),"\n")      
     }
     #Update all the mu_c values with Gibbs sampling.
-    for(c in 1:bigC){
+    for(c in 1:nC){
       mcmc.update.mu.c(c,mcenv)
     }
     #Update sigma^2_mu with Gibbs sampling
     mcmc.update.sigma2.mu(mcenv)
     #Update all the phi_c values with Gibbs sampling.
-    for(c in 1:bigC){
+    for(c in 1:nC){
       mcmc.update.phi.c(c,mcenv)
     }
 
     #Update all the sigma^2_c values with Gibbs sampling.
-    for(c in 1:bigC){
+    for(c in 1:nC){
       mcmc.update.sigma2.c(c,mcenv)
     }
     

@@ -20,24 +20,26 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     present.year <- meta$present.year
     wpp.year <- meta$wpp.year
     my.mig.file <- meta$my.mig.file
-  #If the user input their own migration file:
-  if(!is.null(my.mig.file)){
+    #If the user input their own migration file:
+    if(!is.null(my.mig.file)){
       d <- read.delim(file=my.mig.file, comment.char='#', check.names=FALSE)
     
-    #Extract country names and codes
-    fullCountryCodeVec=d$country_code
-    if("country" %in% colnames(d)) colnames(d)[colnames(d) == "country"] <- "name" # rename country column to "name"
-    if(! "name" %in% colnames(d)) d$name <- d$country_code
-    fullCountryNameVec=d$name
-    bigC=length(fullCountryCodeVec)
+      #Extract country names and codes
+      fullCountryCodeVec=d$country_code
+      if("country" %in% colnames(d)) colnames(d)[colnames(d) == "country"] <- "name" # rename country column to "name"
+      if(! "name" %in% colnames(d)) d$name <- d$country_code
+      fullCountryNameVec=d$name
+      nC <- length(fullCountryCodeVec)
     
-    #Extract migration rates
-    mig.rates=as.matrix(d[,setdiff(colnames(d), c("country_code", "name"))])
-    rownames(mig.rates)=fullCountryCodeVec
+      #Extract migration rates
+      mig.rates=as.matrix(d[,setdiff(colnames(d), c("country_code", "name"))])
+      rownames(mig.rates)=fullCountryCodeVec
     
-    #If a user input their own rates, assume they want to use all of them.
-    countryIndices=1:bigC
-    bigCountryIndices = rep(TRUE, bigC)
+      if(!is.null(exclude.from.world)) {
+        #Exclude locations that should not influence the world parameters
+        bigCountryIndices <- !fullCountryCodeVec %in% exclude.from.world
+      } else bigCountryIndices = rep(TRUE, nC)
+    
   }else{
     #If we get here, then the user didn't input their own migration file.
     
@@ -57,16 +59,18 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     #Pop and migration data
     pop=load.bdem.dataset('pop', wpp.year=wpp.year)
     migration=load.bdem.dataset('migration',wpp.year=wpp.year)
-    countryCodeVec_bigCountries = bayesMig::countryCodeVec_bigCountries
-    #data("countryCodeVec_bigCountries")# <- scan("./Data/countryCodeVec_bigCountries.txt")#This is the 201 "big" countries
-    
+
     #Figure out the countries of overlap
     fullDataIndices=(fullCountryCodeVec %in% migration$country_code & fullCountryCodeVec %in% pop$country_code)
     fullCountryCodeVec=fullCountryCodeVec[fullDataIndices]
     fullCountryNameVec=as.character(fullCountryNameVec[fullDataIndices])
     
-    countryIndices=seq(1,length(fullCountryCodeVec))
-    bigCountryIndices <- fullCountryCodeVec %in% countryCodeVec_bigCountries
+    nC <- length(fullCountryCodeVec)
+    
+    if(!is.null(exclude.from.world)) {
+      #Exclude locations that should not influence the world parameters
+      bigCountryIndices <- !fullCountryCodeVec %in% exclude.from.world
+    } else bigCountryIndices = rep(TRUE, nC)
     
     #Construct a matrix of initial populations
     initialPopMat <- merge(data.frame(country_code=fullCountryCodeVec), pop, sort=FALSE)
@@ -128,9 +132,8 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
   constraints.numeric <- list(mu=muConstraints, phi=phiConstraints, sigma2=sigma2Constraints)
 
   return(list(
-    countryIndices=countryIndices,
-    big.country.indices=bigCountryIndices,
-    nr.big.countries=sum(bigCountryIndices),
+    country.indices.est = (1:nC)[bigCountryIndices],
+    nr.countries.est = sum(bigCountryIndices),
     regions=list(country_code=fullCountryCodeVec,country_name=fullCountryNameVec),
     mig.rates = mig.rates,
     start.year = start.year,
@@ -159,11 +162,11 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
 # ini MCMC for UN estimates
 
 mcmc.ini <- function(chain.id, mcmc.meta,iter=1000) {
-  bigC=nrow(mcmc.meta$mig.rates)
+  nC <- mcmc.meta$nr.countries
 
   # Starting points
-  mu_c <- rep(mcmc.meta$mu.ini[chain.id], bigC)
-  phi_c <- runif(bigC, 0, 1)
+  mu_c <- rep(mcmc.meta$mu.ini[chain.id], nC)
+  phi_c <- runif(nC, 0, 1)
   mu_global <- mcmc.meta$mu.ini[chain.id]
   a <- mcmc.meta$a.ini[chain.id]
   b <- a - 1
@@ -175,7 +178,7 @@ mcmc.ini <- function(chain.id, mcmc.meta,iter=1000) {
   sigma2_c[sigma2_c<mcmc.meta$sigma.c.min^2]=mcmc.meta$sigma.c.min^2
   
   #Force constraints for constrained parameters
-  for(c in 1:bigC){
+  for(c in 1:nC){
     if(mcmc.meta$constraints.logical$mu[c]){
       mu_c[c]=mcmc.meta$constraints.numeric$mu[c];
     }
@@ -215,7 +218,7 @@ mig.parameter.names <- function() {
 
 mig.parameter.names.cs <- function(){
   # Return all country-specific parameter names.
-  #That is, these parameters are vectors of length bigC.
+  #That is, these parameters are vectors of length nr.countries.
   return(c("mu_c","phi_c","sigma2_c"))
 }
 

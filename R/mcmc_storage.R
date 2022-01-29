@@ -22,12 +22,11 @@ store.mcmc <- local({
       #        if (is.element(par, mcmc$dontsave)) next
       buffer[[par]][counter,] <<- mcmc[[par]]
     }
-    countryIndices <- mcmc$meta$countryIndices
 
     for (par in par.names.cs) {
 #      if (is.element(var.names[[par]], mcmc$dontsave)) next
       
-      for (country in countryIndices){
+      for (country in 1:mcmc$meta$nr.countries){
         result <- mcmc[[par]][country]
         buffer.cs[[par]][[country]][counter,] <<- result
       }
@@ -41,13 +40,12 @@ store.mcmc <- local({
       #if (is.element(par, mcmc$dontsave)) next
       buffer[[par]] <<- matrix(NA, ncol=length(mcmc[[par]]), nrow=size)
     }
-    countryIndices <- mcmc$meta$countryIndices
     
     buffer.cs <<-list()
     for (par in par.names.cs) {
       #if (is.element(var.names[[par]], mcmc$dontsave)) next
       buffer.cs[[par]] <<- list()
-      for (country in countryIndices){
+      for (country in 1:mcmc$meta$nr.countries){
         v <- mcmc[[par]][country]
         buffer.cs[[par]][[country]] <<- matrix(NA, ncol=length(v), nrow=size)
       }
@@ -74,11 +72,10 @@ store.mcmc <- local({
       bayesTFR:::write.values.into.file.cindep(par, values, output.dir, mode=open, 
                                     compression.type=mcmc$compression.type)
     }
-    countryIndices <- mcmc$meta$countryIndices
 
     for (par in par.names.cs) { # write country-specific parameters
       if (is.null(buffer.cs[[par]])) next
-      for (country in countryIndices){
+      for (country in 1:mcmc$meta$nr.countries){
         if (counter == 1) {
           values <- t(buffer.cs[[par]][[country]][1:counter,])
         } else {

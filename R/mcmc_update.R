@@ -87,8 +87,8 @@ mcmc.update.mu.global <- function(mcmc){
   #Update mu_global conditional on everything else.
   #The posterior is a truncated normal distribution.
 
-  bigC=mcmc$meta$nr.big.countries
-  mean=sum(mcmc$mu_c[mcmc$meta$big.country.indices])/bigC
+  bigC=mcmc$meta$nr.countries.est
+  mean=sum(mcmc$mu_c[mcmc$meta$country.indices.est])/bigC
   variance=mcmc$sigma2_mu/bigC
   updated.mu.global=rtruncnorm(n=1,a=mcmc$meta$mu.global.lower,b=mcmc$meta$mu.global.upper,mean=mean,sd=sqrt(variance))
   mcmc$mu_global=updated.mu.global
@@ -98,10 +98,10 @@ mcmc.update.mu.global <- function(mcmc){
 mcmc.update.sigma2.mu <- function(mcmc){
   #The conditional posterior for sigma^2_mu is a truncated inverse gamma distribution.
   #Try drawing from the appropriate inverse gamma until we get a value within bounds.
-  bigC=mcmc$meta$nr.big.countries
+  bigC=mcmc$meta$nr.countries.est
   
   #Calculate shape and rate parameters for an inverse gamma distribution
-  shape=(bigC-1)/2;rate=sum(mcmc$mu_c[mcmc$meta$big.country.indices]^2)/2;
+  shape=(bigC-1)/2;rate=sum(mcmc$mu_c[mcmc$meta$country.indices.est]^2)/2;
   
   #Try simulating tau values from a gamma distribution, reject if they fall outside the acceptable region.
   tau.cutoff.lower=mcmc$meta$sigma.mu.upper^(-2)
@@ -115,11 +115,11 @@ mcmc.update.sigma2.mu <- function(mcmc){
 }
 
 mcmc.update.b <- function(mcmc){
-  bigC=mcmc$meta$nr.big.countries
+  bigC=mcmc$meta$nr.countries.est
   
   #The posterior distribution for b is a truncated gamma.
   shape=mcmc$a*bigC+1;
-  rate=sum(1/mcmc$sigma2_c[mcmc$meta$big.country.indices]);
+  rate=sum(1/mcmc$sigma2_c[mcmc$meta$country.indices.est]);
   cutoff=(mcmc$a-1)/2;
   
   #Simple rejection sampling to draw from the truncated gamma distribution.
@@ -161,7 +161,7 @@ mcmc.update.b <- function(mcmc){
 # }
 
 mcmc.update.a <- function(mcmc){
-  bigC=mcmc$meta$nr.big.countries
+  bigC=mcmc$meta$nr.countries.est
   aCurrent=mcmc$a
   proposal.half.width=mcmc$meta$a.half.width
   #Metropolis step with a flat proposal distribution on the possible range of (a-proposal.half.width, a+proposal.half.width).
@@ -173,7 +173,7 @@ mcmc.update.a <- function(mcmc){
   }
   #Otherwise, do the usual Metropolis stuff.
   
-  sumLogTau=-sum(log(mcmc$sigma2_c[mcmc$meta$big.country.indices]));
+  sumLogTau=-sum(log(mcmc$sigma2_c[mcmc$meta$country.indices.est]));
   
   logPosterior_old=bigC*mcmc$a*log(mcmc$b) + (mcmc$a-1)*sumLogTau - bigC*lgamma(mcmc$a) - log(mcmc$a-1)
   logPosterior_new=bigC*proposal*log(mcmc$b) + (proposal-1)*sumLogTau - bigC*lgamma(proposal) - log(proposal-1)
@@ -194,14 +194,3 @@ mcmc.update.a <- function(mcmc){
   return()
 }
 
-##############
-#Test code
-#############
-
-#mcmc.update.mu.c(1,mcenv)
-#mcmc.update.phi.c(1,mcenv)
-#mcmc.update.sigma2.c(1,mcenv)
-#mcmc.update.mu.global(mcenv)
-#mcmc.update.sigma2.mu(mcenv)
-#mcmc.update.b(mcenv)
-#mcmc.update.a(mcenv)
