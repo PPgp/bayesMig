@@ -138,3 +138,79 @@ mig.partraces.cs.plot <- function(country, mcmc.list=NULL, sim.dir=file.path(get
                         country=country.obj$code, par.names=par.names, dev.ncol=dev.ncol, ...)
 }
 
+#' @export
+mig.pardensity.plot <- function(mcmc.list=NULL, sim.dir = file.path(getwd(), 'bayesMig.output'), 
+                               chain.ids = NULL, par.names = mig.parameter.names(), 
+                               burnin = NULL, dev.ncol = 2, low.memory = TRUE, ...) {
+  if (is.null(mcmc.list))
+    mcmc.list <- get.mig.mcmc(sim.dir, low.memory = low.memory)
+  bayesTFR:::do.plot.tfr.pardensity(mcmc.list, get.mig.parameter.traces, chain.ids = chain.ids, par.names = par.names,
+                                    par.names.ext = par.names, burnin = burnin, dev.ncol = dev.ncol, ...)
+}
+
+#' @export
+mig.pardensity.cs.plot <- function(country, mcmc.list = NULL, sim.dir = file.path(getwd(), 'bayesLife.output'), 
+                                  chain.ids = NULL, par.names = mig.parameter.names.cs(), 
+                                  burnin = NULL, dev.ncol = 3, low.memory = TRUE, ...) {
+  if (is.null(mcmc.list))
+    mcmc.list <- get.mig.mcmc(sim.dir, low.memory=low.memory)
+  mcmc.l <- get.mcmc.list(mcmc.list)
+  country.obj <- get.country.object(country, mcmc.l[[1]]$meta)
+  if (is.null(country.obj$name))
+    stop('Country ', country, ' not found.')
+  bayesTFR:::do.plot.tfr.pardensity(mcmc.list, get.mig.parameter.traces.cs, chain.ids = chain.ids, par.names = par.names,
+                                    par.names.ext = par.names,
+                                    main.postfix = paste0('(',country.obj$name,')'),
+                                    func.args = list(country.obj = country.obj),
+                                    burnin = burnin, dev.ncol = dev.ncol, ...)
+}
+
+#' @export
+get.mig.map.parameters <- function(pred, mig.range=NULL, nr.cats=50, same.scale=TRUE, 
+                                  quantile=0.5, palette = "Blue-Red", ...) {
+  map.pars <- list(pred=pred, quantile=quantile, ...)
+  if (same.scale) {
+    data <- pred$quantiles[,as.character(quantile),1]
+    q <- if(is.null(mig.range)) c(min(data), max(data)) else mig.range
+    quantiles <- seq(q[1], q[2], length=nr.cats-1)
+    map.pars$catMethod <- quantiles
+  } else {
+    map.pars$numCats <- nr.cats
+  }
+  map.pars$colourPalette <- sapply(palette, hcl.colors, n = nr.cats)
+  return(map.pars)
+}
+
+#' @export
+.map.main.default.bayesMig.prediction <- function(pred, ...) 
+  return('MIG: quantile')
+
+#' @export
+mig.map <- function(pred, ...) {
+  return(bayesTFR::tfr.map(pred, ...))
+}
+
+#' @export
+mig.map.all <- function(pred, output.dir, output.type='png', mig.range=NULL, nr.cats=50, same.scale=TRUE, 
+                       quantile=0.5, file.prefix='migwrldmap_', ...) {
+  bayesTFR:::bdem.map.all(pred=pred, output.dir=output.dir, type='mig', output.type=output.type, range=mig.range,
+                          nr.cats=nr.cats, same.scale=same.scale, quantile=quantile, file.prefix=file.prefix, ...)
+}
+
+#' @export
+mig.map.gvis <- function(pred, ...)
+  bdem.map.gvis(pred, ...)
+
+#' @export
+bdem.map.gvis.bayesMig.prediction <- function(pred, ...) {
+  bayesTFR:::.do.gvis.bdem.map('mig', 'Net Migration Rate', pred, ...)
+}
+
+#' @export
+par.names.for.worldmap.bayesMig.prediction <- function(pred, ...) {
+  return(mig.parameter.names.cs())
+}
+
+#' @export
+get.data.for.worldmap.bayesMig.prediction <- function(pred, ...)
+  return(bayesTFR:::get.data.for.worldmap.bayesTFR.prediction(pred, ...))

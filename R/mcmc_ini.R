@@ -11,7 +11,7 @@ mcmc.meta.ini <- function(...) {
   for (arg in names(args)) mcmc.input[[arg]] <- args[[arg]]
   
   meta <- do.meta.ini(mcmc.input, verbose=FALSE)
-  return(structure(c(mcmc.input, meta), class='bayesMig.mcmc.meta'))
+  return(structure(meta, class='bayesMig.mcmc.meta'))
 }
 
 
@@ -25,6 +25,7 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
       d <- read.delim(file=my.mig.file, comment.char='#', check.names=FALSE)
     
       #Extract country names and codes
+      if("code" %in% colnames(d)) colnames(d)[colnames(d) == "code"] <- "country_code" # rename "code" to "country_code"
       fullCountryCodeVec=d$country_code
       if("country" %in% colnames(d)) colnames(d)[colnames(d) == "country"] <- "name" # rename country column to "name"
       if(! "name" %in% colnames(d)) d$name <- d$country_code
@@ -35,9 +36,9 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
       mig.rates=as.matrix(d[,setdiff(colnames(d), c("country_code", "name"))])
       rownames(mig.rates)=fullCountryCodeVec
     
-      if(!is.null(exclude.from.world)) {
+      if(!is.null(meta$exclude.from.world)) {
         #Exclude locations that should not influence the world parameters
-        bigCountryIndices <- !fullCountryCodeVec %in% exclude.from.world
+        bigCountryIndices <- !fullCountryCodeVec %in% meta$exclude.from.world
       } else bigCountryIndices = rep(TRUE, nC)
     
   }else{
@@ -67,46 +68,55 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     
     nC <- length(fullCountryCodeVec)
     
-    if(!is.null(exclude.from.world)) {
+    if(!is.null(meta$exclude.from.world)) {
       #Exclude locations that should not influence the world parameters
-      bigCountryIndices <- !fullCountryCodeVec %in% exclude.from.world
+      bigCountryIndices <- !fullCountryCodeVec %in% meta$exclude.from.world
     } else bigCountryIndices = rep(TRUE, nC)
     
     #Construct a matrix of initial populations
     initialPopMat <- merge(data.frame(country_code=fullCountryCodeVec), pop, sort=FALSE)
     initialPopMat <- initialPopMat[,-which(colnames(pop) %in% c("country_code", "name", "1950"))] # need end-period pop
-    
-    #initialPopMat=matrix(0,nrow=length(fullCountryCodeVec),ncol=14)
-    rownames(initialPopMat)=fullCountryCodeVec;
-    #colnames(initialPopMat)=seq(1950,2015,5);
-    #for(i in 1:length(fullCountryCodeVec)){
-    #  initialPopMat[i,]=colSums(popM[popM$country_code==fullCountryCodeVec[i],4:17])+colSums(popF[popF$country_code==fullCountryCodeVec[i],4:17])
-    #}
+    rownames(initialPopMat) <- fullCountryCodeVec;
     
     #Convert from thousands to raw counts
     initialPopMat=initialPopMat*1000
     
     #Construct a matrix of total migration counts
-    migCountMat <- merge(data.frame(country_code=fullCountryCodeVec), 
-                         migration[,1:which(colnames(migration)==paste0(present.year - 5, "-", present.year))], sort=FALSE)[,-c(1,2)]
-    #migCountMat=matrix(0,nrow=length(fullCountryCodeVec),ncol=13)
+    migCountMat <- merge(data.frame(country_code=fullCountryCodeVec), migration, sort=FALSE)[,-c(1,2)]
+    migCountMat <- migCountMat[, substr(colnames(migCountMat), 6, 9) %in% colnames(initialPopMat)]
     rownames(migCountMat)=fullCountryCodeVec;
-    #colnames(migCountMat)=seq(1950,2010,5);
-    
-    #for(i in 1:length(fullCountryCodeVec)){
-    #  migCountMat[i,]=as.numeric(migration[which(migration$country_code==fullCountryCodeVec[i]),3:15])
-    #}
     
     #Convert from thousands to raw counts
     migCountMat=migCountMat*1000
     
-    #Convert migration counts and initial populations to a matrix of migration "rates" (count/initial pop)
-    # mig.rates<-migCountMat[,1:13]/initialPopMat[,1:13]  
-    # do count/(end pop - mig)
+    #Convert migration counts and initial populations to a matrix of migration "rates"
+    # as count/(end pop - mig)
     mig.rates<-as.matrix(migCountMat/(initialPopMat - migCountMat))
   }
+    # restrict dataset to columns between start and present year
+    if(start.year > present.year)
+      stop("Arguments start.year must be smaller than present.year.")
+    cols.starty <- as.integer(substr(colnames(mig.rates), 1,4))
+    cols.endy <- as.integer(substr(colnames(mig.rates), 6,9))
+    start.index <- which((cols.starty <= start.year) & (cols.endy > start.year))
+    if(length(start.index) <= 0) {
+      if(cols.starty[1] > start.year) start.index <- 1
+      else stop("No data for time periods >=  ", start.year, " available. Check the argument start.year.")
+    }
+    start.col <- colnames(mig.rates)[start.index[1]]
+    present.index <- which((cols.endy >= present.year) & (cols.starty <= present.year))
+    if(length(present.index) <= 0) {
+      if(cols.endy[length(cols.endy)] < present.year) present.index <- length(cols.endy)
+      else stop("No data for time periods >=  ", start.year, " and <= ", present.year, " available. Check the arguments start.year and present.year.")
+    }
+    present.col <- colnames(mig.rates)[present.index[1]]
+    mig.rates <- mig.rates[, which.max(colnames(mig.rates)==start.col):which.max(colnames(mig.rates)==present.col)]
+    meta$start.year <- cols.starty[start.index[1]]
+    meta$present.year <- cols.endy[present.index[1]]
     
-  colnames(mig.rates) <- as.integer(substr(colnames(mig.rates), 1, 4)) + 3 # set column names to the middle of the periods
+    # change the column names to the middle of the periods
+  colnames(mig.rates) <- as.integer(substr(colnames(mig.rates), 1, 4)) + 3
+  
   #Establish some parameter constraints
   muConstraints <- rep(NA,length(fullCountryNameVec));
   phiConstraints <- rep(NA,length(fullCountryNameVec));
@@ -131,31 +141,30 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
   constraints.logical <- list(mu=mu.constraints.logical, phi=phi.constraints.logical, sigma2=sigma2.constraints.logical)
   constraints.numeric <- list(mu=muConstraints, phi=phiConstraints, sigma2=sigma2Constraints)
 
-  return(list(
+  # rename a few items
+  meta$mu.global.lower <- meta$mu.range[1]
+  meta$mu.global.upper <- meta$mu.range[2]
+  meta$sigma.mu.lower <- meta$sigma.mu.range[1]
+  meta$sigma.mu.upper <- meta$sigma.mu.range[2]
+  meta$a.upper <- meta$a.up
+  
+  meta$mu.range <- NULL
+  meta$sigma.mu.range <- NULL
+  meta$a.up <- NULL
+  
+  return(c(meta, list(
     country.indices.est = (1:nC)[bigCountryIndices],
     nr.countries.est = sum(bigCountryIndices),
     regions=list(country_code=fullCountryCodeVec,country_name=fullCountryNameVec),
     mig.rates = mig.rates,
-    start.year = start.year,
-    present.year = present.year,
     user.data = !is.null(my.mig.file),
     bigT=ncol(mig.rates),
     nr.countries=nrow(mig.rates),
     fullCountryCodeVec = fullCountryCodeVec,
     fullCountryNameVec = fullCountryNameVec,
     constraints.logical = constraints.logical,
-    constraints.numeric = constraints.numeric,
-    sigma.c.min = meta$sigma.c.min,
-    mu.global.lower = meta$mu.range[1],
-    mu.global.upper = meta$mu.range[2],
-    sigma.mu.lower=meta$sigma.mu.range[1],
-    sigma.mu.upper=meta$sigma.mu.range[2],
-    a.upper=meta$a.up,
-    mu.ini = meta$mu.ini,
-    a.ini = meta$a.ini, 
-    a.half.width = meta$a.half.width,
-    buffer.size = meta$buffer.size
-  ))
+    constraints.numeric = constraints.numeric
+  )))
   
 }
 

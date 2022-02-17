@@ -65,7 +65,7 @@ However, country-specific parameters will be generated for these countries.}
 
 \item{seed}{Seed of the random number generator. If \code{NULL} no seed is set. It can be used to generate reproducible results.}
 
-\item{parallel}{(NOT CURRENTLY IMPLEMENTED) Whether to run code in parallel, if available.}
+\item{parallel}{Whether to run code in parallel.}
 
 \item{nr.nodes}{Relevant only if \code{parallel} is \code{TRUE}. It gives the number of nodes for running the simulation in parallel. 
 By default it equals to the number of chains.}
@@ -76,15 +76,58 @@ By default it equals to the number of chains.}
 
 \item{verbose.iter}{If verbose is TRUE, the number of iterations to wait between printing updates.}
 
-\item{...}{Other arguments passed to \code{\link{run.mig.mcmc}}}
+\item{\dots}{Additional parameters to be passed to the function \code{\link[snowFT]{performParallel}}, if \code{parallel} is \code{TRUE}.}
 }
 \value{
-An object of class \code{bayesMig.mcmc.set} containing the sampled posterior parameter values
+An object of class \code{bayesMig.mcmc.set} which is a list with two components:
+\item{meta}{An object of class \code{\link{bayesMig.mcmc.meta}}.}
+\item{mcmc.list}{A list of objects of class \code{\link{bayesMig.mcmc}}, one for each MCMC.}
 }
 \description{
 Runs MCMCs for simulating the net migration rate of all countries of the
-world, using a Bayesian hierarchical model.
+world, using a Bayesian hierarchical model of Azose & Raftery (2015).
+}
+\details{
+The function creates an object of class \code{\link{bayesMig.mcmc.meta}} and 
+stores it in \code{output.dir}. It launches \code{nr.chains} MCMCs, either sequentially or 
+in parallel. Parameter traces of each chain are stored as ASCII files in a subdirectory 
+of \code{output.dir}, called \code{mc}\emph{x} where \emph{x} is the identifier of that chain. 
+There is one file per parameter, named after the parameter with the suffix \dQuote{.txt}.
+Country-specific parameters have the suffix \code{_country}\emph{c} where \emph{c} is the country code.
+In addition to the trace files, each \code{mc}\emph{x} directory contains the object 
+\code{\link{bayesMig.mcmc}} in binary format.  
+All chain-specific files  are written onto disk after the first, last and each 
+\eqn{i}-th (thinned) iteration, where \eqn{i} is given by the argument \code{buffer.size}.
+
+By default (if no data is passed via the \code{my.mig.file} argument), the function 
+loads observed data (further denoted as WPP dataset), from the \code{\link[wpp2019]{migration}} 
+and \code{\link[wpp2019]{pop}} datasets in the \pkg{wpp}\eqn{x} package where \eqn{x} is 
+the \code{wpp.year}. Net migration rates are computed as migration(t) / (population(t_e) - migration(t)) 
+where t_e means the end of time period t. 
+
+The argument \code{my.mig.file} can be used to overwrite the default data. 
+If it is used, it has to contain net migration rate for all locations to be used in the simulation, as no WPP data is used 
+in such a case. The structure of the file has the same format as the \code{\link[wpp2019]{migration}} dataset,
+but the values should be rates (instead of counts). Each row corresponds to a location. It does not have 
+to be necessarily a country - it can be for example a subnational unit. It must contain columns 
+\dQuote{country_code} or \dQuote{code} (unique identifier of the location), \dQuote{name}, and columns representing 
+5-year time intervals, e.g., \dQuote{1995-2000}, \dQuote{2000-2005} etc. 
+
+If there are countries or locations that should be excluded from influencing the hyperparameters,
+for example small countries or locations with unique migration patterns, their codes 
+should be included in the argument \code{exclude.from.world}. These locations will still get 
+their parameters simulated and thus, can be included in a projection.
 }
 \examples{
-run.mig.mcmc(nr.chains=2, iter=30, thin=1)
+m <- run.mig.mcmc(nr.chains = 2, iter = 30, thin = 1)
+summary(m)
+
+}
+\references{
+Azose, J. J., & Raftery, A. E. (2015). 
+Bayesian probabilistic projection of international migration. Demography, 52(5), 1627-1650.
+}
+\seealso{
+\code{\link{get.mig.mcmc}}, \code{\link{summary.bayesMig.mcmc.set}}, \code{\link{mig.partraces.plot}},
+\code{\link{mig.pardensity.plot}}, \code{\link{mig.predict}}
 }
