@@ -72,9 +72,10 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 							    verbose=verbose){
 	# if 'countries' is given, it is an index
 	meta <- mcmc.set$meta
-	present.year <- if(is.null(start.year)) meta$present.year else start.year - 5
-	nr_project <- length(seq(present.year+5, end.year, by=5))
-	cat('\nPrediction from', present.year+5, 'until', end.year, '(i.e.', nr_project, 'projections)\n\n')
+	year.step <- ifelse(meta$annual.simulation, 1, 5)
+	present.year <- if(is.null(start.year)) meta$present.year else start.year - year.step
+	nr_project <- length(seq(present.year+year.step, end.year, by = year.step))
+	cat('\nPrediction from', present.year+year.step, 'until', end.year, '(i.e.', nr_project, 'projections)\n\n')
 
 	burn <- if(is.mcmc.set.thinned) 0 else burnin
 	total.iter <- get.total.iterations(mcmc.set$mcmc.list, burn)

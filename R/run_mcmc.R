@@ -84,7 +84,7 @@
 #' 
 #' @export
 run.mig.mcmc <- function(nr.chains=3, iter=50000, output.dir=file.path(getwd(), 'bayesMig.output'), 
-                         thin=1, replace.output=FALSE, 
+                         thin=1, replace.output=FALSE, annual = FALSE,
                          start.year = 1950, present.year=2020, wpp.year=2019, my.mig.file = NULL,
                          # starting values and ranges for truncations
                          sigma.c.min = 0.0001, a.up = 10, a.ini = NULL, a.half.width = 0.3,
@@ -127,6 +127,7 @@ run.mig.mcmc <- function(nr.chains=3, iter=50000, output.dir=file.path(getwd(), 
   
   bayesMig.mcmc.meta <- mcmc.meta.ini(output.dir=output.dir, wpp.year = wpp.year,
                                       start.year=start.year, present.year = present.year, 
+                                      annual.simulation = annual,
                                       my.mig.file = my.mig.file, 
                                      sigma.c.min = sigma.c.min, a.up = a.up,
                                      mu.range = mu.range, sigma.mu.range = sigma.mu.range,

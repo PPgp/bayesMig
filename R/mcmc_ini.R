@@ -20,6 +20,7 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     present.year <- meta$present.year
     wpp.year <- meta$wpp.year
     my.mig.file <- meta$my.mig.file
+    annual <- meta$annual.simulation
     #If the user input their own migration file:
     if(!is.null(my.mig.file)){
       d <- read.delim(file=my.mig.file, comment.char='#', check.names=FALSE)
@@ -48,8 +49,9 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
       #Only wpp2017 is supported at the moment.
       stop("Only 2017 and 2019 revisions of WPP are currently supported by bayesMig.")
     }
-    
-    #If we get here, then wpp.year is 2017 or 2019.
+    if(annual) stop("If annual is TRUE, my.mig.file must be provided. No default data available.")
+
+    #If we get here, then wpp.year is 2017 or 2019 and it is a 5-year simulation
     ###########
     
     #List of all possible countries
@@ -96,8 +98,9 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     # restrict dataset to columns between start and present year
     if(start.year > present.year)
       stop("Arguments start.year must be smaller than present.year.")
+    
     cols.starty <- as.integer(substr(colnames(mig.rates), 1,4))
-    cols.endy <- as.integer(substr(colnames(mig.rates), 6,9))
+    cols.endy <- if(annual) cols.starty+0.5 else as.integer(substr(colnames(mig.rates), 6,9))
     start.index <- which((cols.starty <= start.year) & (cols.endy > start.year))
     if(length(start.index) <= 0) {
       if(cols.starty[1] > start.year) start.index <- 1
@@ -111,12 +114,14 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     }
     present.col <- colnames(mig.rates)[present.index[1]]
     mig.rates <- mig.rates[, which.max(colnames(mig.rates)==start.col):which.max(colnames(mig.rates)==present.col)]
-    meta$start.year <- cols.starty[start.index[1]]
-    meta$present.year <- cols.endy[present.index[1]]
-    
-    # change the column names to the middle of the periods
-  colnames(mig.rates) <- as.integer(substr(colnames(mig.rates), 1, 4)) + 3
-  
+    if(!annual) {
+      # adjust the years to the right values
+      meta$start.year <- cols.starty[start.index[1]]
+      meta$present.year <- cols.endy[present.index[1]]
+      # change the column names to the middle of the periods
+      colnames(mig.rates) <- as.integer(substr(colnames(mig.rates), 1, 4)) + 3
+    }
+      
   #Establish some parameter constraints
   muConstraints <- rep(NA,length(fullCountryNameVec));
   phiConstraints <- rep(NA,length(fullCountryNameVec));
