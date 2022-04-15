@@ -217,22 +217,11 @@ mcmc.ini <- function(chain.id, mcmc.meta,iter=1000) {
     iter=iter,
     length=1,
     id=chain.id,
-    output.dir=paste('mc', chain.id, sep='')
+    output.dir=paste0('mc', chain.id),
+    traces = 0, traces.burnin = 0
     ),
   class='bayesMig.mcmc')
   
   return(mcmc)
-}
-
-
-mig.parameter.names <- function() {
-  # Return all country-independent parameter names.
-  return(c("a","b","mu_global","sigma2_mu"))
-}
-
-mig.parameter.names.cs <- function(){
-  # Return all country-specific parameter names.
-  #That is, these parameters are vectors of length nr.countries.
-  return(c("mu_c","phi_c","sigma2_c"))
 }
 

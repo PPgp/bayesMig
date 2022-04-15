@@ -30,6 +30,8 @@
 #' @param verbose.iter If verbose is TRUE, the number of iterations to wait between printing updates.
 #' @param output.dir A file path pointing to the directory in which to store results.
 #' @param replace.output If the specified output directory already exists, should it be overwritten?
+#' @param annual If \code{TRUE}, the model assumes the underlying data is on annual time scale. 
+#'     In such a case, argument \code{my.mig.file} must be used to provide the annual observed data.
 #' @param parallel Whether to run code in parallel.
 #' @param nr.nodes Relevant only if \code{parallel} is \code{TRUE}. It gives the number of nodes for running the simulation in parallel. 
 #' By default it equals to the number of chains.
@@ -63,7 +65,10 @@
 #' but the values should be rates (instead of counts). Each row corresponds to a location. It does not have 
 #' to be necessarily a country - it can be for example a subnational unit. It must contain columns 
 #' \dQuote{country_code} or \dQuote{code} (unique identifier of the location), \dQuote{name}, and columns representing 
-#' 5-year time intervals, e.g., \dQuote{1995-2000}, \dQuote{2000-2005} etc. 
+#' 5-year time intervals (if \code{annual} is \code{FALSE}), e.g., \dQuote{1995-2000}, \dQuote{2000-2005} etc. 
+#' 
+#' If \code{annual} is \code{TRUE} the default WPP dataset is not used and the \code{my.mig.file} argument 
+#' must provide the dataset to be used for estimation. Its time-related columns should be single years.
 #' 
 #' If there are countries or locations that should be excluded from influencing the hyperparameters,
 #' for example small countries or locations with unique migration patterns, their codes 

@@ -12,6 +12,6 @@ NULL
 #' @description MCMC object \code{bayesMig.mcmc} containing information about one MCMC chain. 
 #' A set of such objects belonging to the same simulation, together with a {\code{\link{bayesMig.mcmc.meta}}} object, 
 #' constitute a {\code{\link{bayesMig.mcmc.set}}} object.
-#' @aliases bayesMig.mcmc.meta
+#' @aliases bayesMig.mcmc
 #' @name mcmc-object
 NULL

@@ -2,6 +2,7 @@
 % Please edit documentation in R/run_mcmc.R
 \name{run.mig.mcmc}
 \alias{run.mig.mcmc}
+\alias{bayesMig.mcmc.set}
 \title{Run Markov chain Monte Carlo for parameters of net migration rate model}
 \usage{
 run.mig.mcmc(
@@ -10,6 +11,7 @@ run.mig.mcmc(
   output.dir = file.path(getwd(), "bayesMig.output"),
   thin = 1,
   replace.output = FALSE,
+  annual = FALSE,
   start.year = 1950,
   present.year = 2020,
   wpp.year = 2019,
@@ -42,6 +44,9 @@ run.mig.mcmc(
 final count of 50 iterations.}
 
 \item{replace.output}{If the specified output directory already exists, should it be overwritten?}
+
+\item{annual}{If \code{TRUE}, the model assumes the underlying data is on annual time scale. 
+In such a case, argument \code{my.mig.file} must be used to provide the annual observed data.}
 
 \item{start.year}{Start year for using historical data.}
 
@@ -85,7 +90,7 @@ An object of class \code{bayesMig.mcmc.set} which is a list with two components:
 }
 \description{
 Runs MCMCs for simulating the net migration rate of all countries of the
-world, using a Bayesian hierarchical model of Azose & Raftery (2015).
+world (or locations specified by users), using the Bayesian hierarchical model of Azose & Raftery (2015).
 }
 \details{
 The function creates an object of class \code{\link{bayesMig.mcmc.meta}} and 
@@ -102,16 +107,19 @@ All chain-specific files  are written onto disk after the first, last and each
 By default (if no data is passed via the \code{my.mig.file} argument), the function 
 loads observed data (further denoted as WPP dataset), from the \code{\link[wpp2019]{migration}} 
 and \code{\link[wpp2019]{pop}} datasets in the \pkg{wpp}\eqn{x} package where \eqn{x} is 
-the \code{wpp.year}. Net migration rates are computed as migration(t) / (population(t_e) - migration(t)) 
-where t_e means the end of time period t. 
+the \code{wpp.year}. Net migration rates are computed as migration(\eqn{t}) / (population(\eqn{t_e}) - migration(\eqn{t})) 
+where \eqn{t_e} means the end of time period \eqn{t}. 
 
 The argument \code{my.mig.file} can be used to overwrite the default data. 
-If it is used, it has to contain net migration rate for all locations to be used in the simulation, as no WPP data is used 
+If it is used, it should contain the net migration rate for all locations to be used in the simulation, as no WPP data is used 
 in such a case. The structure of the file has the same format as the \code{\link[wpp2019]{migration}} dataset,
 but the values should be rates (instead of counts). Each row corresponds to a location. It does not have 
 to be necessarily a country - it can be for example a subnational unit. It must contain columns 
 \dQuote{country_code} or \dQuote{code} (unique identifier of the location), \dQuote{name}, and columns representing 
-5-year time intervals, e.g., \dQuote{1995-2000}, \dQuote{2000-2005} etc. 
+5-year time intervals (if \code{annual} is \code{FALSE}), e.g., \dQuote{1995-2000}, \dQuote{2000-2005} etc. 
+
+If \code{annual} is \code{TRUE} the default WPP dataset is not used and the \code{my.mig.file} argument 
+must provide the dataset to be used for estimation. Its time-related columns should be single years.
 
 If there are countries or locations that should be excluded from influencing the hyperparameters,
 for example small countries or locations with unique migration patterns, their codes 

@@ -6,17 +6,18 @@
 
 #' @title Access MCMC results
 #'
-#' @description This function retrieves results of an MCMC simulation and creates an object of class
-#' \code{bayesMig.mcmc.set}. 
+#' @description Function \code{get.mig.mcmc} retrieves results of an MCMC simulation and creates an object of class
+#' \code{\link{bayesMig.mcmc.set}}. Function \code{has.mig.mcmc} checks the existence of such results.
 #' 
-#' @param sim.dir Directory where simulation results are stored
+#' @param sim.dir Directory where simulation results are stored.
 #' @param chain.ids Chain identifiers in case only specific chains should be included
-#' in the resulting object. By default, all available chains are included.
+#'     in the resulting object. By default, all available chains are included.
 #' @param low.memory Logical. If \code{FALSE} full MCMC traces are loaded into memory.
 #' @param burnin Burn-in used for loading traces. Only relevant, if \code{low.memory=FALSE}.
 #' @param verbose Logical value. Switches log messages on and off.
 #' 
 #' @export
+#' @rdname get-mcmc
 
 get.mig.mcmc <- function(sim.dir=file.path(getwd(), 'bayesMig.output'), chain.ids=NULL,
                          low.memory = TRUE, burnin = 0, verbose = FALSE) {
@@ -70,7 +71,30 @@ get.mig.mcmc <- function(sim.dir=file.path(getwd(), 'bayesMig.output'), chain.id
                         mcmc.list=mcmc.chains), class='bayesMig.mcmc.set'))
 }
 
+#' @title Access Prediction Object
+#'
+#' @description Function \code{get.mig.prediction} retrieves results of a prediction and creates an object of class
+#'     \code{\link{bayesMig.prediction}}. Function \code{has.mig.prediction} checks an existence of such results.
+#' 
+#' @param mcmc Object of class \code{\link{bayesMig.mcmc.set}} used to make the prediction. 
+#'     If it is \code{NULL}, the prediction is loaded from directory given by \code{sim.dir}.
+#' @param sim.dir Directory where the prediction is stored.
+#' @param mcmc.dir Optional argument to be used only in a special case when the mcmc object 
+#'     contained in the prediction object was estimated in different directory than in the one 
+#'     to which it points to (for example due to moving or renaming the original directory). 
+#'     The argument causes that the mcmc is redirected to the given directory. 
+#'     It can be set to \code{NA} if no loading of the mcmc object is desired.
+#'     
+#' @details If \code{mcmc} is not \code{NULL}, the search directory is set to 
+#'     \code{mcmc$meta$output.dir}. This approach assumes that the prediction was stored in the 
+#'     same directory as the MCMC simulation, i.e. the \code{output.dir} argument of the 
+#'     \code{\link{mig.predict}} function was set to \code{NULL}. If it is not the case, 
+#'     the argument \code{mcmc.dir} should be used.
+#'     
+#' @return Function \code{get.mig.prediction} returns an object of class \code{\link{bayesMig.prediction}}.
 #' @export
+#' @rdname get-prediction
+#' 
 get.mig.prediction <- function(mcmc=NULL, sim.dir=NULL, mcmc.dir=NULL) {
   ############
   # Returns an object of class bayesMig.prediction
@@ -104,17 +128,42 @@ get.mig.prediction <- function(mcmc=NULL, sim.dir=NULL, mcmc.dir=NULL) {
   return(pred)
 }
 
+#' @rdname get-mcmc
 #' @export
+#' 
 has.mig.mcmc <- function(sim.dir) {
   return(file.exists(file.path(sim.dir, 'bayesMig.mcmc.meta.rda')))
 }
 
+#' @rdname get-convergence
 #' @export
+#' 
 get.mig.convergence.all <- function(sim.dir=file.path(getwd(), 'bayesMig.output')) {
   return(bayesTFR:::.do.get.convergence.all('mig', 'bayesMig', sim.dir=sim.dir))
 }
 
+#' @title Accessing Convergence Diagnostics Object
+#'
+#' @description The function retrieves results of convergence diagnostics 
+#'     (object of class \code{\link{bayesMig.convergence}} created by \code{\link{mig.diagnose}}) 
+#'     from disk.
+#' 
+#' @param sim.dir Simulation directory used for computing the diagnostics.
+#' @param thin Thinning interval used with this diagnostics.
+#' @param burnin Burn-in used for computing the diagnostics.
+#' 
+#' @details Function \code{get.mig.convergence} loads an object of class 
+#'     \code{\link{bayesMig.convergence}} for the specific \code{thin} and \code{burnin}. 
+#'     Function \code{get.mig.convergence.all} loads all \code{\link{bayesMig.convergence}} objects 
+#'     available in \code{sim.dir}.
+#'     
+#' @return \code{get.mig.convergence} returns an object of class \code{\link{bayesMig.convergence}}; \cr
+#'     \code{get.mig.convergence.all} returns a list of objects of class \code{\link{bayesMig.convergence}}. 
+#'     
+#' @seealso \code{\link{mig.diagnose}}, \code{\link{summary.bayesMig.convergence}}
+#' @rdname get-convergence
 #' @export
+#' 
 get.mig.convergence <- function(sim.dir=file.path(getwd(), 'bayesMig.output'), 
                                thin=225, burnin=10000) {
   file.name <- file.path(sim.dir, 'diagnostics', paste('bayesMig.convergence_', 
@@ -153,13 +202,35 @@ load.mig.parameter.traces.all <- function(mcmc, par.names=mig.parameter.names(),
   return (result)
 }
 
+#' @title Accessing Parameter Names
+#'
+#' @description Functions for accessing names of the MCMC parameters, 
+#'     either country-independent or country-specific.
+#' 
+#' @return \code{mig.parameter.names} returns names of the world parameters.
+#' 
+#' @examples 
+#' mig.parameter.names()
+#' 
 #' @export
+#' @rdname parnames
+#' 
 mig.parameter.names <- function() {
   # Return all country-independent parameter names. 
   return(c("a","b","mu_global","sigma2_mu"))
 }
 
+#' @param country.code Country code. If it is given, the country-specific parameter names contain 
+#'     the suffix \sQuote{_country\eqn{X}} where \eqn{X} is the \code{country.code}.
+#'     
+#' @return \code{mig.parameter.names.cs} returns names of the country-specific parameters.
+#' 
+#' @examples 
+#' mig.parameter.names.cs()
+#' 
 #' @export
+#' @rdname parnames
+#' 
 mig.parameter.names.cs <- function(country.code=NULL) {
   #Return all country-specific parameter names. 
   #If country is not NULL, it must be a country code.
@@ -167,7 +238,7 @@ mig.parameter.names.cs <- function(country.code=NULL) {
   par.names <- c("mu_c","phi_c","sigma2_c")
   if (is.null(country.code))
     return(par.names)
-  return(paste(par.names, '_country', country.code, sep=''))
+  return(paste0(par.names, '_country', country.code))
 }
 
 load.mig.parameter.traces <- function(mcmc, par.names=NULL, burnin=0, thinning.index=NULL) {
@@ -200,7 +271,7 @@ coda.mcmc.bayesMig.mcmc <- function(mcmc, country=NULL, par.names=NULL,
                                             par.names.cs = par.names.cs, ...))
 }
 
-#' Conversion to coda-formatted objects
+#' @title Conversion to coda-formatted objects
 #' 
 #' @description The functions convert MCMC traces (simulated using \code{\link{run.mig.mcmc}}) into 
 #' objects that can be used with the \pkg{coda} package.
@@ -306,7 +377,10 @@ get.thinned.mig.mcmc <- function(mcmc.set, thin=1, burnin=0) {
   return(NULL)
 }
 
+#' @return Function \code{has.mig.prediction} returns  a logical indicating if a prediction exists.
+#' @rdname get-prediction
 #' @export
+#' 
 has.mig.prediction <- function(mcmc=NULL, sim.dir=NULL) {
   if (!is.null(mcmc)) sim.dir <- if(is.character(mcmc)) mcmc else mcmc$meta$output.dir
   if (is.null(sim.dir)) stop('Either mcmc or directory must be given.')
@@ -314,8 +388,17 @@ has.mig.prediction <- function(mcmc=NULL, sim.dir=NULL) {
   return(FALSE)
 }
 
-
+#' @title Accessing MCMC Parameter Traces
+#' @description Functions for accessing traces of the MCMC parameters, either country-independent 
+#'     or country-specific.
+#' @param mcmc.list List of \code{\link{bayesMig.mcmc}} objects.
+#' @param par.names Names of country-independent parameters (in case of 
+#'     \code{get.mig.parameter.traces}) or country-specific parameters 
+#'     (in case of \code{get.mig.parameter.traces.cs}) to be included. 
+#'     By default all parameters are included.
 #' @export
+#' @rdname get-traces
+#' 
 get.mig.parameter.traces <- function(mcmc.list, par.names=NULL, 
                                      burnin=0, thinning.index=NULL, thin=NULL) {
   # get parameter traces either from disk or from memory, if they were already loaded
@@ -326,6 +409,7 @@ get.mig.parameter.traces <- function(mcmc.list, par.names=NULL,
 }
 
 #' @export
+#' @rdname get-traces
 get.mig.parameter.traces.cs <- function(mcmc.list, country.obj, par.names=NULL, 
                                         burnin=0, thinning.index=NULL, thin=NULL) {
   # country.obj is result of get.country.object()
@@ -404,6 +488,8 @@ create.thinned.mig.mcmc <- function(mcmc.set, thin=1, burnin=0, output.dir=NULL,
 
 
 #' @export
+#' @rdname summary-mcmc
+#' 
 summary.bayesMig.mcmc <- function(object, country = NULL, 
                                    par.names = NULL, par.names.cs = NULL, thin = 1, burnin = 0, ...) {
   res <- list()
@@ -421,7 +507,29 @@ summary.bayesMig.mcmc <- function(object, country = NULL,
   return(res)
 }
 
+#' @title Summary Statistics for Migration Markov Chain Monte Carlo 
+#'
+#' @description Summary of an object \code{\link{bayesMig.mcmc.set}} or \code{\link{bayesMig.mcmc}},
+#'     computed via \code{\link{run.mig.mcmc}}.  It can be obtained either for all countries or 
+#'     for a specific country, and either for all parameters or for specific parameters.
+#'     The function uses the \code{\link[coda]{summary.mcmc}} function of the \pkg{coda} package.
+#' 
+#' @param object Object of class \code{\link{bayesMig.mcmc.set}} or \code{\link{bayesMig.mcmc}}.
+#' @param country Country name or code if a country-specific summary is desired. 
+#'     The code can be either numeric or ISO-2 or ISO-3 characters. By default, summary 
+#'     for all countries is generated.
+#' @param chain.id Identifiers of MCMC chains. By default, all chains are considered.
+#' @param par.names Country independent parameters to be included in the summary. 
+#'     The default names are given by \code{\link{mig.parameter.names}()}.
+#' @param par.names.cs Country-specific parameters to be included in the summary.
+#'     The default names are given by \code{\link{mig.parameter.names.cs}()}.
+#' @param meta.only Logical. If it is \code{TRUE}, only meta information of the simulation is included.
+#' @param thin Thinning interval. Only used if larger than the \code{thin} argument used in \code{\link{run.mig.mcmc}}.
+#' @param burnin Number of iterations to be discarded from the beginning of each chain before computing the summary.
+#' @param \dots Additional arguments passed to the \code{\link[coda]{summary.mcmc}} function of the \pkg{coda} package.
 #' @export
+#' @rdname summary-mcmc
+#' 
 summary.bayesMig.mcmc.set <- function(object, country=NULL, chain.id=NULL, 
                                        par.names = NULL, 
                                        par.names.cs = NULL, 
@@ -453,6 +561,8 @@ summary.bayesMig.mcmc.set <- function(object, country=NULL, chain.id=NULL,
   return(res)
 }
 
+
+#' 
 #' @export
 summary.bayesMig.mcmc.meta <- function(object, ...) {
   res <- list(est.period = paste(object$start.year, object$present.year, sep = '-'),
@@ -473,6 +583,7 @@ print.summary.bayesMig.mcmc.meta <- function(x, ...) {
 }
 
 #' @export
+#' 
 print.summary.bayesMig.mcmc.set <- function(x, ...) {
   print(x$meta)
   if(!is.null(x$chain.info)) bayesTFR:::print.summary.chain.info(x$chain.info)
@@ -486,6 +597,7 @@ print.summary.bayesMig.mcmc.set <- function(x, ...) {
 }
 
 #' @export
+#' 
 print.bayesMig.mcmc <- function(x, ...) {
   print(summary(x, ...))
 }
@@ -516,7 +628,21 @@ print.bayesMig.prediction <- function(x, ...) {
   print(summary(x, ...))
 }
 
+
+#' @title Summary of Prediction of Net Migration Rate
+#'
+#' @description Country-specific summary of an object of class \code{\link{bayesMig.prediction}}, 
+#'     created using the function \code{\link{mig.predict}}. The summary contains the mean, 
+#'     standard deviation and several commonly used quantiles of the simulated trajectories.
+#' 
+#' @param object Object of class \code{\link{bayesMig.prediction}}.
+#' @param country Country name or code if a country-specific summary is desired. 
+#'     The code can be either numeric or ISO-2 or ISO-3 characters. If it is \code{NULL}, only prediction parameters are included.
+#' @param compact Logical switching between a smaller and larger number of displayed quantiles.
+#' @param \dots A list of further arguments.
 #' @export
+#' @rdname summary-prediction
+#' 
 summary.bayesMig.prediction <- function(object, country = NULL, compact = TRUE, ...) {
   res <- bayesTFR:::get.prediction.summary.data(object, 
                                                 unchanged.pars=c('burnin', 'nr.traj'), 
@@ -525,7 +651,11 @@ summary.bayesMig.prediction <- function(object, country = NULL, compact = TRUE, 
   return(bayesTFR:::.update.summary.data.by.shift(res, object, country))
 }
 
+#' @param x A result of the \code{summary} function.
+#' @param digits Minimal number of significant digits.
+#' @rdname summary-prediction
 #' @export
+#' 
 print.summary.bayesMig.prediction <- function(x, digits = 3, ...) {
   cat('\nProjections:', length(x$projection.years), '(', x$projection.years[1], '-', 
       x$projection.years[length(x$projection.years)], ')')
@@ -540,7 +670,20 @@ print.summary.bayesMig.prediction <- function(x, digits = 3, ...) {
   }
 }
 
+#' @title Summary of Convergence Diagnostics
+#'
+#' @description Summary of an object of class \code{\link{bayesMig.convergence}} created 
+#'     using the \code{\link{mig.diagnose}} function. It gives an overview about parameters 
+#'     that did not converge.
+#' 
+#' @param object Object of class \code{\link{bayesMig.prediction}}.
+#' @param expand By default, the function does not show country-specific parameters 
+#'     for which there was no convergence (only country-independent parameters), 
+#'     if the status is \sQuote{red}. This argument can switch that option on.
+#' @param \dots Not used.
 #' @export
+#' 
+
 summary.bayesMig.convergence <- function(object, expand=FALSE, ...) {
   return(bayesTFR:::summary.bayesTFR.convergence(object, expand=expand, ...))
 }
@@ -553,7 +696,6 @@ get.nr.countries.bayesMig.mcmc.meta <- function(meta, ...)
 get.nrest.countries.bayesMig.mcmc.meta <- function(meta, ...) 
   return(meta$nr.countries)
 
-#' @export
 country.names.bayesMig.mcmc.meta <- function(meta) {
   #JA: This assumes we produce projections for all listed countries.
   return(meta$fullCountryNameVec)

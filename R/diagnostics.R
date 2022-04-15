@@ -42,6 +42,7 @@ mig.raftery.diag <- function(mcmc=NULL,
 #' \dontrun{
 #' mig.diagnose(sim.dir='./bayesMig.output', burnin=100, thin=1)
 #' }
+#' @aliases bayesMig.convergence
 #' @export
 
 mig.diagnose <- function(sim.dir, thin=80, burnin=2000, express=FALSE, 

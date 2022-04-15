@@ -6,6 +6,7 @@
 \title{MCMC Meta Object}
 \value{
 Stores values of the various input arguments of the {\code{\link{run.mig.mcmc}}} function.
+These are \code{nr.chains}, \code{start.year}, \code{present.year}, \code{wpp.year}, \code{my.e0.file}
 }
 \description{
 Meta object \code{bayesMig.mcmc.meta} used by all chains of the same MCMC simulation. 

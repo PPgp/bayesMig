@@ -2,6 +2,7 @@
 % Please edit documentation in R/get_outputs.R
 \name{get.mig.mcmc}
 \alias{get.mig.mcmc}
+\alias{has.mig.mcmc}
 \title{Access MCMC results}
 \usage{
 get.mig.mcmc(
@@ -11,9 +12,11 @@ get.mig.mcmc(
   burnin = 0,
   verbose = FALSE
 )
+
+has.mig.mcmc(sim.dir)
 }
 \arguments{
-\item{sim.dir}{Directory where simulation results are stored}
+\item{sim.dir}{Directory where simulation results are stored.}
 
 \item{chain.ids}{Chain identifiers in case only specific chains should be included
 in the resulting object. By default, all available chains are included.}
@@ -25,6 +28,6 @@ in the resulting object. By default, all available chains are included.}
 \item{verbose}{Logical value. Switches log messages on and off.}
 }
 \description{
-This function retrieves results of an MCMC simulation and creates an object of class
-\code{bayesMig.mcmc.set}.
+Function \code{get.mig.mcmc} retrieves results of an MCMC simulation and creates an object of class
+\code{\link{bayesMig.mcmc.set}}. Function \code{has.mig.mcmc} checks the existence of such results.
 }

@@ -40,6 +40,7 @@
 #' 
 #' Other key result components include \code{traj.mean.sd}, a summary of means and standard deviations for each country
 #' at each time point.
+#' @aliases bayesMig.prediction
 #' @export
 
 mig.predict <- function(mcmc.set=NULL, end.year=2100,

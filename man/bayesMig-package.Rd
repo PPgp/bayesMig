@@ -43,17 +43,17 @@ Existing convergence diagnostics can be accessed using the \code{\link{get.mig.c
 \code{\link{get.mig.convergence.all}} functions.
 
 Historical data on migration rates are taken from the \pkg{wpp2019} (default) or \pkg{wpp2017} package,
-depending on users settings.
+depending on users settings, or users can input their own data.
 }
 \examples{
 \dontrun{
-#Run a real simulation including convergence diagnostics
+# Run a real simulation including convergence diagnostics
 sim.dir <- "migsim"
 run.mig.mcmc(nr.chains = 4, iter = 10000, thin = 10, output.dir = sim.dir)
-mig.diagnose(sim.dir, burnin = 100, thin = 1)
+mig.diagnose(sim.dir, burnin = 1000, thin = 1)
 
-#Predict and plots for all countries
-mig.pred <- mig.predict(burnin = 100)
+# Predict and plots for all countries
+mig.pred <- mig.predict(burnin = 1000)
 mig.trajectories.plot.all(mig.pred)
 }
 

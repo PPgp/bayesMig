@@ -2,6 +2,7 @@
 % Please edit documentation in R/predict_mig.R
 \name{mig.predict}
 \alias{mig.predict}
+\alias{bayesMig.prediction}
 \title{Generate posterior trajectories of net migration rates}
 \usage{
 mig.predict(

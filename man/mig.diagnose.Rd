@@ -2,6 +2,7 @@
 % Please edit documentation in R/diagnostics.R
 \name{mig.diagnose}
 \alias{mig.diagnose}
+\alias{bayesMig.convergence}
 \title{MCMC convergence diagnostics}
 \usage{
 mig.diagnose(

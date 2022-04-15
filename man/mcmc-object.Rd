@@ -2,7 +2,7 @@
 % Please edit documentation in R/mcmc_objects.R
 \name{mcmc-object}
 \alias{mcmc-object}
-\alias{bayesMig.mcmc.meta}
+\alias{bayesMig.mcmc}
 \title{MCMC Object}
 \description{
 MCMC object \code{bayesMig.mcmc} containing information about one MCMC chain. 
