@@ -135,25 +135,19 @@ has.mig.mcmc <- function(sim.dir) {
   return(file.exists(file.path(sim.dir, 'bayesMig.mcmc.meta.rda')))
 }
 
-#' @rdname get-convergence
-#' @export
-#' 
-get.mig.convergence.all <- function(sim.dir=file.path(getwd(), 'bayesMig.output')) {
-  return(bayesTFR:::.do.get.convergence.all('mig', 'bayesMig', sim.dir=sim.dir))
-}
 
 #' @title Accessing Convergence Diagnostics Object
 #'
 #' @description The function retrieves results of convergence diagnostics 
-#'     (object of class \code{\link{bayesMig.convergence}} created by \code{\link{mig.diagnose}}) 
-#'     from disk.
+#'     (created by \code{\link{mig.diagnose}}) from disk.
 #' 
 #' @param sim.dir Simulation directory used for computing the diagnostics.
 #' @param thin Thinning interval used with this diagnostics.
 #' @param burnin Burn-in used for computing the diagnostics.
 #' 
 #' @details Function \code{get.mig.convergence} loads an object of class 
-#'     \code{\link{bayesMig.convergence}} for the specific \code{thin} and \code{burnin}. 
+#'     \code{\link{bayesMig.convergence}} for the specific \code{thin} and \code{burnin} 
+#'     used in \code{\link{mig.diagnose}} to generate this object. 
 #'     Function \code{get.mig.convergence.all} loads all \code{\link{bayesMig.convergence}} objects 
 #'     available in \code{sim.dir}.
 #'     
@@ -161,6 +155,23 @@ get.mig.convergence.all <- function(sim.dir=file.path(getwd(), 'bayesMig.output'
 #'     \code{get.mig.convergence.all} returns a list of objects of class \code{\link{bayesMig.convergence}}. 
 #'     
 #' @seealso \code{\link{mig.diagnose}}, \code{\link{summary.bayesMig.convergence}}
+#' 
+#' @examples 
+#' \dontrun{
+#' # Run a real simulation (can take long time)
+#' sim.dir <- tempfile()
+#' m <- run.mig.mcmc(nr.chains = 4, iter = 10000, thin = 10, output.dir = sim.dir)
+#' 
+#' # Run convergence diagnostics with different burning and thin
+#' mig.diagnose(sim.dir, burnin = 1000, thin = 2)
+#' mig.diagnose(sim.dir, burnin = 500, thin = 1)
+#' 
+#' diags <- get.convergence.all(sim.dir)
+#' summary(diags[[1]])
+#' summary(diags[[2]])
+#' 
+#' unlink(sim.dir, recursive = TRUE)
+#' }
 #' @rdname get-convergence
 #' @export
 #' 
@@ -178,6 +189,12 @@ get.mig.convergence <- function(sim.dir=file.path(getwd(), 'bayesMig.output'),
   return(bayesMig.convergence)
 }
 
+#' @rdname get-convergence
+#' @export
+#' 
+get.mig.convergence.all <- function(sim.dir=file.path(getwd(), 'bayesMig.output')) {
+    return(bayesTFR:::.do.get.convergence.all('mig', 'bayesMig', sim.dir=sim.dir))
+}
 
 get.thinned.burnin <- function(mcmc, burnin) {
   if (burnin==0) return(0)
@@ -396,6 +413,23 @@ has.mig.prediction <- function(mcmc=NULL, sim.dir=NULL) {
 #'     \code{get.mig.parameter.traces}) or country-specific parameters 
 #'     (in case of \code{get.mig.parameter.traces.cs}) to be included. 
 #'     By default all parameters are included.
+#' @param burnin Burn-in indicating how many iterations should be removed 
+#'     from the beginning of each chain.
+#' @param thinning.index Index of the traces for thinning. If it is \code{NULL}, 
+#'     \code{thin} is used. \code{thinning.index} does not include \code{burnin} 
+#'     and should be flattened over all chains. For example, if there are two MCMC 
+#'     chains of length 1000, \code{burnin=200} and we want an equidistantly spaced 
+#'     sample of length 400, then the value should be 
+#'     \code{thinning.index=seq(1,1600, length=400)}.
+#' @param thin An integer value for thinning. It is an alternative to 
+#'     \code{thinning.index}. The above example is equivalent to \code{thin=4}.
+#'     
+#' @return Both functions return a matrix with columns being the parameters and 
+#'     rows being the MCMC values, attached to one another in case of multiple chains. 
+#'     \code{get.mig.parameter.traces} returns country-independent parameters, 
+#'     \code{get.mig.parameter.traces.cs} returns country-specific parameters.
+#'     
+#' @seealso \code{\link{mig.coda.list.mcmc}} for another way of retrieving parameter traces.
 #' @export
 #' @rdname get-traces
 #' 
@@ -408,6 +442,7 @@ get.mig.parameter.traces <- function(mcmc.list, par.names=NULL,
                                      burnin=burnin, thinning.index=thinning.index, thin=thin))
 }
 
+#' @param country.obj Country object (see \code{\link[bayesTFR]{get.country.object}}).
 #' @export
 #' @rdname get-traces
 get.mig.parameter.traces.cs <- function(mcmc.list, country.obj, par.names=NULL, 

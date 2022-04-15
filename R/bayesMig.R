@@ -15,7 +15,9 @@
 #' @import grDevices graphics stats utils bayesTFR
 #' @importFrom utils data
 #' 
-#' @details The main functions of the package are:
+#' @details The package is implemented in a similar way as the \pkg{bayesTFR} 
+#'     package and thus, many functions have their equivalents in \pkg{bayesTFR}. 
+#'     The main functions of the package are:
 #' * \code{\link{run.mig.mcmc}}: Runs a Markov Chain Monte Carlo (MCMC) simulation.
 #' It results in posterior samples of the model parameters.
 #' * \code{\link{mig.predict}}: Using the posterior parameter samples, trajectories of future 
@@ -24,6 +26,8 @@
 #' The following functions can be used to analyze results:
 #' * \code{\link{mig.trajectories.plot}}: Shows the posterior trajectories for a given location, including the median and given probability intervals.
 #' * \code{\link{mig.trajectories.table}}: Shows a tabular form of the posterior trajectories for a given location.
+#' * \link{mig.map} and \link{mig.map.gvis}: Show a world map of migration rates 
+#'     for a given projection or observed period, or for country-specific parameter estimates.
 #' * \code{\link{mig.partraces.plot}} and \code{\link{mig.partraces.cs.plot}}: Plot the MCMC traces
 #'  of country-independent parameters and country-specific parameters, respectively.
 #' * \code{\link{mig.pardensity.plot}} and \code{\link{mig.pardensity.cs.plot}}: Plot the posterior density of the 
@@ -31,7 +35,7 @@
 #' * \code{\link{summary.bayesMig.mcmc.set}}: Summary method for the MCMC results.
 #' * \code{\link{summary.bayesMig.prediction}}: Summary method for the prediction results.
 #' 
-#' For MCMC diagnostics, function \code{\link{mig.coda.list.mcmc}} create an object of type 
+#' For MCMC diagnostics, function \code{\link{mig.coda.list.mcmc}} creates an object of type 
 #' \dQuote{mcmc.list} that can be used with the \pkg{coda} package. 
 #' Furthermore, function \code{\link{mig.diagnose}} analyzes the MCMCs using the 
 #' Raftery diagnostics implemented in the \pkg{coda} package and gives information 
@@ -43,21 +47,30 @@
 #' \code{\link{get.mig.convergence.all}} functions.
 #' 
 #' Historical data on migration rates are taken from the \pkg{wpp2019} (default) or \pkg{wpp2017} package, 
-#' depending on users settings, or users can input their own data.
+#' depending on users settings. Alternatively, users can input their own data.
 #' 
 #' @examples
 #' \dontrun{
-#' # Run a real simulation including convergence diagnostics
-#' sim.dir <- "migsim"
-#' run.mig.mcmc(nr.chains = 4, iter = 10000, thin = 10, output.dir = sim.dir)
-#' mig.diagnose(sim.dir, burnin = 1000, thin = 1)
+#' # Run a real simulation (can take long time)
+#' sim.dir <- tempfile()
+#' m <- run.mig.mcmc(nr.chains = 4, iter = 10000, thin = 10, output.dir = sim.dir)
 #' 
-#' # Predict and plots for all countries
-#' mig.pred <- mig.predict(burnin = 1000)
-#' mig.trajectories.plot.all(mig.pred)
+#' # Prediction for all countries
+#' pred <- mig.predict(sim.dir = sim.dir, burnin = 1000)
+#' 
+#' # Explore results
+#' summary(pred, country = "Germany")
+#' mig.trajectories.plot(pred, country = "Germany")
+#' 
+#' # Check convergence diagnostics
+#' diag <- mig.diagnose(sim.dir, burnin = 1000, thin = 1)
+#' summary(diag)
+#' 
+#' unlink(sim.dir, recursive = TRUE)
 #' }
 #' 
 #' @references Azose, J. J., & Raftery, A. E. (2015). 
 #' Bayesian probabilistic projection of international migration. Demography, 52(5), 1627-1650.
+#' \doi{10.1007/s13524-015-0415-0}.
 #' @name bayesMig-package
 NULL

@@ -2,6 +2,19 @@
 #MIGRATION
 ###############
 
+#' @param mcmc A \code{\link{bayesMig.mcmc}} or \code{\link{bayesMig.mcmc.set}} object. 
+#'     If not given, the object is loaded from the simulation directory given by 
+#'     \code{sim.dir}.
+#' @param country Name or code of a country. If it is given, only country-specific 
+#'     parameters parameters of that country are considered.
+#' @param par.names Names of country-independent parameters for which the Raftery 
+#'     diagnostics should be computed. By default all parameters are used.
+#' @param par.names.cs Names of country-specific parameters for which the Raftery 
+#'     diagnostics should be computed. By default all parameters are used.
+#' @param \dots Additional arguments passed to the \code{\link{mig.coda.list.mcmc}} function.
+#'     
+#' @details For details on the \code{mig.raftery.diag} function, see \code{\link[bayesTFR]{tfr.raftery.diag}}. 
+#' @rdname diagnose
 #' @export
 mig.raftery.diag <- function(mcmc=NULL, 
                              sim.dir=file.path(getwd(), 'bayesMig.output'),
@@ -24,7 +37,8 @@ mig.raftery.diag <- function(mcmc=NULL,
 
 #' @title MCMC convergence diagnostics
 #'
-#' @description Runs convergence diagnostics of existing migration Markov chains using the \code{raftery.diag} function from the \code{coda} package.
+#' @description Runs convergence diagnostics of existing migration Markov chains 
+#'     using the \code{raftery.diag} function from the \code{coda} package.
 #' 
 #' @param sim.dir Directory with MCMC simulation results.
 #' @param thin Thinning interval.
@@ -37,12 +51,26 @@ mig.raftery.diag <- function(mcmc=NULL,
 #' to be randomly sampled. For long Markov chains, this argument may significantly influence the runtime of this function.
 #' @param keep.thin.mcmc Logical. If \code{TRUE}, the thinned traces used for computing the diagnostics are stored on disk.
 #' @param verbose Logical value. Switches log messages on and off.
-#' @return An object of class \code{bayesMig.convergence} containing summaries of the convergence check inputs and outputs
+#' 
+#' @details The \code{mig.diagnose} function invokes the \code{\link{mig.raftery.diag}} 
+#'     function separately for country-independent parameters and for country-specific 
+#'     parameters. It results in two possible states: red, i.e. it did not converge, and green, 
+#'     i.e. it converged. The resulting object is stored in 
+#'     \file{\{sim.dir\}/diagnostics/bayesMig.convergence_\{thin\}_\{burnin\}.rda} 
+#'     and can be accessed using the function \code{\link{get.mig.convergence}}.
+#'     
+#'     Function \code{\link[bayesTFR]{has.mcmc.converged}} from the \pkg{bayesTFR} package 
+#'     can be used to check if the existing diagnostics converged.
+#' @return \code{mig.diagnose} returns an object of class \code{bayesMig.convergence} 
+#'     containing summaries of the convergence check inputs and outputs. It has the 
+#'     same structure as \code{\link[bayesTFR]{bayesTFR.convergence}}.
+#' @seealso \code{\link[bayesTFR]{tfr.raftery.diag}}, \code{\link[coda]{raftery.diag}}
 #' @examples
 #' \dontrun{
 #' mig.diagnose(sim.dir='./bayesMig.output', burnin=100, thin=1)
 #' }
 #' @aliases bayesMig.convergence
+#' @rdname diagnose
 #' @export
 
 mig.diagnose <- function(sim.dir, thin=80, burnin=2000, express=FALSE, 

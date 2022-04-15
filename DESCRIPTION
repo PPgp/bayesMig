@@ -7,8 +7,8 @@ Maintainer: Hana Sevcikova <hanas@uw.edu>
 Depends: R (>= 2.14.2), bayesTFR
 Imports: coda, truncnorm, wpp2019
 Suggests: 
-Description: Producing probabilistic projections of net migration rate for all countries of the world using a Bayesian hierarchical model.
+Description: Producing probabilistic projections of net migration rate for all countries of the world using a Bayesian hierarchical model <doi:10.1007/s13524-015-0415-0>.
 License: GPL (>= 2)
 URL: http://bayespop.csss.washington.edu
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 LazyData: true

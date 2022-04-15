@@ -253,11 +253,19 @@ remove.mig.traces <- function(mcmc.set) {
 #' @export
 get.traj.ascii.header.bayesMig.mcmc.meta <- function(meta, ...) 
 	return (list(country_code='LocID', period='Period', year='Year', trajectory='Trajectory', tfr='Mig'))
-		
+
+#' @title Writing Projection Summary Files
+#' @description The function creates two files containing projection summaries, 
+#'     such as the median, the lower and upper bound of the 80 and 90\% probability 
+#'     intervals, respectively, and the constant variant. One file is in a user-friendly 
+#'     format, whereas the other is in a UN-specific format with internal coding of the 
+#'     time and the variants.
+#' @param pred Object of class \code{bayesMig.prediction}.
+#' @param output.dir Directory where output is written.
+#' @seealso \code{\link[bayesTFR]{write.projection.summary}}
 #' @export
 mig.write.projection.summary <- function(pred, output.dir) {
 	# one summary file
-	#do.write.projection.summary(pred, output.dir)
     bayesTFR:::do.write.projection.summary(pred, output.dir)
 }
 

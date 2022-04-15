@@ -125,7 +125,12 @@ store.bayesMig.meta.object <- function(meta, output.dir) {
   save(bayesMig.mcmc.meta, file=file.path(output.dir, 'bayesMig.mcmc.meta.rda'))
 }
 
+#' @title Internal Functions and datasets of bayesMig
+#' @description These functions and datasets are not to be used directly by the user.
 #' @export
+#' @keywords internal
+#' @rdname internal
+#' 
 store.bayesMig.convergence <- function(diag, thin, burnin, output.dir){
   save.file <- file.path(output.dir, paste('bayesTFR.convergence_', thin, '_', burnin, '.rda', sep=''))
   bayesTFR.convergence <- diag
@@ -134,6 +139,9 @@ store.bayesMig.convergence <- function(diag, thin, burnin, output.dir){
 }
 
 #' @export
+#' @keywords internal
+#' @rdname internal
+#' 
 store.bayesMig.prediction <- function(pred, output.dir=NULL) {
   bayesMig.prediction <- pred
   if (is.null(output.dir)) output.dir <- pred$output.directory
