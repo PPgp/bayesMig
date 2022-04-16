@@ -84,10 +84,20 @@
 #' \code{\link{mig.pardensity.plot}}, \code{\link{mig.predict}}
 #' 
 #' @examples
-#' m <- run.mig.mcmc(nr.chains = 2, iter = 30, thin = 1)
+#' \dontrun{
+#' # Toy simulation for US states
+#' us.mig.file <- file.path(find.package("bayesMig"), "extdata", "USmigrates.txt")
+#' sim.dir <- tempfile()
+#' m <- run.mig.mcmc(nr.chains = 2, iter = 30, thin = 1, my.mig.file = us.mig.file, 
+#'         annual = TRUE, output.dir = sim.dir)
 #' summary(m)
+#' summary(m, "Washington")
 #' 
+#' unlink(sim.dir, recursive = TRUE)
+#' # For a country-level simulation, see example in ?bayesMig. 
+#' }
 #' @export
+#' 
 run.mig.mcmc <- function(nr.chains=3, iter=50000, output.dir=file.path(getwd(), 'bayesMig.output'), 
                          thin=1, replace.output=FALSE, annual = FALSE,
                          start.year = 1950, present.year=2020, wpp.year=2019, my.mig.file = NULL,
@@ -130,14 +140,16 @@ run.mig.mcmc <- function(nr.chains=3, iter=50000, output.dir=file.path(getwd(), 
     a.ini <- init.values.between.low.and.up(1.001, 5)
   }
   
-  bayesMig.mcmc.meta <- mcmc.meta.ini(output.dir=output.dir, wpp.year = wpp.year,
+  bayesMig.mcmc.meta <- mcmc.meta.ini(nr.chains=nr.chains,
+                                    output.dir=output.dir, wpp.year = wpp.year,
                                       start.year=start.year, present.year = present.year, 
                                       annual.simulation = annual,
                                       my.mig.file = my.mig.file, 
                                      sigma.c.min = sigma.c.min, a.up = a.up,
                                      mu.range = mu.range, sigma.mu.range = sigma.mu.range,
                                      mu.ini = mu.ini, a.ini = a.ini, a.half.width = a.half.width,
-                                     exclude.from.world = exclude.from.world, buffer.size = buffer.size)
+                                     exclude.from.world = exclude.from.world, 
+                                    buffer.size = buffer.size, verbose=verbose)
   #cat(bayesMig.mcmc.meta$mig.rates)
   
   #Storage  

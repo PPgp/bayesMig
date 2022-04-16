@@ -39,15 +39,15 @@ Function \code{get.mig.convergence} loads an object of class
 \dontrun{
 # Run a real simulation (can take long time)
 sim.dir <- tempfile()
-m <- run.mig.mcmc(nr.chains = 4, iter = 10000, thin = 10, output.dir = sim.dir)
+m <- run.mig.mcmc(nr.chains = 2, iter = 10000, thin = 10, output.dir = sim.dir)
 
 # Run convergence diagnostics with different burning and thin
 mig.diagnose(sim.dir, burnin = 1000, thin = 2)
 mig.diagnose(sim.dir, burnin = 500, thin = 1)
 
-diags <- get.convergence.all(sim.dir)
-summary(diags[[1]])
-summary(diags[[2]])
+diags <- get.mig.convergence.all(sim.dir)
+for(i in 1:length(diags))
+    print(summary(diags[[i]]))
 
 unlink(sim.dir, recursive = TRUE)
 }

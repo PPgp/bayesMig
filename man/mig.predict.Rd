@@ -14,7 +14,7 @@ mig.predict(
   nr.traj = NULL,
   thin = NULL,
   burnin = 20000,
-  save.as.ascii = 1000,
+  save.as.ascii = 0,
   output.dir = NULL,
   seed = NULL,
   verbose = TRUE,
@@ -66,15 +66,33 @@ Can be used to generate reproducible projections.}
 }
 \value{
 A list with 9 components. Key result component is an array of quantiles with dimensions
-(number of countries) x (number of computed quantiles) x (number of projected time points).
-First time point in the sequence is not a projection, but an observed time period -- by default, 2010-2015.
+(number of locations) x (number of computed quantiles) x (number of projected time points).
+First time point in the sequence is not a projection, but the last observed time period.
 
 Other key result components include \code{traj.mean.sd}, a summary of means and standard deviations for each country
-at each time point.
+at each time point. See \code{\link[bayesTFR]{bayesTFR.prediction}} for more detail.
 }
 \description{
 Using the posterior parameter samples simulated by \code{\link{run.mig.mcmc}},
 generate posterior trajectories for the net migration rates for all countries of
 the world. This code \emph{does not} adjust trajectories to ensure that net
 migration counts sum to zero. That adjustment is handled in the \code{bayesPop} package.
+}
+\examples{
+\dontrun{
+# Toy simulation for US states
+us.mig.file <- file.path(find.package("bayesMig"), "extdata", "USmigrates.txt")
+sim.dir <- tempfile()
+m <- run.mig.mcmc(nr.chains = 2, iter = 30, thin = 1, my.mig.file = us.mig.file, 
+        output.dir = sim.dir, present.year = 2017, annual = TRUE)
+
+# Prediction
+pred <- mig.predict(sim.dir = sim.dir, burnin = 5, end.year = 2050)
+# here unrealistic results since this is a toy simulation 
+mig.trajectories.plot(pred, "Hawaii", pi = 80, ylim = c(-0.02, 0.02)) 
+mig.trajectories.table(pred, "Hawaii")
+
+unlink(sim.dir, recursive = TRUE)
+# For projections on national level, see ?bayesMig.
+}
 }

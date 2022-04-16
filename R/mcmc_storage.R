@@ -132,9 +132,9 @@ store.bayesMig.meta.object <- function(meta, output.dir) {
 #' @rdname internal
 #' 
 store.bayesMig.convergence <- function(diag, thin, burnin, output.dir){
-  save.file <- file.path(output.dir, paste('bayesTFR.convergence_', thin, '_', burnin, '.rda', sep=''))
-  bayesTFR.convergence <- diag
-  save(bayesTFR.convergence, file=save.file)
+  save.file <- file.path(output.dir, paste('bayesMig.convergence_', thin, '_', burnin, '.rda', sep=''))
+  bayesMig.convergence <- diag
+  save(bayesMig.convergence, file=save.file)
   return(save.file)
 }
 

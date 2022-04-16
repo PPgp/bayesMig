@@ -16,6 +16,20 @@
 #' @param burnin Burn-in used for loading traces. Only relevant, if \code{low.memory=FALSE}.
 #' @param verbose Logical value. Switches log messages on and off.
 #' 
+#' @examples
+#' \dontrun{
+#' # Toy simulation
+#' sim.dir <- tempfile()
+#' m <- run.mig.mcmc(nr.chains = 1, iter = 10, output.dir = sim.dir)
+#' 
+#' # can be later accessed via
+#' m <- get.mig.mcmc(sim.dir)
+#' summary(m)
+#' 
+#' has.mig.mcmc(sim.dir) # should be TRUE
+#' 
+#' unlink(sim.dir, recursive = TRUE)
+#' }
 #' @export
 #' @rdname get-mcmc
 
@@ -31,6 +45,8 @@ get.mig.mcmc <- function(sim.dir=file.path(getwd(), 'bayesMig.output'), chain.id
   }
   load(file=mcmc.file.path)
   bayesMig.mcmc.meta$output.dir <- normalizePath(sim.dir)
+  if(is.null(bayesMig.mcmc.meta$user.data)) bayesMig.mcmc.meta$user.data <- FALSE
+  
   if (is.null(chain.ids)) {
     mc.dirs.short <- list.files(sim.dir, pattern='^mc[0-9]+', full.names=FALSE)
     chain.ids <- as.integer(substring(mc.dirs.short, 3))
@@ -160,15 +176,15 @@ has.mig.mcmc <- function(sim.dir) {
 #' \dontrun{
 #' # Run a real simulation (can take long time)
 #' sim.dir <- tempfile()
-#' m <- run.mig.mcmc(nr.chains = 4, iter = 10000, thin = 10, output.dir = sim.dir)
+#' m <- run.mig.mcmc(nr.chains = 2, iter = 10000, thin = 10, output.dir = sim.dir)
 #' 
 #' # Run convergence diagnostics with different burning and thin
 #' mig.diagnose(sim.dir, burnin = 1000, thin = 2)
 #' mig.diagnose(sim.dir, burnin = 500, thin = 1)
 #' 
-#' diags <- get.convergence.all(sim.dir)
-#' summary(diags[[1]])
-#' summary(diags[[2]])
+#' diags <- get.mig.convergence.all(sim.dir)
+#' for(i in 1:length(diags))
+#'     print(summary(diags[[i]]))
 #' 
 #' unlink(sim.dir, recursive = TRUE)
 #' }
@@ -611,7 +627,7 @@ summary.bayesMig.mcmc.meta <- function(object, ...) {
 
 #' @export
 print.summary.bayesMig.mcmc.meta <- function(x, ...) {
-  cat('\nNumber of countries:', x$nr.countries)
+  cat('\nNumber of locations:', x$nr.countries)
   cat('\nData source:', x$data.source, x$wpp.year)
   cat('\nInput data: migration for period', x$est.period)
   cat('\n')
@@ -624,7 +640,7 @@ print.summary.bayesMig.mcmc.set <- function(x, ...) {
   if(!is.null(x$chain.info)) bayesTFR:::print.summary.chain.info(x$chain.info)
   if(!is.null(x$mcmc)) print(x$mcmc)
   if(!is.null(x$country.name)){
-    cat('\nCountry:', x$country.name, '\n')
+    cat('\nLocation:', x$country.name, '\n')
     if (is.null(x$results))
       cat('\tnot used for estimation.\n')
   }

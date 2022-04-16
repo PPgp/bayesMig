@@ -53,7 +53,7 @@ mig.trajectories.plot.all <- function(mig.pred,
 #' @rdname plot-traj
 #' 
 mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95), 
-                                  nr.traj=10,
+                                  nr.traj=50,
                                   xlim=NULL, ylim=NULL, type='b', 
                                   xlab='Year', ylab='Migration rate', main=NULL, lwd=c(2,2,2,1), 
                                   col=c('black', 'red', 'red','#00000020'),
@@ -256,24 +256,6 @@ mig.pardensity.cs.plot <- function(country, mcmc.list = NULL, sim.dir = file.pat
                                     burnin = burnin, dev.ncol = dev.ncol, ...)
 }
 
-#' @param palette Color palette to use.
-#' @export
-#' @rdname map
-#' 
-get.mig.map.parameters <- function(pred, mig.range=NULL, nr.cats=50, same.scale=TRUE, 
-                                  quantile=0.5, palette = "Blue-Red", ...) {
-  map.pars <- list(pred=pred, quantile=quantile, ...)
-  if (same.scale) {
-    data <- pred$quantiles[,as.character(quantile),1]
-    q <- if(is.null(mig.range)) c(min(data), max(data)) else mig.range
-    quantiles <- seq(q[1], q[2], length=nr.cats-1)
-    map.pars$catMethod <- quantiles
-  } else {
-    map.pars$numCats <- nr.cats
-  }
-  map.pars$colourPalette <- sapply(palette, hcl.colors, n = nr.cats)
-  return(map.pars)
-}
 
 #' @export
 .map.main.default.bayesMig.prediction <- function(pred, ...) 
@@ -281,7 +263,8 @@ get.mig.map.parameters <- function(pred, mig.range=NULL, nr.cats=50, same.scale=
 
 #' @title World Map of Net Migration Rate
 #' @description Generates a world map of the net migration rate for given quantile and 
-#'     time period, which can be either projection or estimation time period. 
+#'     time period, which can be either projection or estimation time period. A map of 
+#'     country-specific model parameters is also supported.
 #' @param pred Object of class \code{\link{bayesMig.prediction}}. Note that location codes
 #'     must correspond to the UN country codes in order to generate a world map.
 #' @param \dots In \code{mig.map}, \dots are all arguments that can be passed 
@@ -316,17 +299,23 @@ mig.map <- function(pred, ...) {
   return(bayesTFR::tfr.map(pred, ...))
 }
 
+#' @export
+#' @rdname map
+mig.map.gvis <- function(pred, ...)
+  bdem.map.gvis(pred, ...)
+
+
 #' @param output.dir Directory into which resulting maps are stored.
 #' @param output.type Type of the resulting files. It can be \dQuote{png}, \dQuote{pdf}, 
 #'     \dQuote{jpeg}, \dQuote{bmp}, \dQuote{tiff}, or \dQuote{postscript}.
 #' @param mig.range Range of the migration rate to be displayed. It is of the form 
-#'     \code{c(}\var{mig.min}, \var{mig.max}\code{)}. By default, the whole range is considered. 
+#'     \code{c(}\var{mig.min}, \var{mig.max}\code{)}. By default, the whole available range is considered. 
 #'     Note that countries with values outside of the given range will appear white.
 #' @param nr.cats Number of color categories.
 #' @param same.scale Logical controlling if maps for all years of this prediction object 
 #'     should be on the same color scale.
 #' @param quantile Quantile for which the map should be generated. It must be equal to one of the 
-#'     values in \code{dimnames(pred$quantiles[[2]])}, 
+#'     values in \code{dimnames(pred$quantiles)[[2]]}, 
 #'     i.e. 0, 0.025, 0.05, 0.1, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.75, 0.8, 0.9, 0.95, 0.975, 1. 
 #'     Value 0.5 corresponds to the median.
 #' @param file.prefix Prefix for file names.
@@ -338,15 +327,31 @@ mig.map.all <- function(pred, output.dir, output.type='png', mig.range=NULL, nr.
                           nr.cats=nr.cats, same.scale=same.scale, quantile=quantile, file.prefix=file.prefix, ...)
 }
 
-#' @export
-#' @rdname map
-mig.map.gvis <- function(pred, ...)
-  bdem.map.gvis(pred, ...)
 
 #' @export
 bdem.map.gvis.bayesMig.prediction <- function(pred, ...) {
   bayesTFR:::.do.gvis.bdem.map('mig', 'Net Migration Rate', pred, ...)
 }
+
+#' @param palette Color palette to use.
+#' @export
+#' @rdname map
+#' 
+get.mig.map.parameters <- function(pred, mig.range=NULL, nr.cats=50, same.scale=TRUE, 
+                                   quantile=0.5, palette = "Blue-Red", ...) {
+  map.pars <- list(pred=pred, quantile=quantile, ...)
+  if (same.scale) {
+    data <- pred$quantiles[,as.character(quantile),1]
+    q <- if(is.null(mig.range)) c(min(data), max(data)) else mig.range
+    quantiles <- seq(q[1], q[2], length=nr.cats-1)
+    map.pars$catMethod <- quantiles
+  } else {
+    map.pars$numCats <- nr.cats
+  }
+  map.pars$colourPalette <- sapply(palette, hcl.colors, n = nr.cats)
+  return(map.pars)
+}
+
 
 #' @export
 par.names.for.worldmap.bayesMig.prediction <- function(pred, ...) {

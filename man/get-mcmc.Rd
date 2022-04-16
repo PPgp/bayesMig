@@ -31,3 +31,18 @@ in the resulting object. By default, all available chains are included.}
 Function \code{get.mig.mcmc} retrieves results of an MCMC simulation and creates an object of class
 \code{\link{bayesMig.mcmc.set}}. Function \code{has.mig.mcmc} checks the existence of such results.
 }
+\examples{
+\dontrun{
+# Toy simulation
+sim.dir <- tempfile()
+m <- run.mig.mcmc(nr.chains = 1, iter = 10, output.dir = sim.dir)
+
+# can be later accessed via
+m <- get.mig.mcmc(sim.dir)
+summary(m)
+
+has.mig.mcmc(sim.dir) # should be TRUE
+
+unlink(sim.dir, recursive = TRUE)
+}
+}

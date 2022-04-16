@@ -53,18 +53,18 @@
 #' \dontrun{
 #' # Run a real simulation (can take long time)
 #' sim.dir <- tempfile()
-#' m <- run.mig.mcmc(nr.chains = 4, iter = 10000, thin = 10, output.dir = sim.dir)
+#' m <- run.mig.mcmc(nr.chains = 4, iter = 10000, thin = 10, output.dir = sim.dir,
+#'         verbose.iter = 1000)
 #' 
 #' # Prediction for all countries
-#' pred <- mig.predict(sim.dir = sim.dir, burnin = 1000)
+#' pred <- mig.predict(sim.dir = sim.dir, nr.traj = 1000, burnin = 1000)
 #' 
 #' # Explore results
 #' summary(pred, country = "Germany")
-#' mig.trajectories.plot(pred, country = "Germany")
+#' mig.trajectories.plot(pred, country = "Germany", nr.traj = 50)
 #' 
 #' # Check convergence diagnostics
-#' diag <- mig.diagnose(sim.dir, burnin = 1000, thin = 1)
-#' summary(diag)
+#' mig.diagnose(sim.dir, burnin = 1000, thin = 1)
 #' 
 #' unlink(sim.dir, recursive = TRUE)
 #' }

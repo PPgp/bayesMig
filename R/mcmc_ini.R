@@ -26,6 +26,8 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
       d <- read.delim(file=my.mig.file, comment.char='#', check.names=FALSE)
     
       #Extract country names and codes
+      if(! "code" %in% colnames(d) && ! "country_code" %in% colnames(d))
+          stop("Columns country_code or code must be present in the data file.")
       if("code" %in% colnames(d)) colnames(d)[colnames(d) == "code"] <- "country_code" # rename "code" to "country_code"
       fullCountryCodeVec=d$country_code
       if("country" %in% colnames(d)) colnames(d)[colnames(d) == "country"] <- "name" # rename country column to "name"

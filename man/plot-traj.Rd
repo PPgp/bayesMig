@@ -18,7 +18,7 @@ mig.trajectories.plot(
   mig.pred,
   country,
   pi = c(80, 95),
-  nr.traj = 10,
+  nr.traj = 50,
   xlim = NULL,
   ylim = NULL,
   type = "b",

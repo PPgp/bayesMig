@@ -35,11 +35,29 @@
 #' @param verbose Logical value. Switches log messages on and off.
 #' @param ... Other arguments passed to \code{\link{mig.predict}}
 #' @return A list with 9 components. Key result component is an array of quantiles with dimensions
-#' (number of countries) x (number of computed quantiles) x (number of projected time points).
-#' First time point in the sequence is not a projection, but an observed time period -- by default, 2010-2015.
+#' (number of locations) x (number of computed quantiles) x (number of projected time points).
+#' First time point in the sequence is not a projection, but the last observed time period.
 #' 
 #' Other key result components include \code{traj.mean.sd}, a summary of means and standard deviations for each country
-#' at each time point.
+#' at each time point. See \code{\link[bayesTFR]{bayesTFR.prediction}} for more detail.
+#' 
+#' @examples
+#' \dontrun{
+#' # Toy simulation for US states
+#' us.mig.file <- file.path(find.package("bayesMig"), "extdata", "USmigrates.txt")
+#' sim.dir <- tempfile()
+#' m <- run.mig.mcmc(nr.chains = 2, iter = 30, thin = 1, my.mig.file = us.mig.file, 
+#'         output.dir = sim.dir, present.year = 2017, annual = TRUE)
+#' 
+#' # Prediction
+#' pred <- mig.predict(sim.dir = sim.dir, burnin = 5, end.year = 2050)
+#' # here unrealistic results since this is a toy simulation 
+#' mig.trajectories.plot(pred, "Hawaii", pi = 80, ylim = c(-0.02, 0.02)) 
+#' mig.trajectories.table(pred, "Hawaii")
+#' 
+#' unlink(sim.dir, recursive = TRUE)
+#' # For projections on national level, see ?bayesMig.
+#' }
 #' @aliases bayesMig.prediction
 #' @export
 
@@ -47,7 +65,7 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 						sim.dir=file.path(getwd(), 'bayesMig.output'),
 						replace.output=FALSE,
 						start.year=NULL, nr.traj = NULL, thin = NULL, burnin=20000, 
-						save.as.ascii=1000, output.dir = NULL,
+						save.as.ascii=0, output.dir = NULL,
 						seed=NULL, verbose=TRUE, ...) {
 	if(!is.null(mcmc.set)) {
 		if (class(mcmc.set) != 'bayesMig.mcmc.set') {
@@ -61,13 +79,13 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 	
 	invisible(make.mig.prediction(mcmc.set, end.year=end.year, replace.output=replace.output,  
 					start.year=start.year, nr.traj=nr.traj, burnin=burnin, thin=thin,
-					output.dir=output.dir, verbose=verbose, ...))			
+					save.as.ascii=save.as.ascii, output.dir=output.dir, verbose=verbose, ...))			
 }
 
 make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replace.output=FALSE,
 								nr.traj = NULL, burnin=0, thin = NULL, 
 								countries = NULL,
-							    save.as.ascii=1000, output.dir = NULL, write.summary.files=TRUE, 
+							    save.as.ascii=0, output.dir = NULL, write.summary.files=TRUE, 
 							    is.mcmc.set.thinned=FALSE, force.creating.thinned.mcmc=FALSE,
 							    write.trajectories=TRUE, 
 							    verbose=verbose){
@@ -129,8 +147,8 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	prediction.countries <- if(is.null(countries)) 1:meta$nr.countries else countries
 	nr_countries <- meta$nr.countries
 	nr_countries_real <- length(prediction.countries)
-	#JA: Assume we're only producing genuine predictions (i.e. starting at 2015-2020.)
-	#present.year.index <- get.estimation.year.index(meta, present.year)
+
+	present.year.index <- bayesTFR:::get.estimation.year.index(meta, present.year)
 
 	#keep these defaults for checking the out-of-sample projections
   quantiles.to.keep <- c(0,0.025,0.05,0.1,0.2,0.25,0.3,0.4,0.5,0.6,0.7,0.75,0.8,0.9,0.95,0.975,1)
@@ -153,12 +171,12 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	
 	# array for results - includes also historical data for periods with missing data
 	all.mig_ps <- array(NA, dim=c(nr_countries_real, nr_project+1, nr_simu))
-  #JA: This code assumes the migration rates in meta$mig.rates end at 2010-2015 and will be projected until 2100.
 
 	# fill the result array with observed data 
   for(country in prediction.countries){
     country.obj <- get.country.object(country, meta, index=TRUE)
-    all.mig_ps[country, 1,] = meta$mig.rates[which(rownames(meta$mig.rates) == country.obj$code), as.character(present.year - 2)]
+    all.mig_ps[country, 1,] = meta$mig.rates[which(rownames(meta$mig.rates) == country.obj$code), 
+                                             present.year.index]
   }
 
 	mu.c <- phi.c <- sigma.c <- rep(NA, nr_countries)

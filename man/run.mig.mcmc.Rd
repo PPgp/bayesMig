@@ -127,9 +127,18 @@ should be included in the argument \code{exclude.from.world}. These locations wi
 their parameters simulated and thus, can be included in a projection.
 }
 \examples{
-m <- run.mig.mcmc(nr.chains = 2, iter = 30, thin = 1)
+\dontrun{
+# Toy simulation for US states
+us.mig.file <- file.path(find.package("bayesMig"), "extdata", "USmigrates.txt")
+sim.dir <- tempfile()
+m <- run.mig.mcmc(nr.chains = 2, iter = 30, thin = 1, my.mig.file = us.mig.file, 
+        annual = TRUE, output.dir = sim.dir)
 summary(m)
+summary(m, "Washington")
 
+unlink(sim.dir, recursive = TRUE)
+# For a country-level simulation, see example in ?bayesMig. 
+}
 }
 \references{
 Azose, J. J., & Raftery, A. E. (2015). 
