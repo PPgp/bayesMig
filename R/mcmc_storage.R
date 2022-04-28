@@ -105,9 +105,10 @@ store.mcmc <- local({
       do.flush.buffers(mcmc, append=append, verbose=verbose)
       #The pair of assignments below looks very silly. 
       #The first one is here to avoid an R CMD check note, which reads "no visible binding for '<<-' assignment to 'counter'"
-      counter <- 0
-      counter <<- 0 #Don't waste energy resetting the whole buffer. Just set the counter back to zero and write over it.
+      #counter <- 0
+      #counter <<- 0 #Don't waste energy resetting the whole buffer. Just set the counter back to zero and write over it.
       flushed <- TRUE
+      buffer <<- buffer.cs <<- NULL
     }
     return(flushed)
   }

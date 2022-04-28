@@ -2,39 +2,6 @@
 #MIGRATION
 ###############
 
-#' @param mcmc A \code{\link{bayesMig.mcmc}} or \code{\link{bayesMig.mcmc.set}} object. 
-#'     If not given, the object is loaded from the simulation directory given by 
-#'     \code{sim.dir}.
-#' @param country Name or code of a country. If it is given, only country-specific 
-#'     parameters parameters of that country are considered.
-#' @param par.names Names of country-independent parameters for which the Raftery 
-#'     diagnostics should be computed. By default all parameters are used.
-#' @param par.names.cs Names of country-specific parameters for which the Raftery 
-#'     diagnostics should be computed. By default all parameters are used.
-#' @param \dots Additional arguments passed to the \code{\link{mig.coda.list.mcmc}} function.
-#'     
-#' @details For details on the \code{mig.raftery.diag} function, see \code{\link[bayesTFR]{tfr.raftery.diag}}. 
-#' @rdname diagnose
-#' @export
-mig.raftery.diag <- function(mcmc=NULL, 
-                             sim.dir=file.path(getwd(), 'bayesMig.output'),
-                             burnin=0, country=NULL,
-                             par.names = NULL,
-                             par.names.cs = NULL,
-                             country.sampling.prop=1,
-                             verbose=TRUE, ...
-  ) {
-  mcmc.set <- if (is.null(mcmc)) get.mig.mcmc(sim.dir = sim.dir) else mcmc
-  if(bayesTFR:::is.missing(par.names)) 
-    par.names <- mig.parameter.names()
-  if(bayesTFR:::is.missing(par.names.cs)) 
-    par.names.cs <- mig.parameter.names.cs()
-  return(bayesTFR::tfr.raftery.diag(mcmc = mcmc.set, sim.dir = sim.dir, burnin = burnin,
-                                    country = country, par.names = par.names, par.names.cs = par.names.cs,
-                                    country.sampling.prop = country.sampling.prop, verbose = verbose, ...))
-  }
-  
-
 #' @title MCMC convergence diagnostics
 #'
 #' @description Runs convergence diagnostics of existing migration Markov chains 
@@ -80,3 +47,34 @@ mig.diagnose <- function(sim.dir, thin=80, burnin=2000, express=FALSE,
                          country.sampling.prop=country.sampling.prop, keep.thin.mcmc=keep.thin.mcmc,	verbose=verbose))
 }
 
+#' @param mcmc A \code{\link{bayesMig.mcmc}} or \code{\link{bayesMig.mcmc.set}} object. 
+#'     If not given, the object is loaded from the simulation directory given by 
+#'     \code{sim.dir}.
+#' @param country Name or code of a country. If it is given, only country-specific 
+#'     parameters parameters of that country are considered.
+#' @param par.names Names of country-independent parameters for which the Raftery 
+#'     diagnostics should be computed. By default all parameters are used.
+#' @param par.names.cs Names of country-specific parameters for which the Raftery 
+#'     diagnostics should be computed. By default all parameters are used.
+#' @param \dots Additional arguments passed to the \code{\link{mig.coda.list.mcmc}} function.
+#'     
+#' @details For details on the \code{mig.raftery.diag} function, see \code{\link[bayesTFR]{tfr.raftery.diag}}. 
+#' @rdname diagnose
+#' @export
+mig.raftery.diag <- function(mcmc=NULL, 
+                             sim.dir=file.path(getwd(), 'bayesMig.output'),
+                             burnin=0, country=NULL,
+                             par.names = NULL,
+                             par.names.cs = NULL,
+                             country.sampling.prop=1,
+                             verbose=TRUE, ...
+) {
+  mcmc.set <- if (is.null(mcmc)) get.mig.mcmc(sim.dir = sim.dir) else mcmc
+  if(bayesTFR:::is.missing(par.names)) 
+    par.names <- mig.parameter.names()
+  if(bayesTFR:::is.missing(par.names.cs)) 
+    par.names.cs <- mig.parameter.names.cs()
+  return(bayesTFR::tfr.raftery.diag(mcmc = mcmc.set, sim.dir = sim.dir, burnin = burnin,
+                                    country = country, par.names = par.names, par.names.cs = par.names.cs,
+                                    country.sampling.prop = country.sampling.prop, verbose = verbose, ...))
+}

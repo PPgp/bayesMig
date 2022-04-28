@@ -2,7 +2,9 @@
 % Please edit documentation in R/run_mcmc.R
 \name{run.mig.mcmc}
 \alias{run.mig.mcmc}
-\alias{bayesMig.mcmc.set}
+\alias{bayesMig.mcmc.set,}
+\alias{bayesMig.mcmc,}
+\alias{bayesMig.mcmc.meta}
 \title{Run Markov chain Monte Carlo for parameters of net migration rate model}
 \usage{
 run.mig.mcmc(
@@ -84,9 +86,7 @@ By default it equals to the number of chains.}
 \item{\dots}{Additional parameters to be passed to the function \code{\link[snowFT]{performParallel}}, if \code{parallel} is \code{TRUE}.}
 }
 \value{
-An object of class \code{bayesMig.mcmc.set} which is a list with two components:
-\item{meta}{An object of class \code{\link{bayesMig.mcmc.meta}}.}
-\item{mcmc.list}{A list of objects of class \code{\link{bayesMig.mcmc}}, one for each MCMC.}
+
 }
 \description{
 Runs MCMCs for simulating the net migration rate of all countries of the
@@ -98,7 +98,7 @@ stores it in \code{output.dir}. It launches \code{nr.chains} MCMCs, either seque
 in parallel. Parameter traces of each chain are stored as ASCII files in a subdirectory 
 of \code{output.dir}, called \code{mc}\emph{x} where \emph{x} is the identifier of that chain. 
 There is one file per parameter, named after the parameter with the suffix \dQuote{.txt}.
-Country-specific parameters have the suffix \code{_country}\emph{c} where \emph{c} is the country code.
+Country-specific parameters have the suffix \code{_country}\emph{c} where \emph{c} is the location code.
 In addition to the trace files, each \code{mc}\emph{x} directory contains the object 
 \code{\link{bayesMig.mcmc}} in binary format.  
 All chain-specific files  are written onto disk after the first, last and each 
@@ -120,6 +120,7 @@ to be necessarily a country - it can be for example a subnational unit. It must 
 
 If \code{annual} is \code{TRUE} the default WPP dataset is not used and the \code{my.mig.file} argument 
 must provide the dataset to be used for estimation. Its time-related columns should be single years.
+An example dataset of annual net migration rates for US states is included in the package, see example below. 
 
 If there are countries or locations that should be excluded from influencing the hyperparameters,
 for example small countries or locations with unique migration patterns, their codes 
@@ -136,6 +137,9 @@ m <- run.mig.mcmc(nr.chains = 2, iter = 30, thin = 1, my.mig.file = us.mig.file,
 summary(m)
 summary(m, "Washington")
 
+# later one can access the object from disk
+m <- get.mig.mcmc(sim.dir)
+ 
 unlink(sim.dir, recursive = TRUE)
 # For a country-level simulation, see example in ?bayesMig. 
 }

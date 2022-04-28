@@ -2,22 +2,6 @@
 #MIGRATION
 ##########
 
-#' @param output.dir Directory into which resulting plots are written
-#' @param output.type Type of the resulting plot files. Can be "png", "pdf", "jpeg", "bmp",
-#' "tiff", or "postscript"
-#' @param verbose Logical value. Switches log messages on and off.
-#' @export
-#' @rdname plot-traj
-
-
-mig.trajectories.plot.all <- function(mig.pred, 
-                                     output.dir=file.path(getwd(), 'migTrajectories'),
-                                     output.type="png", verbose=FALSE, ...) {
-  
-  # plots e0 trajectories for all countries
-  bayesTFR:::.do.plot.all(mig.pred$mcmc.set$meta, output.dir, mig.trajectories.plot, output.type=output.type, 
-                          file.prefix='Migplot', plot.type='Mig graph', verbose=verbose, mig.pred=mig.pred, ...)
-}
 
 #' @title Output of posterior distribution of migration trajectories
 #'
@@ -49,6 +33,11 @@ mig.trajectories.plot.all <- function(mig.pred,
 #'     The median and given probability intervals are computed using all available trajectories. 
 #'     Thus, \code{nr.traj} does not influence those values - it is used only to control the number 
 #'     of trajectories in the graphs.
+#'     
+#' @seealso \code{\link{mig.predict}}, \code{\link{summary.bayesMig.prediction}}
+#' @examples
+#' # See example in ?mig.predict
+#' 
 #' @export
 #' @rdname plot-traj
 #' 
@@ -127,6 +116,22 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
     lwds <- c(lwds, lwd[1])
     legend('bottomleft', legend=legend, lty=lty, bty='n', col=cols, pch=pch, lwd=lwds)
   }
+}
+
+#' @param output.dir Directory into which resulting plots are written
+#' @param output.type Type of the resulting plot files. Can be "png", "pdf", "jpeg", "bmp",
+#' "tiff", or "postscript"
+#' @param verbose Logical value. Switches log messages on and off.
+#' @export
+#' @rdname plot-traj
+
+mig.trajectories.plot.all <- function(mig.pred, 
+                                      output.dir=file.path(getwd(), 'migTrajectories'),
+                                      output.type="png", verbose=FALSE, ...) {
+  
+  # plots e0 trajectories for all countries
+  bayesTFR:::.do.plot.all(mig.pred$mcmc.set$meta, output.dir, mig.trajectories.plot, output.type=output.type, 
+                          file.prefix='Migplot', plot.type='Mig graph', verbose=verbose, mig.pred=mig.pred, ...)
 }
 
 #' @rdname plot-traj

@@ -42,7 +42,6 @@
 #' at each time point. See \code{\link[bayesTFR]{bayesTFR.prediction}} for more detail.
 #' 
 #' @examples
-#' \dontrun{
 #' # Toy simulation for US states
 #' us.mig.file <- file.path(find.package("bayesMig"), "extdata", "USmigrates.txt")
 #' sim.dir <- tempfile()
@@ -57,7 +56,6 @@
 #' 
 #' unlink(sim.dir, recursive = TRUE)
 #' # For projections on national level, see ?bayesMig.
-#' }
 #' @aliases bayesMig.prediction
 #' @export
 

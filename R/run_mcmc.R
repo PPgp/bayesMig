@@ -39,15 +39,20 @@
 #' @param \dots Additional parameters to be passed to the function \code{\link[snowFT]{performParallel}}, if \code{parallel} is \code{TRUE}.
 #' 
 #' @return An object of class \code{bayesMig.mcmc.set} which is a list with two components:
-#' \item{meta}{An object of class \code{\link{bayesMig.mcmc.meta}}.}
-#' \item{mcmc.list}{A list of objects of class \code{\link{bayesMig.mcmc}}, one for each MCMC.}
+#' \item{meta}{An object of class \code{bayesMig.mcmc.meta}. It contains information that is common to all chains.
+#'     Most items are the same as in \code{\link[bayesTFR]{bayesTFR.mcmc.meta}}. In addition, \code{mig.rates}
+#'     is a matrix of the observed migration rates and \code{user.data} is a logical indicating 
+#'     if the migration rates are given by the user (\code{TRUE}) or are taken from the \pkg{wpp} package
+#'     (\code{FALSE}). 
+#' \item{mcmc.list}{A list of objects of class \code{bayesMig.mcmc}, one for each MCMC. 
+#'     Information stored here is specific to each MCMC chain, similarly to \code{\link[bayesTFR]{bayesTFR.mcmc}}.}
 #' 
 #' @details The function creates an object of class \code{\link{bayesMig.mcmc.meta}} and 
 #' stores it in \code{output.dir}. It launches \code{nr.chains} MCMCs, either sequentially or 
 #' in parallel. Parameter traces of each chain are stored as ASCII files in a subdirectory 
 #' of \code{output.dir}, called \code{mc}\emph{x} where \emph{x} is the identifier of that chain. 
 #' There is one file per parameter, named after the parameter with the suffix \dQuote{.txt}.
-#' Country-specific parameters have the suffix \code{_country}\emph{c} where \emph{c} is the country code.
+#' Country-specific parameters have the suffix \code{_country}\emph{c} where \emph{c} is the location code.
 #' In addition to the trace files, each \code{mc}\emph{x} directory contains the object 
 #' \code{\link{bayesMig.mcmc}} in binary format.  
 #' All chain-specific files  are written onto disk after the first, last and each 
@@ -69,13 +74,14 @@
 #' 
 #' If \code{annual} is \code{TRUE} the default WPP dataset is not used and the \code{my.mig.file} argument 
 #' must provide the dataset to be used for estimation. Its time-related columns should be single years.
+#' An example dataset of annual net migration rates for US states is included in the package, see example below. 
 #' 
 #' If there are countries or locations that should be excluded from influencing the hyperparameters,
 #' for example small countries or locations with unique migration patterns, their codes 
 #' should be included in the argument \code{exclude.from.world}. These locations will still get 
 #' their parameters simulated and thus, can be included in a projection.
 #' 
-#' @aliases bayesMig.mcmc.set
+#' @aliases bayesMig.mcmc.set, bayesMig.mcmc, bayesMig.mcmc.meta
 #' 
 #' @references Azose, J. J., & Raftery, A. E. (2015). 
 #' Bayesian probabilistic projection of international migration. Demography, 52(5), 1627-1650.
@@ -93,6 +99,9 @@
 #' summary(m)
 #' summary(m, "Washington")
 #' 
+#' # later one can access the object from disk
+#' m <- get.mig.mcmc(sim.dir)
+#'  
 #' unlink(sim.dir, recursive = TRUE)
 #' # For a country-level simulation, see example in ?bayesMig. 
 #' }

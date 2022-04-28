@@ -79,7 +79,6 @@ the world. This code \emph{does not} adjust trajectories to ensure that net
 migration counts sum to zero. That adjustment is handled in the \code{bayesPop} package.
 }
 \examples{
-\dontrun{
 # Toy simulation for US states
 us.mig.file <- file.path(find.package("bayesMig"), "extdata", "USmigrates.txt")
 sim.dir <- tempfile()
@@ -94,5 +93,4 @@ mig.trajectories.table(pred, "Hawaii")
 
 unlink(sim.dir, recursive = TRUE)
 # For projections on national level, see ?bayesMig.
-}
 }

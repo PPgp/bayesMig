@@ -16,6 +16,8 @@
 #' @param burnin Burn-in used for loading traces. Only relevant, if \code{low.memory=FALSE}.
 #' @param verbose Logical value. Switches log messages on and off.
 #' 
+#' @seealso \code{\link{run.mig.mcmc}}
+#' 
 #' @examples
 #' \dontrun{
 #' # Toy simulation
@@ -428,15 +430,16 @@ has.mig.prediction <- function(mcmc=NULL, sim.dir=NULL) {
 #' @param par.names Names of country-independent parameters (in case of 
 #'     \code{get.mig.parameter.traces}) or country-specific parameters 
 #'     (in case of \code{get.mig.parameter.traces.cs}) to be included. 
-#'     By default all parameters are included.
+#'     By default all parameters are included, given either by \code{\link{mig.parameter.names}()} 
+#'     (for global parameters) or \code{\link{mig.parameter.names.cs}()} (for location-specific parameters).
 #' @param burnin Burn-in indicating how many iterations should be removed 
 #'     from the beginning of each chain.
 #' @param thinning.index Index of the traces for thinning. If it is \code{NULL}, 
 #'     \code{thin} is used. \code{thinning.index} does not include \code{burnin} 
 #'     and should be flattened over all chains. For example, if there are two MCMC 
 #'     chains of length 1000, \code{burnin=200} and we want an equidistantly spaced 
-#'     sample of length 400, then the value should be 
-#'     \code{thinning.index=seq(1,1600, length=400)}.
+#'     sample of length 400, then the value should be \cr
+#'     \code{thinning.index = seq(1, 1600, length = 400)}.
 #' @param thin An integer value for thinning. It is an alternative to 
 #'     \code{thinning.index}. The above example is equivalent to \code{thin=4}.
 #'     
@@ -445,7 +448,29 @@ has.mig.prediction <- function(mcmc=NULL, sim.dir=NULL) {
 #'     \code{get.mig.parameter.traces} returns country-independent parameters, 
 #'     \code{get.mig.parameter.traces.cs} returns country-specific parameters.
 #'     
-#' @seealso \code{\link{mig.coda.list.mcmc}} for another way of retrieving parameter traces.
+#' @seealso \code{\link{mig.coda.list.mcmc}} for another way of retrieving parameter traces;
+#'     \code{\link{mig.parameter.names}} and \code{\link{mig.parameter.names.cs}} for parameter names.
+#' 
+#' @examples 
+#' # Toy simulation for US states
+#' us.mig.file <- file.path(find.package("bayesMig"), "extdata", "USmigrates.txt")
+#' sim.dir <- tempfile()
+#' m <- run.mig.mcmc(nr.chains = 2, iter = 30, thin = 1, my.mig.file = us.mig.file, 
+#'         output.dir = sim.dir, present.year = 2017, annual = TRUE)
+#' # obtain traces of hierarchical parameters     
+#' par.values <- get.mig.parameter.traces(m$mcmc.list, burnin = 5)
+#' dim(par.values) # matrix 50 x 4
+#' hist(par.values[, "mu_global"], main = "mu")
+#' 
+#' # obtain traces of location-specific traces for California
+#' mig.parameter.names.cs() # allowed parameter names 
+#' par.values.cs <- get.mig.parameter.traces.cs(m$mcmc.list, 
+#'         country.obj = get.country.object("California", meta = m$meta),
+#'         burnin = 5, par.names = "phi_c")
+#' dim(par.values.cs) # matrix 50 x 1
+#' hist(par.values.cs, main = colnames(par.values.cs))
+#' unlink(sim.dir, recursive = TRUE)
+#'     
 #' @export
 #' @rdname get-traces
 #' 
