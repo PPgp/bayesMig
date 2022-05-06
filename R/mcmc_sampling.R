@@ -38,14 +38,18 @@ mig.mcmc.sampling <- function(mcmc, thin=1, start.iter=2, verbose=FALSE, verbose
     }
     
     #Update b with Gibbs sampling.
-    mcmc.update.b(mcenv)
+    #mcmc.update.b(mcenv)
     
     #Update a with Metropolis.
-    mcmc.update.a(mcenv)
+    #mcmc.update.a(mcenv)
+    mcmc.update.r(mcenv)
+    mcmc.update.s(mcenv)
     
     #Update mu_global with Gibbs sampling
     mcmc.update.mu.global(mcenv)
     
+    mcenv$a <- sqrt(mcenv$r*mcenv$s)
+    mcenv$b <- sqrt(mcenv$s/mcenv$r)
     ################################################################### 
     # write samples simu/thin to disk
     ##################################################################

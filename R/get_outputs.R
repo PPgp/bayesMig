@@ -252,7 +252,7 @@ load.mig.parameter.traces.all <- function(mcmc, par.names=mig.parameter.names(),
 #' 
 mig.parameter.names <- function() {
   # Return all country-independent parameter names. 
-  return(c("a","b","mu_global","sigma2_mu"))
+  return(c("a","b","mu_global","sigma2_mu", "r", "s"))
 }
 
 #' @param country.code Country code. If it is given, the country-specific parameter names contain 

@@ -111,7 +111,8 @@ run.mig.mcmc <- function(nr.chains=3, iter=50000, output.dir=file.path(getwd(), 
                          thin=1, replace.output=FALSE, annual = FALSE,
                          start.year = 1950, present.year=2020, wpp.year=2019, my.mig.file = NULL,
                          # starting values and ranges for truncations
-                         sigma.c.min = 0.0001, a.up = 10, a.ini = NULL, a.half.width = 0.3,
+                         sigma.c.min = 0.0001, a.up = 10, a.ini = NULL, 
+                         r.half.width = 0.1, s.half.width = 10,
                          mu.range = c(-0.5, 0.5), sigma.mu.range = c(0, 0.5), mu.ini = NULL,
                          # other settings
                          exclude.from.world = NULL,
@@ -156,7 +157,8 @@ run.mig.mcmc <- function(nr.chains=3, iter=50000, output.dir=file.path(getwd(), 
                                       my.mig.file = my.mig.file, 
                                      sigma.c.min = sigma.c.min, a.up = a.up,
                                      mu.range = mu.range, sigma.mu.range = sigma.mu.range,
-                                     mu.ini = mu.ini, a.ini = a.ini, a.half.width = a.half.width,
+                                     mu.ini = mu.ini, a.ini = a.ini, 
+                                    r.half.width = r.half.width, s.half.width = s.half.width,
                                      exclude.from.world = exclude.from.world, 
                                     buffer.size = buffer.size, verbose=verbose)
   #cat(bayesMig.mcmc.meta$mig.rates)
