@@ -28,7 +28,8 @@ get.mig.parameter.traces.cs(
 \item{par.names}{Names of country-independent parameters (in case of 
 \code{get.mig.parameter.traces}) or country-specific parameters 
 (in case of \code{get.mig.parameter.traces.cs}) to be included. 
-By default all parameters are included.}
+By default all parameters are included, given either by \code{\link{mig.parameter.names}()} 
+(for global parameters) or \code{\link{mig.parameter.names.cs}()} (for location-specific parameters).}
 
 \item{burnin}{Burn-in indicating how many iterations should be removed 
 from the beginning of each chain.}
@@ -37,8 +38,8 @@ from the beginning of each chain.}
 \code{thin} is used. \code{thinning.index} does not include \code{burnin} 
 and should be flattened over all chains. For example, if there are two MCMC 
 chains of length 1000, \code{burnin=200} and we want an equidistantly spaced 
-sample of length 400, then the value should be 
-\code{thinning.index=seq(1,1600, length=400)}.}
+sample of length 400, then the value should be \cr
+\code{thinning.index = seq(1, 1600, length = 400)}.}
 
 \item{thin}{An integer value for thinning. It is an alternative to 
 \code{thinning.index}. The above example is equivalent to \code{thin=4}.}
@@ -55,6 +56,28 @@ Both functions return a matrix with columns being the parameters and
 Functions for accessing traces of the MCMC parameters, either country-independent 
     or country-specific.
 }
+\examples{
+# Toy simulation for US states
+us.mig.file <- file.path(find.package("bayesMig"), "extdata", "USmigrates.txt")
+sim.dir <- tempfile()
+m <- run.mig.mcmc(nr.chains = 2, iter = 30, thin = 1, my.mig.file = us.mig.file, 
+        output.dir = sim.dir, present.year = 2017, annual = TRUE)
+# obtain traces of hierarchical parameters     
+par.values <- get.mig.parameter.traces(m$mcmc.list, burnin = 5)
+dim(par.values) # matrix 50 x 4
+hist(par.values[, "mu_global"], main = "mu")
+
+# obtain traces of location-specific traces for California
+mig.parameter.names.cs() # allowed parameter names 
+par.values.cs <- get.mig.parameter.traces.cs(m$mcmc.list, 
+        country.obj = get.country.object("California", meta = m$meta),
+        burnin = 5, par.names = "phi_c")
+dim(par.values.cs) # matrix 50 x 1
+hist(par.values.cs, main = colnames(par.values.cs))
+unlink(sim.dir, recursive = TRUE)
+    
+}
 \seealso{
-\code{\link{mig.coda.list.mcmc}} for another way of retrieving parameter traces.
+\code{\link{mig.coda.list.mcmc}} for another way of retrieving parameter traces;
+    \code{\link{mig.parameter.names}} and \code{\link{mig.parameter.names.cs}} for parameter names.
 }

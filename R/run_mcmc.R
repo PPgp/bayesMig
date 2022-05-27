@@ -19,12 +19,22 @@
 #' \code{\link[wpp2019]{migration}} and \code{\link[wpp2019]{pop}} datasets.
 #' @param my.mig.file File name containing user-specified historical time series of migration rates 
 #' for all locations that should be included in the simulation. 
-#' @param sigma.c.min,a.up,a.ini,a.half.width,mu.range,sigma.mu.range,mu.ini Settings for the parameters
-#' of the model (see Azose & Raftery 2015), such as minimum value, truncation ranges, slicing half width and initial values.
+#' @param sigma.c.min,a.ini,mu.ini Settings for the parameters
+#' of the model (see Azose & Raftery 2015), such as minimum value and initial values.
 #' Initial values (*.ini) can be given as a vector of length \code{nr.chains}, giving one initial value per chain.
 #' By default the initial values are equidistantly spread between their respective ranges.
+#' @param a.half.width Half width for Metropolis proposals of the a parameter. This argument can greatly influence 
+#'      the convergence and it is dependent on the scale of the data. By default it is set to 0.01 for 5-year data 
+#'      defined as rate per population; to 0.03 for 5-year data defined as per 1000; to 0.3 for 
+#'      annual data per population; to 0.5 for annual data per 1000. If the default does not 
+#'      yield satisfactory results, use the function \code{\link{estimate.a.hw}} to estimate 
+#'      an appropriate value, based on an existing simulation. Also it is important to set the \code{pop.denom}
+#'      argument correctly. 
 #' @param exclude.from.world Vector of country codes that should not influence the hyperparameters. 
-#' However, country-specific parameters will be generated for these countries.
+#'      However, country-specific parameters will be generated for these countries.
+#' @param pop.denom Denominator used to generate the input migration rates. It is used to derive an appropriate scaler 
+#'      for the priors and conditional distributions. Typically, this will be either 1 (default) if the rates are 
+#'      defined as per population, or 1000, if the rates are per 1000 population. 
 #' @param seed Seed of the random number generator. If \code{NULL} no seed is set. It can be used to generate reproducible results.
 #' @param verbose Whether or not to print status updates to console window while code is running.
 #' @param verbose.iter If verbose is TRUE, the number of iterations to wait between printing updates.
@@ -43,7 +53,7 @@
 #'     Most items are the same as in \code{\link[bayesTFR]{bayesTFR.mcmc.meta}}. In addition, \code{mig.rates}
 #'     is a matrix of the observed migration rates and \code{user.data} is a logical indicating 
 #'     if the migration rates are given by the user (\code{TRUE}) or are taken from the \pkg{wpp} package
-#'     (\code{FALSE}). 
+#'     (\code{FALSE}).}
 #' \item{mcmc.list}{A list of objects of class \code{bayesMig.mcmc}, one for each MCMC. 
 #'     Information stored here is specific to each MCMC chain, similarly to \code{\link[bayesTFR]{bayesTFR.mcmc}}.}
 #' 
@@ -81,7 +91,7 @@
 #' should be included in the argument \code{exclude.from.world}. These locations will still get 
 #' their parameters simulated and thus, can be included in a projection.
 #' 
-#' @aliases bayesMig.mcmc.set, bayesMig.mcmc, bayesMig.mcmc.meta
+#' @aliases bayesMig.mcmc.set bayesMig.mcmc bayesMig.mcmc.meta
 #' 
 #' @references Azose, J. J., & Raftery, A. E. (2015). 
 #' Bayesian probabilistic projection of international migration. Demography, 52(5), 1627-1650.
@@ -111,10 +121,12 @@ run.mig.mcmc <- function(nr.chains=3, iter=50000, output.dir=file.path(getwd(), 
                          thin=1, replace.output=FALSE, annual = FALSE,
                          start.year = 1950, present.year=2020, wpp.year=2019, my.mig.file = NULL,
                          # starting values and ranges for truncations
-                         sigma.c.min = 0.0001, a.up = 10, a.ini = NULL, a.half.width = 0.3,
-                         mu.range = c(-0.5, 0.5), sigma.mu.range = c(0, 0.5), mu.ini = NULL,
+                         sigma.c.min = 0.0001, #a.up = 10, 
+                         a.ini = NULL, a.half.width = NULL,
+                         #mu.range = c(-0.5, 0.5), sigma.mu.range = c(0, 0.5), 
+                         mu.ini = NULL,
                          # other settings
-                         exclude.from.world = NULL,
+                         exclude.from.world = NULL, pop.denom = 1,
                          seed = NULL, parallel = FALSE, nr.nodes = nr.chains, 
                          buffer.size = 1000, verbose=TRUE, verbose.iter=10, ...){
   
@@ -139,6 +151,19 @@ run.mig.mcmc <- function(nr.chains=3, iter=50000, output.dir=file.path(getwd(), 
   }
   
   if(!is.null(seed)) set.seed(seed)
+  prior.scaler <- (if(annual) 1 else 5) * pop.denom
+  mu.range <- c(-1/10 * prior.scaler, 1/10 * prior.scaler)
+  sigma.mu.range <- c(0, 1/10 * prior.scaler)
+  a.up <- 10
+  if(is.null(a.half.width)) {
+    if(pop.denom == 1) {
+      if (!annual) a.half.width <- 0.01 # 5-year per population
+      else a.half.width <- 0.3 # annual per population
+    } else {
+      if (!annual) a.half.width <- 0.03 # 5-year per 1000
+      else a.half.width <- 0.5 # annual per thousand
+    }
+  }
   
   #A bunch of initializations, which should be fed into some initialization later.
   # starting values (length of 1 or nr.chains)
@@ -146,7 +171,7 @@ run.mig.mcmc <- function(nr.chains=3, iter=50000, output.dir=file.path(getwd(), 
       mu.ini <- init.values.between.low.and.up(mu.range[1], mu.range[2])
   }
   if(missing(a.ini) || is.null(a.ini)){
-    a.ini <- init.values.between.low.and.up(1.001, 5)
+    a.ini <- init.values.between.low.and.up(1.1, a.up/2)
   }
   
   bayesMig.mcmc.meta <- mcmc.meta.ini(nr.chains=nr.chains,
@@ -157,7 +182,7 @@ run.mig.mcmc <- function(nr.chains=3, iter=50000, output.dir=file.path(getwd(), 
                                      sigma.c.min = sigma.c.min, a.up = a.up,
                                      mu.range = mu.range, sigma.mu.range = sigma.mu.range,
                                      mu.ini = mu.ini, a.ini = a.ini, a.half.width = a.half.width,
-                                     exclude.from.world = exclude.from.world, 
+                                     prior.scaler = prior.scaler, exclude.from.world = exclude.from.world, 
                                     buffer.size = buffer.size, verbose=verbose)
   #cat(bayesMig.mcmc.meta$mig.rates)
   

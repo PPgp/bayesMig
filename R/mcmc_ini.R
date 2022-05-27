@@ -185,7 +185,8 @@ mcmc.ini <- function(chain.id, mcmc.meta,iter=1000) {
   phi_c <- runif(nC, 0, 1)
   mu_global <- mcmc.meta$mu.ini[chain.id]
   a <- mcmc.meta$a.ini[chain.id]
-  b <- a - 1
+  #b <- a - 1
+  b <- (a-1)/10*mcmc.meta$prior.scaler/2
 
   sigma2_mu=var(as.numeric(rowMeans(mcmc.meta$mig.rates)))
 

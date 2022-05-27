@@ -120,14 +120,17 @@ mcmc.update.b <- function(mcmc){
   #The posterior distribution for b is a truncated gamma.
   shape=mcmc$a*bigC+1;
   rate=sum(1/mcmc$sigma2_c[mcmc$meta$country.indices.est]);
-  cutoff=(mcmc$a-1)/2;
+  #cutoff=(mcmc$a-1)/2;
+  cutoff <- (mcmc$a-1)/10*mcmc$meta$prior.scaler
   
   #Simple rejection sampling to draw from the truncated gamma distribution.
   b=rgamma(n=1,shape=shape,rate=rate);
-  while(b>cutoff){
-    b=rgamma(n=1,shape=shape,rate=rate);    
+  i <- 0
+  while(b>cutoff && i < 100){
+    b=rgamma(n=1,shape=shape,rate=rate);
+    i <- i + 1
   }
-  mcmc$b=b
+  if(b <= cutoff) mcmc$b=b
   return();
 }
 
@@ -168,9 +171,16 @@ mcmc.update.a <- function(mcmc){
   #Automatically return the current value if we're outside the range (2b+1, a.upper)
   proposal=runif(n=1,min=aCurrent-proposal.half.width,
                  max=aCurrent+proposal.half.width);
-  if(proposal<2*mcmc$b+1 || proposal>mcmc$meta$a.upper){
-    return();
+  #if(proposal< 1/(100*mcmc$meta$b.scaler)*mcmc$b+1 || proposal>mcmc$meta$a.upper){
+  #  return();
+  #}
+  i <- 0
+  while(i < 100 && (proposal < 10/mcmc$meta$prior.scaler*mcmc$b+1 || proposal>mcmc$meta$a.upper)){
+      proposal=runif(n=1,min=aCurrent-proposal.half.width,
+                   max=aCurrent+proposal.half.width)
+      i <- i + 1
   }
+  if(proposal < 10/mcmc$meta$prior.scaler*mcmc$b+1 || proposal>mcmc$meta$a.upper) return()
   #Otherwise, do the usual Metropolis stuff.
   
   sumLogTau=-sum(log(mcmc$sigma2_c[mcmc$meta$country.indices.est]));

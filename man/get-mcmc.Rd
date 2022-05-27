@@ -46,3 +46,6 @@ has.mig.mcmc(sim.dir) # should be TRUE
 unlink(sim.dir, recursive = TRUE)
 }
 }
+\seealso{
+\code{\link{run.mig.mcmc}}
+}

@@ -30,7 +30,9 @@
 #'     can be used to check if the existing diagnostics converged.
 #' @return \code{mig.diagnose} returns an object of class \code{bayesMig.convergence} 
 #'     containing summaries of the convergence check inputs and outputs. It has the 
-#'     same structure as \code{\link[bayesTFR]{bayesTFR.convergence}}.
+#'     same structure as \code{\link[bayesTFR]{bayesTFR.convergence}}. 
+#'     In addition it has an element \code{a.hw.est} which is the estimated value for 
+#'     the \code{a.half.width} argument in \code{\link{run.mig.mcmc}}.
 #' @seealso \code{\link[bayesTFR]{tfr.raftery.diag}}, \code{\link[coda]{raftery.diag}}
 #' @examples
 #' \dontrun{
@@ -42,9 +44,12 @@
 
 mig.diagnose <- function(sim.dir, thin=80, burnin=2000, express=FALSE, 
                          country.sampling.prop=NULL, keep.thin.mcmc=FALSE, verbose=TRUE) {
-  invisible(bayesTFR:::.do.diagnose(type='mig', class.name='bayesMig.convergence', 
+  diag <- bayesTFR:::.do.diagnose(type='mig', class.name='bayesMig.convergence', 
                          sim.dir=sim.dir, thin=thin, burnin=burnin, express=express,
-                         country.sampling.prop=country.sampling.prop, keep.thin.mcmc=keep.thin.mcmc,	verbose=verbose))
+                         country.sampling.prop=country.sampling.prop, keep.thin.mcmc=keep.thin.mcmc,	verbose=verbose)
+  m <- get.mig.mcmc(sim.dir)
+  diag$a.hw.est <- estimate.a.hw(m, burnin = burnin, thin = thin)
+  invisible(diag)
 }
 
 #' @param mcmc A \code{\link{bayesMig.mcmc}} or \code{\link{bayesMig.mcmc.set}} object. 
@@ -68,7 +73,7 @@ mig.raftery.diag <- function(mcmc=NULL,
                              par.names.cs = NULL,
                              country.sampling.prop=1,
                              verbose=TRUE, ...
-) {
+                            ) {
   mcmc.set <- if (is.null(mcmc)) get.mig.mcmc(sim.dir = sim.dir) else mcmc
   if(bayesTFR:::is.missing(par.names)) 
     par.names <- mig.parameter.names()
@@ -77,4 +82,13 @@ mig.raftery.diag <- function(mcmc=NULL,
   return(bayesTFR::tfr.raftery.diag(mcmc = mcmc.set, sim.dir = sim.dir, burnin = burnin,
                                     country = country, par.names = par.names, par.names.cs = par.names.cs,
                                     country.sampling.prop = country.sampling.prop, verbose = verbose, ...))
+}
+
+#' @details The \code{estimate.a.hw} function estimates an optimal value for the \code{a.half.width}
+#'     argument in \code{\link{run.mig.mcmc}}. 
+#' @rdname diagnose
+#' @export
+estimate.a.hw <- function(mcmc, burnin = 0, thin = NULL) {
+  tr <- get.mig.parameter.traces(mcmc, burnin = burnin, par.names = c("a", "b"))
+  return(sd(tr[, "a"])*sqrt(1-abs(cor(tr[, "a"], tr[, "b"]))^2)*2.3 * 2)
 }

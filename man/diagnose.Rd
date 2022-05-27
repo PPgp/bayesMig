@@ -4,6 +4,7 @@
 \alias{mig.diagnose}
 \alias{bayesMig.convergence}
 \alias{mig.raftery.diag}
+\alias{estimate.a.hw}
 \title{MCMC convergence diagnostics}
 \usage{
 mig.diagnose(
@@ -27,6 +28,8 @@ mig.raftery.diag(
   verbose = TRUE,
   ...
 )
+
+estimate.a.hw(mcmc, burnin = 0, thin = NULL)
 }
 \arguments{
 \item{sim.dir}{Directory with MCMC simulation results.}
@@ -65,7 +68,9 @@ diagnostics should be computed. By default all parameters are used.}
 \value{
 \code{mig.diagnose} returns an object of class \code{bayesMig.convergence} 
     containing summaries of the convergence check inputs and outputs. It has the 
-    same structure as \code{\link[bayesTFR]{bayesTFR.convergence}}.
+    same structure as \code{\link[bayesTFR]{bayesTFR.convergence}}. 
+    In addition it has an element \code{a.hw.est} which is the estimated value for 
+    the \code{a.half.width} argument in \code{\link{run.mig.mcmc}}.
 }
 \description{
 Runs convergence diagnostics of existing migration Markov chains 
@@ -83,6 +88,9 @@ The \code{mig.diagnose} function invokes the \code{\link{mig.raftery.diag}}
     can be used to check if the existing diagnostics converged.
 
 For details on the \code{mig.raftery.diag} function, see \code{\link[bayesTFR]{tfr.raftery.diag}}.
+
+The \code{estimate.a.hw} function estimates an optimal value for the \code{a.half.width}
+    argument in \code{\link{run.mig.mcmc}}.
 }
 \examples{
 \dontrun{

@@ -2,8 +2,8 @@
 % Please edit documentation in R/run_mcmc.R
 \name{run.mig.mcmc}
 \alias{run.mig.mcmc}
-\alias{bayesMig.mcmc.set,}
-\alias{bayesMig.mcmc,}
+\alias{bayesMig.mcmc.set}
+\alias{bayesMig.mcmc}
 \alias{bayesMig.mcmc.meta}
 \title{Run Markov chain Monte Carlo for parameters of net migration rate model}
 \usage{
@@ -19,13 +19,11 @@ run.mig.mcmc(
   wpp.year = 2019,
   my.mig.file = NULL,
   sigma.c.min = 1e-04,
-  a.up = 10,
   a.ini = NULL,
-  a.half.width = 0.3,
-  mu.range = c(-0.5, 0.5),
-  sigma.mu.range = c(0, 0.5),
+  a.half.width = NULL,
   mu.ini = NULL,
   exclude.from.world = NULL,
+  pop.denom = 1,
   seed = NULL,
   parallel = FALSE,
   nr.nodes = nr.chains,
@@ -62,13 +60,25 @@ historical migration rates using the
 \item{my.mig.file}{File name containing user-specified historical time series of migration rates 
 for all locations that should be included in the simulation.}
 
-\item{sigma.c.min, a.up, a.ini, a.half.width, mu.range, sigma.mu.range, mu.ini}{Settings for the parameters
-of the model (see Azose & Raftery 2015), such as minimum value, truncation ranges, slicing half width and initial values.
+\item{sigma.c.min, a.ini, mu.ini}{Settings for the parameters
+of the model (see Azose & Raftery 2015), such as minimum value and initial values.
 Initial values (*.ini) can be given as a vector of length \code{nr.chains}, giving one initial value per chain.
 By default the initial values are equidistantly spread between their respective ranges.}
 
+\item{a.half.width}{Half width for Metropolis proposals of the a parameter. This argument can greatly influence 
+the convergence and it is dependent on the scale of the data. By default it is set to 0.01 for 5-year data 
+defined as rate per population; to 0.03 for 5-year data defined as per 1000; to 0.3 for 
+annual data per population; to 0.5 for annual data per 1000. If the default does not 
+yield satisfactory results, use the function \code{\link{estimate.a.hw}} to estimate 
+an appropriate value, based on an existing simulation. Also it is important to set the \code{pop.denom}
+argument correctly.}
+
 \item{exclude.from.world}{Vector of country codes that should not influence the hyperparameters. 
 However, country-specific parameters will be generated for these countries.}
+
+\item{pop.denom}{Denominator used to generate the input migration rates. It is used to derive an appropriate scaler 
+for the priors and conditional distributions. Typically, this will be either 1 (default) if the rates are 
+defined as per population, or 1000, if the rates are per 1000 population.}
 
 \item{seed}{Seed of the random number generator. If \code{NULL} no seed is set. It can be used to generate reproducible results.}
 
@@ -86,7 +96,14 @@ By default it equals to the number of chains.}
 \item{\dots}{Additional parameters to be passed to the function \code{\link[snowFT]{performParallel}}, if \code{parallel} is \code{TRUE}.}
 }
 \value{
-
+An object of class \code{bayesMig.mcmc.set} which is a list with two components:
+\item{meta}{An object of class \code{bayesMig.mcmc.meta}. It contains information that is common to all chains.
+    Most items are the same as in \code{\link[bayesTFR]{bayesTFR.mcmc.meta}}. In addition, \code{mig.rates}
+    is a matrix of the observed migration rates and \code{user.data} is a logical indicating 
+    if the migration rates are given by the user (\code{TRUE}) or are taken from the \pkg{wpp} package
+    (\code{FALSE}).}
+\item{mcmc.list}{A list of objects of class \code{bayesMig.mcmc}, one for each MCMC. 
+    Information stored here is specific to each MCMC chain, similarly to \code{\link[bayesTFR]{bayesTFR.mcmc}}.}
 }
 \description{
 Runs MCMCs for simulating the net migration rate of all countries of the
