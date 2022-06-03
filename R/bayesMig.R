@@ -64,7 +64,7 @@
 #' mig.trajectories.plot(pred, country = "Germany", nr.traj = 50)
 #' 
 #' # Check convergence diagnostics
-#' mig.diagnose(sim.dir, burnin = 1000, thin = 1)
+#' mig.diagnose(sim.dir, burnin = 4000, thin = 1)
 #' 
 #' unlink(sim.dir, recursive = TRUE)
 #' }
@@ -73,4 +73,5 @@
 #' Bayesian probabilistic projection of international migration. Demography, 52(5), 1627-1650.
 #' \doi{10.1007/s13524-015-0415-0}.
 #' @name bayesMig-package
+#' @aliases bayesMig
 NULL

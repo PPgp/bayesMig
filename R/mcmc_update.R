@@ -101,7 +101,7 @@ mcmc.update.sigma2.mu <- function(mcmc){
   bigC=mcmc$meta$nr.countries.est
   
   #Calculate shape and rate parameters for an inverse gamma distribution
-  shape=(bigC-1)/2;rate=sum(mcmc$mu_c[mcmc$meta$country.indices.est]^2)/2;
+  shape=(bigC-1)/2;rate=sum((mcmc$mu_c[mcmc$meta$country.indices.est] - mcmc$mu_global)^2)/2;
   
   #Try simulating tau values from a gamma distribution, reject if they fall outside the acceptable region.
   tau.cutoff.lower=mcmc$meta$sigma.mu.upper^(-2)

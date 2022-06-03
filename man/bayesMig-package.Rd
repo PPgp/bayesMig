@@ -3,6 +3,7 @@
 \docType{package}
 \name{bayesMig-package}
 \alias{bayesMig-package}
+\alias{bayesMig}
 \title{Bayesian Projection of Migration}
 \description{
 Collection of functions for making probabilistic projections of net migration rate for all countries of the world,
