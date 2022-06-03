@@ -65,7 +65,7 @@ summary(pred, country = "Germany")
 mig.trajectories.plot(pred, country = "Germany", nr.traj = 50)
 
 # Check convergence diagnostics
-mig.diagnose(sim.dir, burnin = 1000, thin = 1)
+mig.diagnose(sim.dir, burnin = 4000, thin = 1)
 
 unlink(sim.dir, recursive = TRUE)
 }

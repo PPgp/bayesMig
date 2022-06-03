@@ -643,6 +643,7 @@ summary.bayesMig.mcmc.set <- function(object, country=NULL, chain.id=NULL,
 summary.bayesMig.mcmc.meta <- function(object, ...) {
   res <- list(est.period = paste(object$start.year, object$present.year, sep = '-'),
               nr.countries = object$nr.countries,
+              nr.countries.est = object$nr.countries.est,
               data.source = if(object$user.data) "user-defined" else "WPP ",
               wpp.year = if(object$user.data) NULL else object$wpp.year
   )
@@ -653,6 +654,8 @@ summary.bayesMig.mcmc.meta <- function(object, ...) {
 #' @export
 print.summary.bayesMig.mcmc.meta <- function(x, ...) {
   cat('\nNumber of locations:', x$nr.countries)
+    if(x$nr.countries != x$nr.countries.est)
+        cat('\nNumber of locations influencing world posterior:', x$nr.countries.est)
   cat('\nData source:', x$data.source, x$wpp.year)
   cat('\nInput data: migration for period', x$est.period)
   cat('\n')
