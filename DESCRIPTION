@@ -1,6 +1,6 @@
 Package: bayesMig
-Version: 0.2-1
-Date: 2022-06-03
+Version: 0.2-2
+Date: 2022-07-28
 Title: Bayesian Projection of Migration
 Author: Jon Azose, Hana Sevcikova and Adrian Raftery
 Maintainer: Hana Sevcikova <hanas@uw.edu>
@@ -10,5 +10,5 @@ Suggests:
 Description: Producing probabilistic projections of net migration rate for all countries of the world using a Bayesian hierarchical model <doi:10.1007/s13524-015-0415-0>.
 License: GPL (>= 2)
 URL: http://bayespop.csss.washington.edu
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0
 LazyData: true

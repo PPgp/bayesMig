@@ -21,6 +21,7 @@ mig.trajectories.plot(
   col = c("black", "red", "red", "#00000020"),
   show.legend = TRUE,
   add = FALSE,
+  scale = FALSE,
   ...
 )
 
@@ -56,6 +57,9 @@ mig.trajectories.table(mig.pred, country, pi = c(80, 95), ...)
 \item{add}{Logical controlling whether the trajectories should be plotted into a new graphic 
 device (\code{FALSE}) or into an existing device (\code{TRUE}). One can use this argument to plot
 trajectories from multiple countries into one graphics.}
+
+\item{scale}{Logical. If \code{TRUE}, values are scaled to be \dQuote{per population}, i.e. 
+they are divided by \code{pop.denom} passed to \code{\link{mig.predict}}.}
 
 \item{\dots}{Additional graphical parameters. In addition, for \code{mig.trajectories.plot.all} 
 any of the arguments of \code{tfr.trajectories.plot} can be passed here.}

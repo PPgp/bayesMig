@@ -22,6 +22,8 @@
 #' @param add Logical controlling whether the trajectories should be plotted into a new graphic 
 #'     device (\code{FALSE}) or into an existing device (\code{TRUE}). One can use this argument to plot
 #'     trajectories from multiple countries into one graphics.
+#' @param scale Logical. If \code{TRUE}, values are scaled to be \dQuote{per population}, i.e. 
+#'     they are divided by \code{pop.denom} passed to \code{\link{mig.predict}}.
 #' @param \dots Additional graphical parameters. In addition, for \code{mig.trajectories.plot.all} 
 #'     any of the arguments of \code{tfr.trajectories.plot} can be passed here.
 #'     
@@ -46,7 +48,7 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
                                   xlim=NULL, ylim=NULL, type='b', 
                                   xlab='Year', ylab='Migration rate', main=NULL, lwd=c(2,2,2,1), 
                                   col=c('black', 'red', 'red','#00000020'),
-                                  show.legend=TRUE, add=FALSE, ...
+                                  show.legend=TRUE, add=FALSE, scale = FALSE, ...
                               ) {
   # lwd/col is a vector of 4 line widths/colors for: 
   #	1. observed data, 2. median, 3. quantiles, 4. trajectories
@@ -55,7 +57,8 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   }
   country <- get.country.object(country, mig.pred$mcmc.set$meta)
   mig_observed <- mig.pred$mcmc.set$meta$mig.rates[country$index,]
-
+  if(scale) mig_observed <- mig_observed / mig.pred$mcmc.set$meta$prior.scaler
+  
   lpart1 <- length(mig_observed)
   # missing values imputation is not implemented yet
   # y1.part2 <- NULL
@@ -69,11 +72,21 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   x1 <- as.integer(names(mig_observed))
   x2 <- as.numeric(dimnames(mig.pred$quantiles)[[3]])
   trajectories <- bayesTFR:::get.trajectories(mig.pred, country$code, nr.traj=nr.traj)
+  mig.median <- get.median.from.prediction(mig.pred, country$index)
+  
+  if(scale) { # scale to be interpreted as "per population"
+    if(!is.null(trajectories$trajectories)) trajectories$trajectories <- trajectories$trajectories / mig.pred$mcmc.set$meta$prior.scaler
+    mig.pred$quantiles <- mig.pred$quantiles / mig.pred$mcmc.set$meta$prior.scaler
+    mig.median <- mig.median / mig.pred$mcmc.set$meta$prior.scaler
+  }
+  
   # plot historical data: observed
   if (!add) {
     if(is.null(xlim)) xlim <- c(min(x1,x2), max(x1,x2))
-    if(is.null(ylim)) ylim <- c(min(trajectories$trajectories, mig_observed, mig.pred$quantiles[country$index,,]),
+    if(is.null(ylim)) {
+      ylim <- c(min(trajectories$trajectories, mig_observed, mig.pred$quantiles[country$index,,]),
                                 max(trajectories$trajectories, mig_observed, mig.pred$quantiles[country$index,,]))
+    }
     if(is.null(main)) main <- country$name
     plot(xlim, ylim, type='n', xlim=xlim, ylim=ylim, ylab=ylab, xlab=xlab, main=main, 
          panel.first = grid())
@@ -89,7 +102,6 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
     }
   }
   # plot median
-  mig.median <- get.median.from.prediction(mig.pred, country$index)
   lines(x2, mig.median, type='l', col=col[3], lwd=lwd[3]) 
   # plot given CIs
   lty <- 2:(length(pi)+1)
