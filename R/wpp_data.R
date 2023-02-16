@@ -11,9 +11,10 @@ load.from.wpp <- function(dataset, wpp.year, annual = FALSE, ...){
 }
 
 
-load.bdem.dataset <- function(dataset, wpp.year, envir=NULL, annual = FALSE, verbose=FALSE) {
+load.bdem.dataset <- function(dataset, wpp.year, envir=NULL, annual = FALSE, verbose=FALSE, check.if.exists = FALSE) {
 	pkg <- paste('wpp', wpp.year, sep='')
 	do.call('require', list(pkg))
+	if(check.if.exists && !dataset %in% data(package = pkg)$results[, "Item"]) return(NULL)
 	if(verbose) cat('Loading ', dataset, ' from ', pkg, '.\n')
 	if(is.null(envir)) envir <- new.env()
 	do.call('data', list(dataset, package=pkg, envir=envir))
