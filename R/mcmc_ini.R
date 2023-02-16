@@ -16,7 +16,7 @@ mcmc.meta.ini <- function(...) {
 
 
 do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
-    start.year <- meta$start.year # TODO: take this into account
+    start.year <- meta$start.year 
     present.year <- meta$present.year
     wpp.year <- meta$wpp.year
     my.mig.file <- meta$my.mig.file
@@ -47,13 +47,13 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
   }else{
     #If we get here, then the user didn't input their own migration file.
     
-    if(! wpp.year %in% c(2017, 2019)){
+    if(! wpp.year %in% c(2017, 2019, 2022)){
       #Only wpp2017 is supported at the moment.
-      stop("Only 2017 and 2019 revisions of WPP are currently supported by bayesMig.")
+      stop("Only 2017, 2019 and 2022 revisions of WPP are currently supported by bayesMig.")
     }
-    if(annual) stop("If annual is TRUE, my.mig.file must be provided. No default data available.")
+    if(annual && wpp.year < 2022) stop("If annual is TRUE and wpp.year is not 2022, my.mig.file must be provided. No default data available.")
 
-    #If we get here, then wpp.year is 2017 or 2019 and it is a 5-year simulation
+    #If we get here, then wpp.year is 2017, 2019 and it is a 5-year simulation or wpp.year is 2022
     ###########
     
     #List of all possible countries
@@ -62,8 +62,8 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     fullCountryNameVec <- UNlocations$name[UNlocations$location_type==4]
     
     #Pop and migration data
-    pop=load.bdem.dataset('pop', wpp.year=wpp.year)
-    migration=load.bdem.dataset('migration',wpp.year=wpp.year)
+    pop=load.bdem.dataset('pop', wpp.year=wpp.year, annual = annual)
+    migration=load.bdem.dataset('migration',wpp.year=wpp.year, annual = annual)
 
     #Figure out the countries of overlap
     fullDataIndices=(fullCountryCodeVec %in% migration$country_code & fullCountryCodeVec %in% pop$country_code)
