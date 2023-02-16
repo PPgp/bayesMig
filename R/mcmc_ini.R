@@ -62,8 +62,8 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     fullCountryNameVec <- UNlocations$name[UNlocations$location_type==4]
     
     #Pop and migration data
-    pop=load.bdem.dataset('pop', wpp.year=wpp.year, annual = annual)
-    migration=load.bdem.dataset('migration',wpp.year=wpp.year, annual = annual)
+    pop=load.from.wpp('pop', wpp.year=wpp.year, annual = annual)
+    migration=load.from.wpp('migration',wpp.year=wpp.year, annual = annual)
 
     #Figure out the countries of overlap
     fullDataIndices=(fullCountryCodeVec %in% migration$country_code & fullCountryCodeVec %in% pop$country_code)
