@@ -280,7 +280,9 @@ mig.pardensity.cs.plot <- function(country, mcmc.list = NULL, sim.dir = file.pat
 
 #' @title World Map of Net Migration Rate
 #' @description Generates a world map of the net migration rate for given quantile and 
-#'     time period, which can be either projection or estimation time period. A map of 
+#'     time period, which can be either projection or estimation time period, using different techniques: 
+#'     \code{mig.map} and \code{mig.map.all} use \pkg{rworldmap}, \code{mig.ggmap} uses \pkg{ggplot2}, and 
+#'     \code{mig.map.gvis} creates an interactive map via \pkg{GoogleVis}. A map of 
 #'     country-specific model parameters is also supported.
 #' @param pred Object of class \code{\link{bayesMig.prediction}}. Note that location codes
 #'     must correspond to the UN country codes in order to generate a world map.
@@ -289,7 +291,8 @@ mig.pardensity.cs.plot <- function(country, mcmc.list = NULL, sim.dir = file.pat
 #'     \code{projection.index}, \code{par.name}, \code{adjusted}, \code{device}, \code{main}, 
 #'     \code{device.args}, and \code{data.args}. 
 #'     In \code{mig.map.gvis}, \dots are all arguments that can be passed 
-#'     to \code{\link[bayesTFR]{tfr.map.gvis}}. In addition, the first three functions accept 
+#'     to \code{\link[bayesTFR]{tfr.map.gvis}}. In \code{e0.ggmap}, \dots are arguments that can be passed 
+#'     to \code{\link[bayesTFR]{tfr.ggmap}}. In addition, functions that use the \pkg{rworldmap} package accept 
 #'     arguments passed to the \code{\link[rworldmap]{mapCountryData}} function of the \pkg{rworldmap} package.
 #' @details \code{mig.map} creates a single map for the given time period and quantile. 
 #'     \code{mig.map.all} generates a sequence of maps, namely one for each projection period. 
@@ -299,11 +302,14 @@ mig.pardensity.cs.plot <- function(country, mcmc.list = NULL, sim.dir = file.pat
 #'     (Note that \code{get.mig.map.parameters} is called from inside of \code{mig.map.all}.) 
 #'     It sets breakpoints for the color scheme.
 #'     
+#'     Function \code{mig.ggmap} is similar to \code{mig.map}, but used the \pkg{ggplot2} package 
+#'     in combination with the \code{geom_sf} function.
+#'     
 #'     Function \code{mig.map.gvis} creates an interactive map using the \pkg{googleVis} package 
 #'     and opens it in an internet browser. It also generates a table of the mapped values that 
 #'     can be sorted by columns interactively in the browser. 
 #'     
-#'     By default, both \code{mig.map} and \code{mig.map.gvis} produce maps of net migration rates. 
+#'     By default, \code{mig.map}, \code{mig.ggmap} and \code{mig.map.gvis} produce maps of net migration rates. 
 #'     Alternatively, the functions can be used to plot country-specific MCMC parameters into a world map. 
 #'     They are given by the argument \code{par.name}. One can pass any value from 
 #'     \code{\link{mig.parameter.names.cs}()}.
@@ -315,6 +321,13 @@ mig.pardensity.cs.plot <- function(country, mcmc.list = NULL, sim.dir = file.pat
 mig.map <- function(pred, ...) {
   return(bayesTFR::tfr.map(pred, ...))
 }
+
+#' @export
+#' @rdname map
+mig.ggmap <- function(pred, ...) {
+  return(bayesTFR::tfr.ggmap(pred, ...))
+}
+
 
 #' @export
 #' @rdname map

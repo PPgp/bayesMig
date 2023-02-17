@@ -2,12 +2,15 @@
 % Please edit documentation in R/plot_functions.R
 \name{mig.map}
 \alias{mig.map}
+\alias{mig.ggmap}
 \alias{mig.map.gvis}
 \alias{mig.map.all}
 \alias{get.mig.map.parameters}
 \title{World Map of Net Migration Rate}
 \usage{
 mig.map(pred, ...)
+
+mig.ggmap(pred, ...)
 
 mig.map.gvis(pred, ...)
 
@@ -42,7 +45,8 @@ to \code{\link[bayesTFR]{tfr.map}}, such as \code{quantile}, \code{year},
 \code{projection.index}, \code{par.name}, \code{adjusted}, \code{device}, \code{main}, 
 \code{device.args}, and \code{data.args}. 
 In \code{mig.map.gvis}, \dots are all arguments that can be passed 
-to \code{\link[bayesTFR]{tfr.map.gvis}}. In addition, the first three functions accept 
+to \code{\link[bayesTFR]{tfr.map.gvis}}. In \code{e0.ggmap}, \dots are arguments that can be passed 
+to \code{\link[bayesTFR]{tfr.ggmap}}. In addition, functions that use the \pkg{rworldmap} package accept 
 arguments passed to the \code{\link[rworldmap]{mapCountryData}} function of the \pkg{rworldmap} package.}
 
 \item{output.dir}{Directory into which resulting maps are stored.}
@@ -70,7 +74,9 @@ Value 0.5 corresponds to the median.}
 }
 \description{
 Generates a world map of the net migration rate for given quantile and 
-    time period, which can be either projection or estimation time period. A map of 
+    time period, which can be either projection or estimation time period, using different techniques: 
+    \code{mig.map} and \code{mig.map.all} use \pkg{rworldmap}, \code{mig.ggmap} uses \pkg{ggplot2}, and 
+    \code{mig.map.gvis} creates an interactive map via \pkg{GoogleVis}. A map of 
     country-specific model parameters is also supported.
 }
 \details{
@@ -82,11 +88,14 @@ Generates a world map of the net migration rate for given quantile and
     (Note that \code{get.mig.map.parameters} is called from inside of \code{mig.map.all}.) 
     It sets breakpoints for the color scheme.
     
+    Function \code{mig.ggmap} is similar to \code{mig.map}, but used the \pkg{ggplot2} package 
+    in combination with the \code{geom_sf} function.
+    
     Function \code{mig.map.gvis} creates an interactive map using the \pkg{googleVis} package 
     and opens it in an internet browser. It also generates a table of the mapped values that 
     can be sorted by columns interactively in the browser. 
     
-    By default, both \code{mig.map} and \code{mig.map.gvis} produce maps of net migration rates. 
+    By default, \code{mig.map}, \code{mig.ggmap} and \code{mig.map.gvis} produce maps of net migration rates. 
     Alternatively, the functions can be used to plot country-specific MCMC parameters into a world map. 
     They are given by the argument \code{par.name}. One can pass any value from 
     \code{\link{mig.parameter.names.cs}()}.

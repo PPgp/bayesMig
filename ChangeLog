@@ -1,3 +1,9 @@
+0.3-0 (02/17/2023)
+-----
+Version supporting the use of wpp2022 annual data.
+
+New function map.ggplot.
+
 0.2-2 (07/28/2022)
 -----
 Added argument scale to mig.plot.trajectories.

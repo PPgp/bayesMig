@@ -57,13 +57,13 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     ###########
     
     #List of all possible countries
-    UNlocations=load.bdem.dataset('UNlocations', wpp.year=wpp.year)
+    UNlocations <- bayesTFR:::load.bdem.dataset('UNlocations', wpp.year=wpp.year)
     fullCountryCodeVec <- UNlocations$country_code[UNlocations$location_type==4]
     fullCountryNameVec <- UNlocations$name[UNlocations$location_type==4]
     
     #Pop and migration data
-    pop=load.from.wpp('pop', wpp.year=wpp.year, annual = annual)
-    migration=load.from.wpp('migration',wpp.year=wpp.year, annual = annual)
+    pop <- bayesTFR:::load.from.wpp('pop', wpp.year=wpp.year, annual = annual)
+    migration <- bayesTFR:::load.from.wpp('migration',wpp.year=wpp.year, annual = annual)
 
     #Figure out the countries of overlap
     fullDataIndices=(fullCountryCodeVec %in% migration$country_code & fullCountryCodeVec %in% pop$country_code)
