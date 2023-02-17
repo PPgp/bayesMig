@@ -147,6 +147,8 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	nr_countries_real <- length(prediction.countries)
 
 	present.year.index <- bayesTFR:::get.estimation.year.index(meta, present.year)
+	if(is.null(present.year.index))
+	    stop("present.year", present.year, "not found in the data.")
 
 	#keep these defaults for checking the out-of-sample projections
   quantiles.to.keep <- c(0,0.025,0.05,0.1,0.2,0.25,0.3,0.4,0.5,0.6,0.7,0.75,0.8,0.9,0.95,0.975,1)

@@ -79,7 +79,8 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     
     #Construct a matrix of initial populations
     initialPopMat <- merge(data.frame(country_code=fullCountryCodeVec), pop, sort=FALSE)
-    initialPopMat <- initialPopMat[,-which(colnames(pop) %in% c("country_code", "name", "1950"))] # need end-period pop
+    numcols <- as.numeric(setdiff(colnames(initialPopMat), c("country_code", "name")))
+    initialPopMat <- initialPopMat[,-which(colnames(pop) %in% c("country_code", "name", as.character(numcols[numcols <=1950])))] # need end-period pop
     rownames(initialPopMat) <- fullCountryCodeVec;
     
     #Convert from thousands to raw counts
@@ -87,7 +88,9 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     
     #Construct a matrix of total migration counts
     migCountMat <- merge(data.frame(country_code=fullCountryCodeVec), migration, sort=FALSE)[,-c(1,2)]
-    migCountMat <- migCountMat[, substr(colnames(migCountMat), 6, 9) %in% colnames(initialPopMat)]
+    if(!annual)
+        migCountMat <- migCountMat[, substr(colnames(migCountMat), 6, 9) %in% colnames(initialPopMat)]
+    else migCountMat <- migCountMat[, (as.integer(colnames(migCountMat)) + 1) %in% colnames(initialPopMat)]
     rownames(migCountMat)=fullCountryCodeVec;
     
     #Convert from thousands to raw counts
