@@ -24,6 +24,14 @@
 #' @param thin Thinning interval used for determining the number of trajectories. 
 #' Only relevant if \code{nr.traj} is \code{NULL}.
 #' @param burnin Number of iterations to be discarded from the beginning of the parameter traces.
+#' @param use.cummulative.threshold If \code{TRUE} a historical cummulative threshold is applied 
+#'    derived from all rates, while excluding the GCC countries for non-GCC countries. 
+#'    Six time periods are used in a 5-year simulation, corresponding to
+#'    30 years in an annual simulation. If this option is used in a non-country simulation,
+#'    e.g. in a sub-national settings, set the \code{ignore.gcc.in.threshold} argument to \code{TRUE}.
+#' @param ignore.gcc.in.threshold If \code{use.cummulative.threshold} is \code{TRUE}, by default the GCC countries
+#'    (plus Western Sahara and Djibouti) identified by numerical codes of the countries are excluded from computing 
+#'    the historical cummulative thresholds. If this argument is \code{TRUE}, this distinction is not made. 
 #' @param save.as.ascii Either a number determining how many trajectories should be
 #' converted into an ASCII file, or 'all' in which case all trajectories are converted.
 #' It should be set to 0 if no conversion is desired.
@@ -63,6 +71,7 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 						sim.dir=file.path(getwd(), 'bayesMig.output'),
 						replace.output=FALSE,
 						start.year=NULL, nr.traj = NULL, thin = NULL, burnin=20000, 
+						use.cummulative.threshold = FALSE, ignore.gcc.in.threshold = FALSE,
 						save.as.ascii=0, output.dir = NULL,
 						seed=NULL, verbose=TRUE, ...) {
 	if(!is.null(mcmc.set)) {
@@ -77,12 +86,13 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 	
 	invisible(make.mig.prediction(mcmc.set, end.year=end.year, replace.output=replace.output,  
 					start.year=start.year, nr.traj=nr.traj, burnin=burnin, thin=thin,
+					use.cummulative.threshold = use.cummulative.threshold, ignore.gcc.in.threshold = ignore.gcc.in.threshold,
 					save.as.ascii=save.as.ascii, output.dir=output.dir, verbose=verbose, ...))			
 }
 
 make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replace.output=FALSE,
 								nr.traj = NULL, burnin=0, thin = NULL, 
-								countries = NULL,
+								countries = NULL, use.cummulative.threshold = FALSE, ignore.gcc.in.threshold = FALSE,
 							    save.as.ascii=0, output.dir = NULL, write.summary.files=TRUE, 
 							    is.mcmc.set.thinned=FALSE, force.creating.thinned.mcmc=FALSE,
 							    write.trajectories=TRUE, 
@@ -148,7 +158,7 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 
 	present.year.index <- bayesTFR:::get.estimation.year.index(meta, present.year)
 	if(is.null(present.year.index))
-	    stop("present.year", present.year, "not found in the data.")
+	    stop("present.year ", present.year, " not found in the data.")
 
 	#keep these defaults for checking the out-of-sample projections
   quantiles.to.keep <- c(0,0.025,0.05,0.1,0.2,0.25,0.3,0.4,0.5,0.6,0.7,0.75,0.8,0.9,0.95,0.975,1)
@@ -187,7 +197,12 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 		verbose.iter <- max(1, nr_simu/100)
 		if(interactive()) cat('\n')
 	}
-	
+	if(use.cummulative.threshold){
+	    nperiods.for.threshold <- ifelse(meta$annual.simulation, 30, 6)
+	    mig.thresholds <-  get.migration.thresholds(meta, nperiods = nperiods.for.threshold, ignore.gcc = ignore.gcc.in.threshold)
+	    isGCC <- if(ignore.gcc.in.threshold) rep(FALSE, nr_countries_real) else is.gcc.plus(meta$regions$country_code)
+	    fun.min <- "min.multiplicative.pop.change"
+	}
 	#########################################
 	for (s in 1:nr_simu){ # Iterate over trajectories
 	#########################################
@@ -204,15 +219,25 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	    phi.c[country] <- cs.par.values.list[[country]][s,2]
 	    sigma.c[country] <- sqrt(cs.par.values.list[[country]][s,3])
 	  }
-	  
+
 	  #########################################
-	  for (year in 2:(nr_project+1)) { # Iterate over time
+	  for (icountry in 1:nr_countries_real){ # Iterate over countries
+	  #########################################
+	    fun.max <- paste0("max.multiplicative.pop.change", if(isGCC[icountry]) "" else ".no.gcc")
+	    for (year in 2:(nr_project+1)) { # Iterate over time
 	    #########################################
-	    #ALLmig.prev <- all.mig_ps[,year-1,s]
-	    #########################################
-	    for (icountry in 1:nr_countries_real){ # Iterate over countries
-	      #########################################
-	      all.mig_ps[icountry,year,s]=mu.c[icountry] + phi.c[icountry]*(all.mig_ps[icountry,year-1,s] - mu.c[icountry]) + rnorm(n=1,mean=0,sd=sigma.c[icountry])
+	        determ.part <- mu.c[icountry] + phi.c[icountry]*(all.mig_ps[icountry,year-1,s] - mu.c[icountry])
+	        if(use.cummulative.threshold){
+	            xmin <- .get.rate.mult.limit(all.mig_ps[icountry,1:(year-1),s], year-1, fun.min, max, nperiods=nperiods.for.threshold, thresholds = mig.thresholds)
+	            xmax <- .get.rate.mult.limit(all.mig_ps[icountry,1:(year-1),s], year-1, fun.max, min, nperiods=nperiods.for.threshold, thresholds = mig.thresholds)
+	            if(xmin > xmax) {
+	                avg <- (xmin + xmax)/2.
+	                xmin <- avg - 1e-3
+	                xmax <- avg + 1e-3 
+	            }
+	            error <- rtruncnorm(n=1, a=xmin-determ.part, b=xmax-determ.part, mean=0,sd=sigma.c[icountry])
+	        } else error <- rnorm(n=1, mean=0,sd=sigma.c[icountry])
+	        all.mig_ps[icountry,year,s] <- determ.part + error
 	    } # end countries loop
 	  } # end time loop
 	} # end simu loop
@@ -316,3 +341,48 @@ get.data.imputed.bayesMig.prediction <- function(pred, ...)
 get.data.for.country.imputed.bayesMig.prediction <- function(pred, country.index, ...)
     return(get.data.matrix(pred$mcmc.set$meta)[, country.index])
 
+max.multiplicative.pop.change <- function(l, thresholds) 
+    thresholds$upper[l]
+
+max.multiplicative.pop.change.no.gcc <- function(l, thresholds) 
+    thresholds$upper.nogcc[l]
+
+min.multiplicative.pop.change <- function(l, thresholds) 
+    thresholds$lower[l]
+
+.get.rate.mult.limit <- function(rates, n, cumfun, fun, nperiods=6, ...) {
+    res <- do.call(cumfun, list(1, ...))
+    for(i in 2:min(nperiods,n+1)) {
+        p <- prod(1+rates[(n-i+2):n])
+        res <- c(res, do.call(cumfun, c(list(i, ...)))/p)
+    }
+    return(do.call(fun, list(res))-1)
+}
+
+is.gcc.plus <- function(country) # GCC plus Western Sahara & Djibouti
+    return(country %in% c(634, 784, 414, 48, 512, 682, 732, 262)) # Qatar, UAE, Kuwait, Bahrain, Oman, SA, Western Sahara, Djibouti
+
+get.migration.thresholds <- function(meta, nperiods=6, ignore.gcc = FALSE) {
+    # Setting cummulative thresholds
+    rates <- meta$mig.rates
+    # GCC plus Western Sahara & Djibouti
+    if(!ignore.gcc)
+        gcc.plus <- meta$regions$country_code[is.gcc.plus(meta$regions$country_code)]
+    
+    rMat <- 1 + rates
+    tu <- apply(rMat, 1, max)
+    tl <- apply(rMat, 1, min)
+    for (i in 2:min(nperiods, ncol(rates)-1)) {
+        p <- 0*rates[,1:(ncol(rates)-i+1)] + 1 # init with 1
+        for(j in 1:i) 	
+            p <- p * rMat[,j:(ncol(rates)-i+j)]
+        tu <- cbind(tu, apply(p, 1, max))
+        tl <- cbind(tl, apply(p, 1, min))
+    }
+    upper.bounds <- apply(tu, 2, max)
+    upper.bounds.nogcc <- if(!ignore.gcc) apply(tu[!rownames(tu) %in% gcc.plus,], 2, max) else rep(NA, length(upper.bounds))
+    lower.bounds <- apply(tl, 2, min)
+    
+    df <- data.frame(upper=upper.bounds, upper.nogcc=upper.bounds.nogcc, lower=lower.bounds)
+    return(df)
+}

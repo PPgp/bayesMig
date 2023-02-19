@@ -14,6 +14,8 @@ mig.predict(
   nr.traj = NULL,
   thin = NULL,
   burnin = 20000,
+  use.cummulative.threshold = FALSE,
+  ignore.gcc.in.threshold = FALSE,
   save.as.ascii = 0,
   output.dir = NULL,
   seed = NULL,
@@ -48,6 +50,16 @@ corresponds to the size of the parameter sample.}
 Only relevant if \code{nr.traj} is \code{NULL}.}
 
 \item{burnin}{Number of iterations to be discarded from the beginning of the parameter traces.}
+
+\item{use.cummulative.threshold}{If \code{TRUE} a historical cummulative threshold is applied 
+derived from all rates, while excluding the GCC countries for non-GCC countries. 
+Six time periods are used in a 5-year simulation, corresponding to
+30 years in an annual simulation. If this option is used in a non-country simulation,
+e.g. in a sub-national settings, set the \code{ignore.gcc.in.threshold} argument to \code{TRUE}.}
+
+\item{ignore.gcc.in.threshold}{If \code{use.cummulative.threshold} is \code{TRUE}, by default the GCC countries
+(plus Western Sahara and Djibouti) identified by numerical codes of the countries are excluded from computing 
+the historical cummulative thresholds. If this argument is \code{TRUE}, this distinction is not made.}
 
 \item{save.as.ascii}{Either a number determining how many trajectories should be
 converted into an ASCII file, or 'all' in which case all trajectories are converted.
