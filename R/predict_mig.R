@@ -223,7 +223,7 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	  #########################################
 	  for (icountry in 1:nr_countries_real){ # Iterate over countries
 	  #########################################
-	    fun.max <- paste0("max.multiplicative.pop.change", if(isGCC[icountry]) "" else ".no.gcc")
+	    if(use.cummulative.threshold) fun.max <- paste0("max.multiplicative.pop.change", if(isGCC[icountry]) "" else ".no.gcc")
 	    for (year in 2:(nr_project+1)) { # Iterate over time
 	    #########################################
 	        determ.part <- mu.c[icountry] + phi.c[icountry]*(all.mig_ps[icountry,year-1,s] - mu.c[icountry])
