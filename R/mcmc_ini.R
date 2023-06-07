@@ -19,31 +19,36 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     start.year <- meta$start.year 
     present.year <- meta$present.year
     wpp.year <- meta$wpp.year
+    meta$my.mig.file <- normalizePath(meta$my.mig.file)
     my.mig.file <- meta$my.mig.file
     annual <- meta$annual.simulation
     #If the user input their own migration file:
-    if(!is.null(my.mig.file)){
-      d <- read.delim(file=my.mig.file, comment.char='#', check.names=FALSE)
-    
-      #Extract country names and codes
-      if(! "code" %in% colnames(d) && ! "country_code" %in% colnames(d))
-          stop("Columns country_code or code must be present in the data file.")
-      if("code" %in% colnames(d)) colnames(d)[colnames(d) == "code"] <- "country_code" # rename "code" to "country_code"
-      fullCountryCodeVec=d$country_code
-      if("country" %in% colnames(d)) colnames(d)[colnames(d) == "country"] <- "name" # rename country column to "name"
-      if(! "name" %in% colnames(d)) d$name <- d$country_code
-      fullCountryNameVec=d$name
-      nC <- length(fullCountryCodeVec)
-    
-      #Extract migration rates
-      mig.rates=as.matrix(d[,setdiff(colnames(d), c("country_code", "name"))])
-      rownames(mig.rates)=fullCountryCodeVec
-    
-      if(!is.null(meta$exclude.from.world)) {
-        #Exclude locations that should not influence the world parameters
-        bigCountryIndices <- !fullCountryCodeVec %in% meta$exclude.from.world
-      } else bigCountryIndices = rep(TRUE, nC)
-    
+     if(!is.null(my.mig.file)){
+    #   d <- read.delim(file=my.mig.file, comment.char='#', check.names=FALSE)
+    # 
+    #   #Extract country names and codes
+    #   if(! "code" %in% colnames(d) && ! "country_code" %in% colnames(d))
+    #       stop("Columns country_code or code must be present in the data file.")
+    #   if("code" %in% colnames(d)) colnames(d)[colnames(d) == "code"] <- "country_code" # rename "code" to "country_code"
+    #   fullCountryCodeVec=d$country_code
+    #   if("country" %in% colnames(d)) colnames(d)[colnames(d) == "country"] <- "name" # rename country column to "name"
+    #   if(! "name" %in% colnames(d)) d$name <- d$country_code
+    #   fullCountryNameVec=d$name
+    #   nC <- length(fullCountryCodeVec)
+    # 
+    #   #Extract migration rates
+    #   mig.rates=as.matrix(d[,setdiff(colnames(d), c("country_code", "name"))])
+    #   rownames(mig.rates)=fullCountryCodeVec
+    # 
+    #   if(!is.null(meta$exclude.from.world)) {
+    #     #Exclude locations that should not influence the world parameters
+    #     bigCountryIndices <- !fullCountryCodeVec %in% meta$exclude.from.world
+    #   } else bigCountryIndices = rep(TRUE, nC)
+    migdata <- get.wpp.mig.data (start.year = start.year, present.year = present.year, 
+                             wpp.year = wpp.year, my.mig.file = my.mig.file, 
+                             annual = annual, exclude.from.world = meta$exclude.from.world,
+                             verbose = verbose)
+
   }else{
     #If we get here, then the user didn't input their own migration file.
     
@@ -100,37 +105,37 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     # as count/(end pop - mig)
     mig.rates<-as.matrix(migCountMat/(initialPopMat - migCountMat))
   }
-    # restrict dataset to columns between start and present year
-    if(start.year > present.year)
-      stop("Arguments start.year must be smaller than present.year.")
-    
-    cols.starty <- as.integer(substr(colnames(mig.rates), 1,4))
-    cols.endy <- if(annual) cols.starty+0.5 else as.integer(substr(colnames(mig.rates), 6,9))
-    start.index <- which((cols.starty <= start.year) & (cols.endy > start.year))
-    if(length(start.index) <= 0) {
-      if(cols.starty[1] > start.year) start.index <- 1
-      else stop("No data for time periods >=  ", start.year, " available. Check the argument start.year.")
-    }
-    start.col <- colnames(mig.rates)[start.index[1]]
-    present.index <- which((cols.endy >= present.year) & (cols.starty <= present.year))
-    if(length(present.index) <= 0) {
-      if(cols.endy[length(cols.endy)] < present.year) present.index <- length(cols.endy)
-      else stop("No data for time periods >=  ", start.year, " and <= ", present.year, " available. Check the arguments start.year and present.year.")
-    }
-    present.col <- colnames(mig.rates)[present.index[1]]
-    mig.rates <- mig.rates[, which.max(colnames(mig.rates)==start.col):which.max(colnames(mig.rates)==present.col)]
-    if(!annual) {
-      # adjust the years to the right values
-      meta$start.year <- cols.starty[start.index[1]]
-      meta$present.year <- cols.endy[present.index[1]]
-      # change the column names to the middle of the periods
-      colnames(mig.rates) <- as.integer(substr(colnames(mig.rates), 1, 4)) + 3
-    }
-      
+    # # restrict dataset to columns between start and present year
+    # if(start.year > present.year)
+    #   stop("Arguments start.year must be smaller than present.year.")
+    # 
+    # cols.starty <- as.integer(substr(colnames(mig.rates), 1,4))
+    # cols.endy <- if(annual) cols.starty+0.5 else as.integer(substr(colnames(mig.rates), 6,9))
+    # start.index <- which((cols.starty <= start.year) & (cols.endy > start.year))
+    # if(length(start.index) <= 0) {
+    #   if(cols.starty[1] > start.year) start.index <- 1
+    #   else stop("No data for time periods >=  ", start.year, " available. Check the argument start.year.")
+    # }
+    # start.col <- colnames(mig.rates)[start.index[1]]
+    # present.index <- which((cols.endy >= present.year) & (cols.starty <= present.year))
+    # if(length(present.index) <= 0) {
+    #   if(cols.endy[length(cols.endy)] < present.year) present.index <- length(cols.endy)
+    #   else stop("No data for time periods >=  ", start.year, " and <= ", present.year, " available. Check the arguments start.year and present.year.")
+    # }
+    # present.col <- colnames(mig.rates)[present.index[1]]
+    # mig.rates <- mig.rates[, which.max(colnames(mig.rates)==start.col):which.max(colnames(mig.rates)==present.col)]
+    # if(!annual) {
+    #   # adjust the years to the right values
+    #   meta$start.year <- cols.starty[start.index[1]]
+    #   meta$present.year <- cols.endy[present.index[1]]
+    #   # change the column names to the middle of the periods
+    #   colnames(mig.rates) <- as.integer(substr(colnames(mig.rates), 1, 4)) + 3
+    # }
+    #   
   #Establish some parameter constraints
-  muConstraints <- rep(NA,length(fullCountryNameVec));
-  phiConstraints <- rep(NA,length(fullCountryNameVec));
-  sigma2Constraints <- rep(NA,length(fullCountryNameVec));
+  muConstraints <- rep(NA, migdata$nr.countries.estimation);
+  phiConstraints <- rep(NA, migdata$nr.countries.estimation);
+  sigma2Constraints <- rep(NA, migdata$nr.countries.estimation);
   
   #Format for optional fixes if we're including small countries
   # #Fix mu_c=0 for the following countries
@@ -161,17 +166,18 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
   meta$mu.range <- NULL
   meta$sigma.mu.range <- NULL
   meta$a.up <- NULL
-  
+  #stop("")
   return(c(meta, list(
-    country.indices.est = (1:nC)[bigCountryIndices],
-    nr.countries.est = sum(bigCountryIndices),
-    regions=list(country_code=fullCountryCodeVec,country_name=fullCountryNameVec),
-    mig.rates = mig.rates,
+    country.indices.est = 1:migdata$nr.countries.estimation,
+    nr.countries.est = migdata$nr.countries.estimation,
+    regions= c(migdata$regions['country_code'], migdata$regions['country_name']),
+    mig.rates = t(migdata$mig.matrix),
+    mig.rates.all = t(migdata$mig.matrix.all),
     user.data = !is.null(my.mig.file),
-    bigT=ncol(mig.rates),
-    nr.countries=nrow(mig.rates),
-    fullCountryCodeVec = fullCountryCodeVec,
-    fullCountryNameVec = fullCountryNameVec,
+    bigT=nrow(migdata$mig.matrix),
+    nr.countries=ncol(migdata$mig.matrix),
+    fullCountryCodeVec = migdata$regions$country_code,
+    fullCountryNameVec = migdata$regions$country_name,
     constraints.logical = constraints.logical,
     constraints.numeric = constraints.numeric
   )))
