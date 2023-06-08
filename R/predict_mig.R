@@ -449,18 +449,18 @@ get.migration.thresholds <- function(meta, nperiods=6, ignore.gcc = FALSE) {
         gcc.plus <- meta$regions$country_code[is.gcc.plus(meta$regions$country_code)]
     
     rMat <- 1 + rates
-    tu <- apply(rMat, 1, max)
-    tl <- apply(rMat, 1, min)
+    tu <- apply(rMat, 1, max, na.rm = TRUE)
+    tl <- apply(rMat, 1, min, na.rm = TRUE)
     for (i in 2:min(nperiods, ncol(rates)-1)) {
         p <- 0*rates[,1:(ncol(rates)-i+1)] + 1 # init with 1
         for(j in 1:i) 	
             p <- p * rMat[,j:(ncol(rates)-i+j)]
-        tu <- cbind(tu, apply(p, 1, max))
-        tl <- cbind(tl, apply(p, 1, min))
+        tu <- cbind(tu, apply(p, 1, max, na.rm = TRUE))
+        tl <- cbind(tl, apply(p, 1, min, na.rm = TRUE))
     }
-    upper.bounds <- apply(tu, 2, max)
-    upper.bounds.nogcc <- if(!ignore.gcc) apply(tu[!rownames(tu) %in% gcc.plus,], 2, max) else rep(NA, length(upper.bounds))
-    lower.bounds <- apply(tl, 2, min)
+    upper.bounds <- apply(tu, 2, max, na.rm = TRUE)
+    upper.bounds.nogcc <- if(!ignore.gcc) apply(tu[!rownames(tu) %in% gcc.plus,], 2, max, na.rm = TRUE) else rep(NA, length(upper.bounds))
+    lower.bounds <- apply(tl, 2, min, na.rm = TRUE)
     
     df <- data.frame(upper=upper.bounds, upper.nogcc=upper.bounds.nogcc, lower=lower.bounds)
     return(df)
