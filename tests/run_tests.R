@@ -3,7 +3,7 @@ source('test_functions.R')
 
 #options(error=quote(dump.frames("last.dump", TRUE)))
 
-cran <- FALSE
+cran <- TRUE
 
 test.run.annual.simulation()
 

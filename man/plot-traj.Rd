@@ -38,7 +38,7 @@ mig.trajectories.table(mig.pred, country, pi = c(80, 95), ...)
 \arguments{
 \item{mig.pred}{Prediction object of class \code{bayesMig.prediction}.}
 
-\item{country}{Name or numerical code of a country. It can also be given as ISO-2 or ISO-3 characters.}
+\item{country}{Name or numerical code of a location. If it is a country, it can also be given as ISO-2 or ISO-3 characters.}
 
 \item{pi}{Probability interval (as percentage) to be included in the output. It can be a single number or a vector.}
 
@@ -49,8 +49,8 @@ mig.trajectories.table(mig.pred, country, pi = c(80, 95), ...)
 \item{main}{Main title for the plot(s). In \code{mig.trajectories.plot.all} any occurrence of the string 
 \dQuote{XXX} is replaced by the name of the appropriate country.}
 
-\item{lwd, col}{Vector of four elements giving the line width and color for: 1. observed data, 
-2. median, 3. quantiles, 4. trajectories.}
+\item{lwd, col}{Vector of five elements giving the line width and color for: 1. observed data, 
+2. imputed values, 3. median, 4. quantiles, 5. trajectories.}
 
 \item{show.legend}{Logical controlling whether a legend should be drawn.}
 
@@ -64,22 +64,22 @@ they are divided by \code{pop.denom} passed to \code{\link{mig.predict}}.}
 \item{\dots}{Additional graphical parameters. In addition, for \code{mig.trajectories.plot.all} 
 any of the arguments of \code{tfr.trajectories.plot} can be passed here.}
 
-\item{output.dir}{Directory into which resulting plots are written}
+\item{output.dir}{Directory into which resulting plots are written.}
 
 \item{output.type}{Type of the resulting plot files. Can be "png", "pdf", "jpeg", "bmp",
-"tiff", or "postscript"}
+"tiff", or "postscript".}
 
 \item{verbose}{Logical value. Switches log messages on and off.}
 }
 \description{
 The functions plot/tabulate the posterior distribution of trajectories of net migration rates
-    for a given country, or for all countries, including their median and given probability 
+    for a given location, or for all locations, including their median and given probability 
     intervals.
 }
 \details{
 \code{mig.trajectories.plot} plots posterior distribution of trajectories of net migration
-    rates for a given country. \code{mig.trajectories.table} gives the same output as a table. 
-    \code{mig.trajectories.plot.all} creates a set of graphs (one per country) that are stored in 
+    rates for a given location. \code{mig.trajectories.table} gives the same output as a table. 
+    \code{mig.trajectories.plot.all} creates a set of graphs (one per location) that are stored in 
     \code{output.dir}.
     
     The median and given probability intervals are computed using all available trajectories. 
