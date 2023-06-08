@@ -26,7 +26,7 @@
 #' The following functions can be used to analyze results:
 #' * \code{\link{mig.trajectories.plot}}: Shows the posterior trajectories for a given location, including the median and given probability intervals.
 #' * \code{\link{mig.trajectories.table}}: Shows a tabular form of the posterior trajectories for a given location.
-#' * \link{mig.map} and \link{mig.map.gvis}: Show a world map of migration rates 
+#' * \link{mig.map}, \link{mig.ggmap} and \link{mig.map.gvis}: Show a world map of migration rates 
 #'     for a given projection or observed period, or for country-specific parameter estimates.
 #' * \code{\link{mig.partraces.plot}} and \code{\link{mig.partraces.cs.plot}}: Plot the MCMC traces
 #'  of country-independent parameters and country-specific parameters, respectively.

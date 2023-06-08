@@ -107,7 +107,7 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 						save.as.ascii=0, output.dir = NULL,
 						seed=NULL, verbose=TRUE, ...) {
 	if(!is.null(mcmc.set)) {
-		if (class(mcmc.set) != 'bayesMig.mcmc.set') {
+		if (! inherits(mcmc.set, 'bayesMig.mcmc.set')) {
 			stop('Wrong type of mcmc.set. Must be of type bayesMig.mcmc.set.')
 			}
 	} else {		
