@@ -6,18 +6,18 @@
 #' @title Output of posterior distribution of migration trajectories
 #'
 #' @description The functions plot/tabulate the posterior distribution of trajectories of net migration rates
-#'     for a given country, or for all countries, including their median and given probability 
+#'     for a given location, or for all locations, including their median and given probability 
 #'     intervals.
 #' 
 #' @param mig.pred Prediction object of class \code{bayesMig.prediction}.
-#' @param country Name or numerical code of a country. It can also be given as ISO-2 or ISO-3 characters.
+#' @param country Name or numerical code of a location. If it is a country, it can also be given as ISO-2 or ISO-3 characters.
 #' @param pi Probability interval (as percentage) to be included in the output. It can be a single number or a vector.
 #' @param nr.traj Number of trajectories to be plotted. If \code{NULL}, all trajectories are plotted, otherwise they are thinned evenly.
 #' @param xlim,ylim,type,xlab,ylab Graphical parameters passed to the \code{\link{plot}} function.
 #' @param main Main title for the plot(s). In \code{mig.trajectories.plot.all} any occurrence of the string 
 #'     \dQuote{XXX} is replaced by the name of the appropriate country.
-#' @param lwd,col Vector of four elements giving the line width and color for: 1. observed data, 
-#'     2. median, 3. quantiles, 4. trajectories.
+#' @param lwd,col Vector of five elements giving the line width and color for: 1. observed data, 
+#'     2. imputed values, 3. median, 4. quantiles, 5. trajectories.
 #' @param show.legend Logical controlling whether a legend should be drawn.
 #' @param add Logical controlling whether the trajectories should be plotted into a new graphic 
 #'     device (\code{FALSE}) or into an existing device (\code{TRUE}). One can use this argument to plot
@@ -28,8 +28,8 @@
 #'     any of the arguments of \code{tfr.trajectories.plot} can be passed here.
 #'     
 #' @details \code{mig.trajectories.plot} plots posterior distribution of trajectories of net migration
-#'     rates for a given country. \code{mig.trajectories.table} gives the same output as a table. 
-#'     \code{mig.trajectories.plot.all} creates a set of graphs (one per country) that are stored in 
+#'     rates for a given location. \code{mig.trajectories.table} gives the same output as a table. 
+#'     \code{mig.trajectories.plot.all} creates a set of graphs (one per location) that are stored in 
 #'     \code{output.dir}.
 #'     
 #'     The median and given probability intervals are computed using all available trajectories. 
@@ -47,7 +47,7 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
                                   nr.traj=50,
                                   xlim=NULL, ylim=NULL, type='b', 
                                   xlab='Year', ylab='Migration rate', main=NULL, lwd=c(2,2,2,1), 
-                                  col=c('black', 'red', 'red','#00000020'),
+                                  col=c('black', 'green', 'red', 'red','#00000020'),
                                   show.legend=TRUE, add=FALSE, scale = FALSE, ...
                               ) {
   # lwd/col is a vector of 4 line widths/colors for: 
@@ -56,20 +56,26 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
     stop('Argument "country" must be given.')
   }
   country <- get.country.object(country, mig.pred$mcmc.set$meta)
-  mig_observed <- mig.pred$mcmc.set$meta$mig.rates[country$index,]
+  mig_observed <- mig.pred$mcmc.set$meta$mig.rates[country$index, ]
   if(scale) mig_observed <- mig_observed / mig.pred$mcmc.set$meta$prior.scaler
   
-  lpart1 <- length(mig_observed)
-  # missing values imputation is not implemented yet
-  # y1.part2 <- NULL
-  # lpart2 <- min(tfr.pred$mcmc.set$meta$T_end, tfr.pred$present.year.index) - T_end_c[country$index] + suppl.T
-  # if (lpart2 > 0) {
-  #   p2idx <- (T_end_c[country$index]+1-suppl.T):nrow(tfr_matrix_reconstructed)
-  #   y1.part2 <- tfr_matrix_reconstructed[p2idx,country$index]
-  #   names(y1.part2) <- rownames(tfr_matrix_reconstructed)[p2idx]
-  # }
+  Tc <- min(mig.pred$present.year.index, max(which(!is.na(mig_observed))))
+  mig.recon <- mig.pred$mig.rates.reconstructed[country$index,]
+  mig.recon <- mig.recon[!is.na(mig.recon)]
+  
+  y1.part1 <- mig_observed[1:Tc]
+  lpart1 <- length(y1.part1)
 
-  x1 <- as.integer(names(mig_observed))
+  #  imputed missing values 
+  y1.part2 <- NULL
+  lpart2 <- min(dim(mig.pred$mcmc.set$meta$mig.rates)[2], mig.pred$present.year.index) - Tc
+  if (lpart2 > 0) {
+    p2idx <- (Tc+1):min(length(mig.recon), mig.pred$present.year.index)
+    y1.part2 <- mig.recon[p2idx]
+    names(y1.part2) <- names(mig.recon)[p2idx]
+  }
+
+  x1 <- as.integer(c(names(y1.part1), names(y1.part2)))
   x2 <- as.numeric(dimnames(mig.pred$quantiles)[[3]])
   trajectories <- bayesTFR:::get.trajectories(mig.pred, country$code, nr.traj=nr.traj)
   mig.median <- get.median.from.prediction(mig.pred, country$index)
@@ -84,21 +90,26 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   if (!add) {
     if(is.null(xlim)) xlim <- c(min(x1,x2), max(x1,x2))
     if(is.null(ylim)) {
-      ylim <- c(min(trajectories$trajectories, mig_observed, mig.pred$quantiles[country$index,,]),
-                                max(trajectories$trajectories, mig_observed, mig.pred$quantiles[country$index,,]))
+      ylim <- c(min(trajectories$trajectories, y1.part1, y1.part2, mig.pred$quantiles[country$index,,]),
+                                max(trajectories$trajectories, y1.part1, y1.part2, mig.pred$quantiles[country$index,,]))
     }
     if(is.null(main)) main <- country$name
     plot(xlim, ylim, type='n', xlim=xlim, ylim=ylim, ylab=ylab, xlab=xlab, main=main, 
          panel.first = grid())
   }
-  points.x <- x1
-  points.y <- mig_observed
+  points.x <- x1[1:lpart1]
+  points.y <- y1.part1
   points(points.x, points.y, type=type, lwd=lwd[1], col=col[1])
 
+  if(lpart2 > 0) { # imputed values
+    lines(x1[(lpart1+1): length(x1)], y1.part2, pch=2, type='b', col=col[2], lwd=lwd[2])
+    lines(x1[lpart1:(lpart1+1)], c(y1.part1[lpart1], y1.part2[1]), col=col[2], lwd=lwd[2]) # connection between the two parts
+  }
+  
   # plot trajectories
   if(!is.null(trajectories$trajectories)) { 
     for (i in 1:length(trajectories$index)) {
-      lines(x2, trajectories$trajectories[,trajectories$index[i]], type='l', col=col[4], lwd=lwd[4])
+      lines(x2, trajectories$trajectories[,trajectories$index[i]], type='l', col=col[5], lwd=lwd[5])
     }
   }
   # plot median
@@ -108,8 +119,8 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   for (i in 1:length(pi)) {
     cqp <- bayesTFR:::get.traj.quantiles(mig.pred, country$index, country$code, trajectories$trajectories, pi[i])
     if (!is.null(cqp)) {
-      lines(x2, cqp[1,], type='l', col=col[3], lty=lty[i], lwd=lwd[3])
-      lines(x2, cqp[2,], type='l', col=col[3], lty=lty[i], lwd=lwd[3])
+      lines(x2, cqp[1,], type='l', col=col[4], lty=lty[i], lwd=lwd[4])
+      lines(x2, cqp[2,], type='l', col=col[4], lty=lty[i], lwd=lwd[4])
     }
   }
   legend <- c()
@@ -118,21 +129,29 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   lty <- c(1, lty)
   median.legend <- 'median'
   legend <- c(legend, median.legend, paste(pi, '% PI', sep=''))
-  cols <- c(cols, col[2], rep(col[3], length(pi)))
-  lwds <- c(lwds, lwd[2], rep(lwd[3], length(pi)))
+  cols <- c(cols, col[3], rep(col[4], length(pi)))
+  lwds <- c(lwds, lwd[3], rep(lwd[4], length(pi)))
   if(show.legend) {
     legend <- c(legend, 'observed migration')
     cols <- c(cols, col[1])
     lty <- c(lty, 1)
     pch <- c(rep(-1, length(legend)-1), 1)
     lwds <- c(lwds, lwd[1])
+    
+    if(lpart2 > 0) {
+      legend <- c(legend, 'imputed migration')
+      cols <- c(cols, col[2])
+      lty <- c(lty, 1)
+      pch <- c(pch, 2)
+      lwds <- c(lwds, lwd[2])
+    }
     legend('bottomleft', legend=legend, lty=lty, bty='n', col=cols, pch=pch, lwd=lwds)
   }
 }
 
-#' @param output.dir Directory into which resulting plots are written
+#' @param output.dir Directory into which resulting plots are written.
 #' @param output.type Type of the resulting plot files. Can be "png", "pdf", "jpeg", "bmp",
-#' "tiff", or "postscript"
+#' "tiff", or "postscript".
 #' @param verbose Logical value. Switches log messages on and off.
 #' @export
 #' @rdname plot-traj

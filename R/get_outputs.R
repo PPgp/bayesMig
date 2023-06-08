@@ -776,8 +776,7 @@ get.nrest.countries.bayesMig.mcmc.meta <- function(meta, ...)
   return(meta$nr.countries)
 
 country.names.bayesMig.mcmc.meta <- function(meta) {
-  #JA: This assumes we produce projections for all listed countries.
-  return(meta$fullCountryNameVec)
+  return(meta$regions$country_name)
 }
 
 #' @export

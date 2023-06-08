@@ -58,7 +58,7 @@ historical migration rates using the
 \code{\link[wpp2019]{migration}} and \code{\link[wpp2019]{pop}} datasets.}
 
 \item{my.mig.file}{File name containing user-specified historical time series of migration rates 
-for all locations that should be included in the simulation.}
+for all locations that should be included in the simulation. It should be a tab-separated file.}
 
 \item{sigma.c.min, a.ini, mu.ini}{Settings for the parameters
 of the model (see Azose & Raftery 2015), such as minimum value and initial values.
@@ -73,8 +73,8 @@ yield satisfactory results, use the function \code{\link{estimate.a.hw}} to esti
 an appropriate value, based on an existing simulation. Also it is important to set the \code{pop.denom}
 argument correctly.}
 
-\item{exclude.from.world}{Vector of country codes that should not influence the hyperparameters. 
-However, country-specific parameters will be generated for these countries.}
+\item{exclude.from.world}{Vector of location codes that should not influence the hyperparameters. 
+However, location-specific parameters will be generated for these locations.}
 
 \item{pop.denom}{Denominator used to generate the input migration rates. It is used to derive an appropriate scaler 
 for the priors and conditional distributions. Typically, this will be either 1 (default) if the rates are 
@@ -115,7 +115,7 @@ stores it in \code{output.dir}. It launches \code{nr.chains} MCMCs, either seque
 in parallel. Parameter traces of each chain are stored as ASCII files in a subdirectory 
 of \code{output.dir}, called \code{mc}\emph{x} where \emph{x} is the identifier of that chain. 
 There is one file per parameter, named after the parameter with the suffix \dQuote{.txt}.
-Country-specific parameters have the suffix \code{_country}\emph{c} where \emph{c} is the location code.
+Location-specific parameters have the suffix \code{_country}\emph{c} where \emph{c} is the location code.
 In addition to the trace files, each \code{mc}\emph{x} directory contains the object 
 \code{\link{bayesMig.mcmc}} in binary format.  
 All chain-specific files  are written onto disk after the first, last and each 
@@ -125,24 +125,33 @@ By default (if no data is passed via the \code{my.mig.file} argument), the funct
 loads observed data (further denoted as WPP dataset), from the \code{\link[wpp2019]{migration}} 
 and \code{\link[wpp2019]{pop}} datasets in the \pkg{wpp}\eqn{x} package where \eqn{x} is 
 the \code{wpp.year}. Net migration rates are computed as migration(\eqn{t}) / (population(\eqn{t_e}) - migration(\eqn{t})) 
-where \eqn{t_e} means the end of time period \eqn{t}. 
+where \eqn{t_e} means the end of time period \eqn{t}. For an annual simulation and 
+\code{wpp.year} set to 2022, \eqn{t = t_e} because the population in year \eqn{t} 
+is considered at the end of the year. If \code{wpp.year} is smaller than 2022 and \code{annual} is \code{TRUE}
+the default dataset is interpolated from 5-year data.
 
-The argument \code{my.mig.file} can be used to overwrite the default data. 
+The argument \code{my.mig.file} can be used to overwrite the default data. It should be a tab-separated file.
 If it is used, it should contain the net migration rate for all locations to be used in the simulation, as no WPP data is used 
 in such a case. The structure of the file has the same format as the \code{\link[wpp2019]{migration}} dataset,
 but the values should be rates (instead of counts). Each row corresponds to a location. It does not have 
 to be necessarily a country - it can be for example a subnational unit. It must contain columns 
 \dQuote{country_code} or \dQuote{code} (unique identifier of the location), \dQuote{name}, and columns representing 
-5-year time intervals (if \code{annual} is \code{FALSE}), e.g., \dQuote{1995-2000}, \dQuote{2000-2005} etc. 
+5-year time intervals (if \code{annual} is \code{FALSE}), e.g., \dQuote{1995-2000}, \dQuote{2000-2005} etc., or single years
+(if \code{annual} is \code{TRUE}). An example dataset of annual net migration rates for US states is included in the package, 
+see example below. 
 
-If \code{annual} is \code{TRUE} the default WPP dataset is not used and the \code{my.mig.file} argument 
-must provide the dataset to be used for estimation. Its time-related columns should be single years.
-An example dataset of annual net migration rates for US states is included in the package, see example below. 
+Optionally, the \code{my.mig.file} can contain a column called \dQuote{last.observed} containing 
+the year of the last observation for each location. In such a case, any data 
+after that time point will be ignored. Furthermore, the function \code{\link{mig.predict}} fills in the missing values 
+using the median of the BHM procedure.
 
 If there are countries or locations that should be excluded from influencing the hyperparameters,
 for example small countries or locations with unique migration patterns, their codes 
 should be included in the argument \code{exclude.from.world}. These locations will still get 
-their parameters simulated and thus, can be included in a projection.
+their parameters simulated and thus, will be included in a projection. Alternatively 
+if \code{my.mig.file} is used, these locations can be determined using an additional column, called 
+\dQuote{include_code}. Value 2 means the location is included in the BHM; value 1 means it's 
+excluded but location-specific parameters are generated; value 0 means the location is ignored.
 }
 \examples{
 \dontrun{

@@ -47,7 +47,7 @@ Existing results can be accessed using the \code{\link{get.mig.mcmc}} (estimatio
 Existing convergence diagnostics can be accessed using the \code{\link{get.mig.convergence}} and
 \code{\link{get.mig.convergence.all}} functions.
 
-Historical data on migration rates are taken from the \pkg{wpp2019} (default) or \pkg{wpp2017} package,
+Historical data on migration rates are taken from the \pkg{wpp2019} (default), \pkg{wpp2022} or \pkg{wpp2017} package,
 depending on users settings. Alternatively, users can input their own data.
 }
 \examples{

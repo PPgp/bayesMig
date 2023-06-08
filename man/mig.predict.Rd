@@ -16,6 +16,7 @@ mig.predict(
   burnin = 20000,
   use.cummulative.threshold = FALSE,
   ignore.gcc.in.threshold = FALSE,
+  ignore.last.observed = FALSE,
   save.as.ascii = 0,
   output.dir = NULL,
   seed = NULL,
@@ -36,9 +37,9 @@ the \code{output.dir} argument in \code{\link{run.mig.mcmc}}}
 \item{replace.output}{Logical value. If \code{TRUE}, existing predictions in
 \code{output.dir} will be replaced by results of this run.}
 
-\item{start.year}{Start year of the prediction. By default the prediction is 
+\item{start.year}{Start year of the prediction, i.e. the first predicted year. By default the prediction is 
 started at the next time period after \code{present.year} set in the estimation
-step. If \code{start.year} is smaller than the default, projections for countries
+step. If \code{start.year} is smaller than the default, projections for locations
 and time periods that have data available after \code{start.year} are set to those data.}
 
 \item{nr.traj}{Number of trajectories to be generated. 
@@ -52,7 +53,7 @@ Only relevant if \code{nr.traj} is \code{NULL}.}
 \item{burnin}{Number of iterations to be discarded from the beginning of the parameter traces.}
 
 \item{use.cummulative.threshold}{If \code{TRUE} a historical cummulative threshold is applied 
-derived from all rates, while excluding the GCC countries for non-GCC countries. 
+derived from all rates, while for non-GCC countries the GCC countries are excluded. 
 Six time periods are used in a 5-year simulation, corresponding to
 30 years in an annual simulation. If this option is used in a non-country simulation,
 e.g. in a sub-national settings, set the \code{ignore.gcc.in.threshold} argument to \code{TRUE}.}
@@ -60,6 +61,14 @@ e.g. in a sub-national settings, set the \code{ignore.gcc.in.threshold} argument
 \item{ignore.gcc.in.threshold}{If \code{use.cummulative.threshold} is \code{TRUE}, by default the GCC countries
 (plus Western Sahara and Djibouti) identified by numerical codes of the countries are excluded from computing 
 the historical cummulative thresholds. If this argument is \code{TRUE}, this distinction is not made.}
+
+\item{ignore.last.observed}{By default, the prediction (or imputation) for each location starts 
+one time period after the last observed data point for that location, defined by the 
+\dQuote{last.observed} column in the data captured during the estimation. 
+If this argument is set to \code{TRUE}, the prediction ignores the \dQuote{last.observed} 
+value and starts at the last data point found in the data. This allows to exclude 
+some time periods from the estimation (using \dQuote{last.observed}), but include them 
+in the prediction.}
 
 \item{save.as.ascii}{Either a number determining how many trajectories should be
 converted into an ASCII file, or 'all' in which case all trajectories are converted.
@@ -77,7 +86,7 @@ Can be used to generate reproducible projections.}
 \item{...}{Other arguments passed to \code{\link{mig.predict}}}
 }
 \value{
-A list with 9 components. Key result component is an array of quantiles with dimensions
+A list with 11 components. Key result component is an array of \code{quantiles} with dimensions
 (number of locations) x (number of computed quantiles) x (number of projected time points).
 First time point in the sequence is not a projection, but the last observed time period.
 
@@ -87,8 +96,32 @@ at each time point. See \code{\link[bayesTFR]{bayesTFR.prediction}} for more det
 \description{
 Using the posterior parameter samples simulated by \code{\link{run.mig.mcmc}},
 generate posterior trajectories for the net migration rates for all countries of
-the world. This code \emph{does not} adjust trajectories to ensure that net
-migration counts sum to zero. That adjustment is handled in the \code{bayesPop} package.
+the world, or all locations included in the estimation. This code \emph{does not} adjust trajectories to ensure that net
+migration counts sum to zero.
+}
+\details{
+The trajectories of net migration rates for each location are generated using the model of Azose & Raftery (2015).
+Parameter samples  simulated via \code{\link{run.mig.mcmc}} are used from all chains, from which the given \code{burnin} 
+was discarded. They are evenly thinned to match \code{nr.traj} or using the \code{thin} argument. 
+Such thinned parameter traces, collapsed into one chain, if they do not already exist, are stored on disk 
+into the sub-directory \file{thinned_mcmc_\emph{t}_\emph{b}} where \emph{t} is the value  of \code{thin} and 
+\emph{b} the value of \code{burnin}.
+
+The projection is run for all missing values before the present year, if any. 
+Medians over the trajectories are used as imputed values and the trajectories are discarded. 
+The process then continues by projecting the future values where all generated trajectories are kept.
+
+A special case is when the argument \code{start.year} is given that is smaller than or equal to
+the present year. In such a case, imputed missing values before present year are treated 
+as ordinary predictions (trajectories are kept). All historical data between start year 
+and present year are used as projections.
+
+The resulting prediction object is saved into \file{\{output.dir\}/predictions}. Trajectories 
+for all locations are saved into the same directory in a binary format, one file per location. 
+At the end of the projection, if \code{save.as.ascii} is larger than 0, the function converts 
+the given number of trajectories into a CSV file. They are selected by equal spacing. 
+In addition, two summary files are created: one in a user-friendly format, the other using 
+a UN-specific coding.
 }
 \examples{
 # Toy simulation for US states

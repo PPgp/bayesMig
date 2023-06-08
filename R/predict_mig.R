@@ -2,8 +2,8 @@
 #'
 #' @description Using the posterior parameter samples simulated by \code{\link{run.mig.mcmc}},
 #' generate posterior trajectories for the net migration rates for all countries of
-#' the world. This code \emph{does not} adjust trajectories to ensure that net
-#' migration counts sum to zero. That adjustment is handled in the \code{bayesPop} package.
+#' the world, or all locations included in the estimation. This code \emph{does not} adjust trajectories to ensure that net
+#' migration counts sum to zero. 
 #' 
 #' @param mcmc.set Object of class \code{bayesMig.mcmc.set} corresponding to sampled
 #' parameter values for net migration model. If it is \code{NULL}, the object
@@ -13,10 +13,10 @@
 #' the \code{output.dir} argument in \code{\link{run.mig.mcmc}}
 #' @param replace.output Logical value. If \code{TRUE}, existing predictions in
 #' \code{output.dir} will be replaced by results of this run.
-#' @param start.year Start year of the prediction. By default the prediction is 
+#' @param start.year Start year of the prediction, i.e. the first predicted year. By default the prediction is 
 #' started at the next time period after \code{present.year} set in the estimation
-#' step. If \code{start.year} is smaller than the default, projections for countries
-#'and time periods that have data available after \code{start.year} are set to those data.
+#' step. If \code{start.year} is smaller than the default, projections for locations
+#' and time periods that have data available after \code{start.year} are set to those data.
 #' @param nr.traj Number of trajectories to be generated. 
 #' If \code{NULL}, the argument \code{thin} is taken to determine the number of 
 #' trajectories. If both are \code{NULL}, the number of trajectories
@@ -25,13 +25,20 @@
 #' Only relevant if \code{nr.traj} is \code{NULL}.
 #' @param burnin Number of iterations to be discarded from the beginning of the parameter traces.
 #' @param use.cummulative.threshold If \code{TRUE} a historical cummulative threshold is applied 
-#'    derived from all rates, while excluding the GCC countries for non-GCC countries. 
+#'    derived from all rates, while for non-GCC countries the GCC countries are excluded. 
 #'    Six time periods are used in a 5-year simulation, corresponding to
 #'    30 years in an annual simulation. If this option is used in a non-country simulation,
 #'    e.g. in a sub-national settings, set the \code{ignore.gcc.in.threshold} argument to \code{TRUE}.
 #' @param ignore.gcc.in.threshold If \code{use.cummulative.threshold} is \code{TRUE}, by default the GCC countries
 #'    (plus Western Sahara and Djibouti) identified by numerical codes of the countries are excluded from computing 
 #'    the historical cummulative thresholds. If this argument is \code{TRUE}, this distinction is not made. 
+#' @param ignore.last.observed By default, the prediction (or imputation) for each location starts 
+#'     one time period after the last observed data point for that location, defined by the 
+#'     \dQuote{last.observed} column in the data captured during the estimation. 
+#'     If this argument is set to \code{TRUE}, the prediction ignores the \dQuote{last.observed} 
+#'     value and starts at the last data point found in the data. This allows to exclude 
+#'     some time periods from the estimation (using \dQuote{last.observed}), but include them 
+#'     in the prediction.
 #' @param save.as.ascii Either a number determining how many trajectories should be
 #' converted into an ASCII file, or 'all' in which case all trajectories are converted.
 #' It should be set to 0 if no conversion is desired.
@@ -42,7 +49,31 @@
 #' Can be used to generate reproducible projections.
 #' @param verbose Logical value. Switches log messages on and off.
 #' @param ... Other arguments passed to \code{\link{mig.predict}}
-#' @return A list with 9 components. Key result component is an array of quantiles with dimensions
+#' 
+#' @details The trajectories of net migration rates for each location are generated using the model of Azose & Raftery (2015).
+#' Parameter samples  simulated via \code{\link{run.mig.mcmc}} are used from all chains, from which the given \code{burnin} 
+#' was discarded. They are evenly thinned to match \code{nr.traj} or using the \code{thin} argument. 
+#' Such thinned parameter traces, collapsed into one chain, if they do not already exist, are stored on disk 
+#' into the sub-directory \file{thinned_mcmc_\emph{t}_\emph{b}} where \emph{t} is the value  of \code{thin} and 
+#' \emph{b} the value of \code{burnin}.
+#' 
+#' The projection is run for all missing values before the present year, if any. 
+#' Medians over the trajectories are used as imputed values and the trajectories are discarded. 
+#' The process then continues by projecting the future values where all generated trajectories are kept.
+#' 
+#' A special case is when the argument \code{start.year} is given that is smaller than or equal to
+#' the present year. In such a case, imputed missing values before present year are treated 
+#' as ordinary predictions (trajectories are kept). All historical data between start year 
+#' and present year are used as projections.
+#' 
+#' The resulting prediction object is saved into \file{\{output.dir\}/predictions}. Trajectories 
+#' for all locations are saved into the same directory in a binary format, one file per location. 
+#' At the end of the projection, if \code{save.as.ascii} is larger than 0, the function converts 
+#' the given number of trajectories into a CSV file. They are selected by equal spacing. 
+#' In addition, two summary files are created: one in a user-friendly format, the other using 
+#' a UN-specific coding.
+#' 
+#' @return A list with 11 components. Key result component is an array of \code{quantiles} with dimensions
 #' (number of locations) x (number of computed quantiles) x (number of projected time points).
 #' First time point in the sequence is not a projection, but the last observed time period.
 #' 
@@ -72,6 +103,7 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 						replace.output=FALSE,
 						start.year=NULL, nr.traj = NULL, thin = NULL, burnin=20000, 
 						use.cummulative.threshold = FALSE, ignore.gcc.in.threshold = FALSE,
+						ignore.last.observed = FALSE,
 						save.as.ascii=0, output.dir = NULL,
 						seed=NULL, verbose=TRUE, ...) {
 	if(!is.null(mcmc.set)) {
@@ -87,13 +119,15 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 	invisible(make.mig.prediction(mcmc.set, end.year=end.year, replace.output=replace.output,  
 					start.year=start.year, nr.traj=nr.traj, burnin=burnin, thin=thin,
 					use.cummulative.threshold = use.cummulative.threshold, ignore.gcc.in.threshold = ignore.gcc.in.threshold,
+					ignore.last.observed = ignore.last.observed,
 					save.as.ascii=save.as.ascii, output.dir=output.dir, verbose=verbose, ...))			
 }
 
 make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replace.output=FALSE,
 								nr.traj = NULL, burnin=0, thin = NULL, 
 								countries = NULL, use.cummulative.threshold = FALSE, ignore.gcc.in.threshold = FALSE,
-							    save.as.ascii=0, output.dir = NULL, write.summary.files=TRUE, 
+								ignore.last.observed = FALSE,
+								save.as.ascii=0, output.dir = NULL, write.summary.files=TRUE, 
 							    is.mcmc.set.thinned=FALSE, force.creating.thinned.mcmc=FALSE,
 							    write.trajectories=TRUE, 
 							    verbose=verbose){
@@ -164,7 +198,8 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
   quantiles.to.keep <- c(0,0.025,0.05,0.1,0.2,0.25,0.3,0.4,0.5,0.6,0.7,0.75,0.8,0.9,0.95,0.975,1)
 	PIs_cqp <- array(NA, c(nr_countries, length(quantiles.to.keep), nr_project+1))
 	dimnames(PIs_cqp)[[2]] <- quantiles.to.keep
-	proj.middleyears <- bayesTFR:::get.prediction.years(meta, nr_project+1)
+	proj.middleyears <- bayesTFR:::get.prediction.years(meta, nr_project+1, 
+	                                                    present.year.index = present.year.index)
 	dimnames(PIs_cqp)[[3]] <- proj.middleyears
 	mean_sd <- array(NA, c(nr_countries, 2, nr_project+1))
 	hasNAs <- rep(FALSE, nr_simu)
@@ -179,16 +214,49 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 		
 	} # end country prep loop
 	
+    data.mtx.name <- if(ignore.last.observed) "mig.rates.all" else "mig.rates"
+    migrates <- meta[[data.mtx.name]]
+    migrates.recon <- migrates
+    lmigrates <- ncol(migrates)
+    allTend <- lmigrates
+    
+	# fill the first time point of the result array with observed data and find missing data
+	nmissing <- all.data.list <- missing <- list()
+	max.nr.project <- nr_project
+
+    for(country in prediction.countries){
+        #country.obj <- get.country.object(country, meta, index=TRUE)
+        obs.rates <- migrates[country,]
+        Tc <- max(which(!is.na(obs.rates)))
+        Tend <- min(present.year.index, Tc)
+        allTend <- min(allTend, Tend)
+        if (ignore.last.observed && Tend < present.year.index) {
+            while(Tend < present.year.index) { # shift the end as long as there are no NAs
+                Tend <- Tend + 1
+                Tc <-  Tc + 1
+                if(is.na(obs.rates[Tend])){
+                    Tend <- Tend - 1
+                    Tc <-  Tc - 1
+                    break
+                }
+            }
+            if(Tend < present.year.index)
+                migrates.recon[country, (Tend + 1):lmigrates] <- NA
+        } 
+        nmissing[[country]] <- present.year.index - Tend
+        missing[[country]] <- (Tend+1):lmigrates
+        max.nr.project <- max(max.nr.project, nr_project + nmissing[[country]])
+        all.data.list[[country]] <- migrates.recon[country,]
+
+    }
 	# array for results - includes also historical data for periods with missing data
-	all.mig_ps <- array(NA, dim=c(nr_countries_real, nr_project+1, nr_simu))
-
-	# fill the result array with observed data 
-  for(country in prediction.countries){
-    country.obj <- get.country.object(country, meta, index=TRUE)
-    all.mig_ps[country, 1,] = meta$mig.rates[which(rownames(meta$mig.rates) == country.obj$code), 
-                                             present.year.index]
-  }
-
+	all.mig_ps <- array(NA, dim=c(nr_countries_real, max.nr.project + 1, nr_simu))
+	fps.end.obs.index <- dim(migrates.recon)[2] - allTend + 1
+	
+	for (country in prediction.countries) {
+	    for(year in 1:fps.end.obs.index) 
+	        all.mig_ps[country, year,] = all.data.list[[country]][allTend + year-1]
+	}
 	mu.c <- phi.c <- sigma.c <- rep(NA, nr_countries)
 
 	traj.counter <- 0
@@ -224,8 +292,9 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	  for (icountry in 1:nr_countries_real){ # Iterate over countries
 	  #########################################
 	    if(use.cummulative.threshold) fun.max <- paste0("max.multiplicative.pop.change", if(isGCC[icountry]) "" else ".no.gcc")
-	    for (year in 2:(nr_project+1)) { # Iterate over time
+	    for (year in 2:(max.nr.project+1)) { # Iterate over time
 	    #########################################
+	        if(!is.na(all.mig_ps[icountry, year, s])) next
 	        determ.part <- mu.c[icountry] + phi.c[icountry]*(all.mig_ps[icountry,year-1,s] - mu.c[icountry])
 	        if(use.cummulative.threshold){
 	            xmin <- .get.rate.mult.limit(all.mig_ps[icountry,1:(year-1),s], year-1, fun.min, max, nperiods=nperiods.for.threshold, thresholds = mig.thresholds)
@@ -252,6 +321,16 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 		# extract the future trajectories (including the present period)
 		mig_ps_future <- all.mig_ps[icountry,(dim(all.mig_ps)[2]-nr_project):dim(all.mig_ps)[2],]
 
+		# impute missing values if any
+		if (nmissing[[country]] > 0) { # data imputation
+		    mig_ps_future[1,] <- quantile(mig_ps_future[1,], 0.5, na.rm = TRUE) # set all trajectories in the first time period to the median
+		    migrates.recon[country, (lmigrates - fps.end.obs.index + 2):lmigrates] <- apply(
+		        all.mig_ps[icountry, 2:fps.end.obs.index, , drop=FALSE],
+		        c(1,2), quantile, 0.5, na.rm = TRUE)
+		    if (verbose) 
+		        cat('\t', nmissing[[country]], 'data points reconstructed for', country.obj$name,'\n')
+		}
+		
 		if(write.trajectories) {
 			trajectories <- mig_ps_future # save only trajectories simulated for the future time
   			save(trajectories, file = file.path(outdir, paste('traj_country', country.obj$code, '.rda', sep='')))
@@ -266,12 +345,12 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 				quantiles = PIs_cqp,
 				traj.mean.sd = mean_sd,
 				nr.traj=nr_simu,
+				mig.rates.reconstructed = migrates.recon,
 				output.directory=outdir,
 				mcmc.set=load.mcmc.set,
 				nr.projections=nr_project,
 				burnin=burnin, thin=thin,
-				#mu=mu, rho=rho,  sigma_t = sigmas_all, sigmaAR1 = sigmaAR1,
-				end.year=end.year),
+				end.year=end.year, present.year.index = present.year.index),
 				class='bayesMig.prediction')
 			
 	if(write.to.disk) {
