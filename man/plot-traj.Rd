@@ -11,6 +11,7 @@ mig.trajectories.plot(
   country,
   pi = c(80, 95),
   nr.traj = 50,
+  mark.estimation.points = FALSE,
   xlim = NULL,
   ylim = NULL,
   type = "b",
@@ -43,6 +44,8 @@ mig.trajectories.table(mig.pred, country, pi = c(80, 95), ...)
 \item{pi}{Probability interval (as percentage) to be included in the output. It can be a single number or a vector.}
 
 \item{nr.traj}{Number of trajectories to be plotted. If \code{NULL}, all trajectories are plotted, otherwise they are thinned evenly.}
+
+\item{mark.estimation.points}{Logical. If \code{TRUE}, points that were not used in the estimation are shown in a lighter color.}
 
 \item{xlim, ylim, type, xlab, ylab}{Graphical parameters passed to the \code{\link{plot}} function.}
 

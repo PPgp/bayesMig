@@ -87,10 +87,10 @@
 #' (if \code{annual} is \code{TRUE}). An example dataset of annual net migration rates for US states is included in the package, 
 #' see example below. 
 #' 
-#' Optionally, the \code{my.mig.file} can contain a column called \dQuote{last.observed} containing 
-#' the year of the last observation for each location. In such a case, any data 
-#' after that time point will be ignored. Furthermore, the function \code{\link{mig.predict}} fills in the missing values 
-#' using the median of the BHM procedure.
+#' Optionally, the \code{my.mig.file} can contain columns called \dQuote{first.observed} and/or \dQuote{last.observed}, containing 
+#' for each location the year of the first and last observation, respectively. In such a case, any data 
+#' before and after those time points will be ignored. Furthermore, the function \code{\link{mig.predict}} fills in the missing values 
+#' after the last observation, using the median of the BHM procedure.
 #' 
 #' If there are countries or locations that should be excluded from influencing the hyperparameters,
 #' for example small countries or locations with unique migration patterns, their codes 

@@ -44,6 +44,19 @@ get.wpp.mig.data <- function(start.year = 1950, present.year = 2020,
         interpolate = wpp.year < 2022 && annual && is.null(my.mig.file),
         ignore.last.observed = ignore.last.observed)
     
+    # process "first.observed" column if present
+    if("first.observed" %in% colnames(data_incl)){
+        years <- as.integer(rownames(MIGmatrix.regions$obs_matrix))
+        fodata <- data_incl[!is.na(data_incl$first.observed) & data_incl$first.observed > start.year,]
+        if(nrow(fodata) > 0){
+            for(icntry in 1:nrow(fodata)){
+                idx <- which(colnames(MIGmatrix.regions$obs_matrix) == as.character(fodata[icntry, "country_code"]))
+                MIGmatrix.regions$obs_matrix[fodata[icntry, "first.observed"] > years, idx] <- NA
+                MIGmatrix.regions$all.na[idx] <- all(is.na(MIGmatrix.regions$obs_matrix[,idx]))
+            }
+        }
+    }
+    #stop("")
     return(list(mig.matrix = MIGmatrix.regions$obs_matrix, 
                 mig.matrix.all = MIGmatrix.regions$obs_matrix_all, 
                 regions = MIGmatrix.regions$regions, 

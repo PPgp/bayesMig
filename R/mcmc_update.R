@@ -13,12 +13,14 @@ mcmc.update.mu.c <- function(country, mcmc){
   }
 
   mig.rates.c <- mcmc$meta$mig.rates[country,]
-  bigT <- sum(!is.na(mig.rates.c))
+  
+  not.missing <- which(!is.na(mig.rates.c))
+  bigT <- length(not.missing)
 
   inverseVariance <- (bigT-1)*(1-mcmc$phi_c[country])^2/mcmc$sigma2_c[country] + 1/mcmc$sigma2_mu
   variance <- 1/inverseVariance
   
-  mean <- variance*((1-mcmc$phi_c[country])/mcmc$sigma2_c[country]*sum(mig.rates.c[2:bigT]-mcmc$phi_c[country]*mig.rates.c[1:(bigT-1)]) +
+  mean <- variance*((1-mcmc$phi_c[country])/mcmc$sigma2_c[country]*sum(mig.rates.c[not.missing[-1]]-mcmc$phi_c[country]*mig.rates.c[not.missing[-bigT]]) +
                       mcmc$mu_global/mcmc$sigma2_mu)
   #cat("Country",country,"Variance",variance,"\n")
   updated.mu.c <- rnorm(n=1,mean=mean,sd=sqrt(variance))
@@ -36,12 +38,13 @@ mcmc.update.phi.c <- function(country, mcmc){
     return()
   }
   
-  mig.rates.c=mcmc$meta$mig.rates[country,]
-  bigT <- sum(!is.na(mig.rates.c))
+  mig.rates.c <- mcmc$meta$mig.rates[country,]
+  not.missing <- which(!is.na(mig.rates.c))
+  bigT <- length(not.missing)
   
   #Sample from a truncated normal distribution.
-  denominator=sum( (mig.rates.c[1:(bigT-1)] - mcmc$mu_c[country])^2 );
-  mean=sum( (mig.rates.c[1:(bigT-1)] - mcmc$mu_c[country]) * (mig.rates.c[2:bigT] - mcmc$mu_c[country]) ) / denominator;
+  denominator=sum( (mig.rates.c[not.missing[-bigT]] - mcmc$mu_c[country])^2 );
+  mean=sum( (mig.rates.c[not.missing[-bigT]] - mcmc$mu_c[country]) * (mig.rates.c[not.missing[-1]] - mcmc$mu_c[country]) ) / denominator;
   variance=mcmc$sigma2_c[country] / denominator;
   updated.phi.c=rtruncnorm(n=1,a=0,b=1,mean=mean,sd=sqrt(variance));
   mcmc$phi_c[country]=updated.phi.c
@@ -58,14 +61,15 @@ mcmc.update.sigma2.c <- function(country, mcmc){
     return()
   }
   
-  mig.rates.c=mcmc$meta$mig.rates[country,]
-  bigT <- sum(!is.na(mig.rates.c))
+  mig.rates.c <- mcmc$meta$mig.rates[country,]
+  not.missing <- which(!is.na(mig.rates.c))
+  bigT <- length(not.missing)
   
   #The inverse variance (tau_c) follows a gamma distribution
   #Sample a new value for tau_c and return its inverse.
   
   #tempVec is an auxiliary for one of the terms in rate parameter of the gamma distribution
-  tempVec=(mig.rates.c[2:bigT] - mcmc$mu_c[country]) - mcmc$phi_c[country] * (mig.rates.c[1:(bigT-1)] - mcmc$mu_c[country]);
+  tempVec=(mig.rates.c[not.missing[-1]] - mcmc$mu_c[country]) - mcmc$phi_c[country] * (mig.rates.c[not.missing[-bigT]] - mcmc$mu_c[country]);
   rate = mcmc$b + 0.5*sum(tempVec^2);
   shape = mcmc$a + (bigT-1)/2;
   tau_c=rgamma(n=1,shape=shape,rate=rate);

@@ -1,5 +1,5 @@
 Package: bayesMig
-Version: 0.4-1
+Version: 0.4-2
 Date: 2023-06-08
 Title: Bayesian Projection of Migration
 Author: Jon Azose, Hana Sevcikova and Adrian Raftery
@@ -13,4 +13,3 @@ URL: http://bayespop.csss.washington.edu
 RoxygenNote: 7.2.1
 LazyData: true
 Encoding: UTF-8
- 

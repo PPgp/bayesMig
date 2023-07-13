@@ -13,6 +13,7 @@
 #' @param country Name or numerical code of a location. If it is a country, it can also be given as ISO-2 or ISO-3 characters.
 #' @param pi Probability interval (as percentage) to be included in the output. It can be a single number or a vector.
 #' @param nr.traj Number of trajectories to be plotted. If \code{NULL}, all trajectories are plotted, otherwise they are thinned evenly.
+#' @param mark.estimation.points Logical. If \code{TRUE}, points that were not used in the estimation are shown in a lighter color.
 #' @param xlim,ylim,type,xlab,ylab Graphical parameters passed to the \code{\link{plot}} function.
 #' @param main Main title for the plot(s). In \code{mig.trajectories.plot.all} any occurrence of the string 
 #'     \dQuote{XXX} is replaced by the name of the appropriate country.
@@ -44,7 +45,7 @@
 #' @rdname plot-traj
 #' 
 mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95), 
-                                  nr.traj=50,
+                                  nr.traj = 50, mark.estimation.points = FALSE,
                                   xlim=NULL, ylim=NULL, type='b', 
                                   xlab='Year', ylab='Migration rate', main=NULL, lwd=c(2,2,2,1), 
                                   col=c('black', 'green', 'red', 'red','#00000020'),
@@ -56,16 +57,18 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
     stop('Argument "country" must be given.')
   }
   country <- get.country.object(country, mig.pred$mcmc.set$meta)
-  mig_observed <- mig.pred$mcmc.set$meta$mig.rates[country$index, ]
-  if(scale) mig_observed <- mig_observed / mig.pred$mcmc.set$meta$prior.scaler
-  
+  mig_observed <- get.data.matrix(mig.pred$mcmc.set$meta)[, country$index]
+  mig_observed_all <- mig.pred$mcmc.set$meta$mig.rates.all[country$index, ]
+
   Tc <- min(mig.pred$present.year.index, max(which(!is.na(mig_observed))))
-  mig.recon <- mig.pred$mig.rates.reconstructed[country$index,]
+  
+  mig.recon <- get.data.for.country.imputed(mig.pred, country$index)
   mig.recon <- mig.recon[!is.na(mig.recon)]
   
-  y1.part1 <- mig_observed[1:Tc]
+  y1.part1 <- mig_observed_all[1:Tc]
   lpart1 <- length(y1.part1)
-
+  if(scale) y1.part1 <- y1.part1  / mig.pred$mcmc.set$meta$prior.scaler
+  
   #  imputed missing values 
   y1.part2 <- NULL
   lpart2 <- min(dim(mig.pred$mcmc.set$meta$mig.rates)[2], mig.pred$present.year.index) - Tc
@@ -73,6 +76,7 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
     p2idx <- (Tc+1):min(length(mig.recon), mig.pred$present.year.index)
     y1.part2 <- mig.recon[p2idx]
     names(y1.part2) <- names(mig.recon)[p2idx]
+    if(scale) y1.part2 <- y1.part2  / mig.pred$mcmc.set$meta$prior.scaler
   }
 
   x1 <- as.integer(c(names(y1.part1), names(y1.part2)))
@@ -99,6 +103,16 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   }
   points.x <- x1[1:lpart1]
   points.y <- y1.part1
+  if(mark.estimation.points){
+    non.est.time <- as.integer(names(mig_observed[1:Tc])[is.na(mig_observed[1:Tc])])
+    if(length(non.est.time) > 0){
+      non.est.idx <- which(points.x %in% non.est.time)
+      points(points.x[non.est.idx], points.y[non.est.idx], type=type, lwd=lwd[1], 
+             col=rgb(t(col2rgb(col[1])/255), alpha=0.1), ...)
+      points.x <- points.x[-non.est.idx]
+      points.y <- points.y[-non.est.idx]
+    }
+  }
   points(points.x, points.y, type=type, lwd=lwd[1], col=col[1])
 
   if(lpart2 > 0) { # imputed values

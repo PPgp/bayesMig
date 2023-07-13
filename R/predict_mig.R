@@ -216,7 +216,8 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	
     data.mtx.name <- if(ignore.last.observed) "mig.rates.all" else "mig.rates"
     migrates <- meta[[data.mtx.name]]
-    migrates.recon <- migrates
+    migrates.recon <- meta[["mig.rates.all"]]
+    if(!ignore.last.observed && present.year.index < ncol(migrates.recon)) migrates.recon[, (present.year.index + 1): ncol(migrates.recon)] <- NA
     lmigrates <- ncol(migrates)
     allTend <- lmigrates
     
@@ -275,7 +276,7 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	for (s in 1:nr_simu){ # Iterate over trajectories
 	#########################################
 		if (verbose) {
-			if(interactive()) cat('\rProjecting migration trajectories ... ', round(s/nr_simu * 100), ' %')
+			if(interactive()) cat('\rProjecting migration trajectories ...', round(s/nr_simu * 100), '%')
 			else {
 				if (s %% verbose.iter == 0) 
 					cat('Migration projection trajectory ', s, '\n')
@@ -414,11 +415,11 @@ get.mig.periods <- function(meta) {
 
 #' @export
 get.data.imputed.bayesMig.prediction <- function(pred, ...)
-    return(get.data.matrix(pred$mcmc.set$meta))
+    return(t(pred$mig.rates.reconstructed))
 
 #' @export
 get.data.for.country.imputed.bayesMig.prediction <- function(pred, country.index, ...)
-    return(get.data.matrix(pred$mcmc.set$meta)[, country.index])
+    return(get.data.imputed(pred)[, country.index])
 
 max.multiplicative.pop.change <- function(l, thresholds) 
     thresholds$upper[l]
@@ -443,7 +444,7 @@ is.gcc.plus <- function(country) # GCC plus Western Sahara & Djibouti
 
 get.migration.thresholds <- function(meta, nperiods=6, ignore.gcc = FALSE) {
     # Setting cummulative thresholds
-    rates <- meta$mig.rates
+    rates <- meta$mig.rates.all
     # GCC plus Western Sahara & Djibouti
     if(!ignore.gcc)
         gcc.plus <- meta$regions$country_code[is.gcc.plus(meta$regions$country_code)]
