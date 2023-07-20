@@ -1,3 +1,11 @@
+0.4-2.9001 (07/20/2023)
+-----
+Argument ignore.last.observed in mig.predict swapped for post.last.observed.
+
+Bug fixes in mig.trajectories.plot to mark the estimation data correctly.
+
+Prediction object now as an element nr.imputed.
+
 0.4-2 (07/13/2023)
 -----
 Added feature of "first.observed" column in the estimation data.

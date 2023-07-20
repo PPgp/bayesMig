@@ -32,13 +32,18 @@
 #' @param ignore.gcc.in.threshold If \code{use.cummulative.threshold} is \code{TRUE}, by default the GCC countries
 #'    (plus Western Sahara and Djibouti) identified by numerical codes of the countries are excluded from computing 
 #'    the historical cummulative thresholds. If this argument is \code{TRUE}, this distinction is not made. 
-#' @param ignore.last.observed By default, the prediction (or imputation) for each location starts 
-#'     one time period after the last observed data point for that location, defined by the 
-#'     \dQuote{last.observed} column in the data captured during the estimation. 
-#'     If this argument is set to \code{TRUE}, the prediction ignores the \dQuote{last.observed} 
-#'     value and starts at the last data point found in the data. This allows to exclude 
-#'     some time periods from the estimation (using \dQuote{last.observed}), but include them 
-#'     in the prediction.
+#' @param post.last.observed If a user-specific data file was used during estimation and the data 
+#'     contained the \dQuote{last.observed} column, this argument determines how to treat the time period 
+#'     between the last observed point and the start year of the prediction, for locations where there is
+#'     a gap between them. Possible values are:
+#'     * Value \dQuote{obsdata} or \dQuote{o} (default) uses any non-missing observed data 
+#'     provided in the data file during estimation, up to the time point defined by the argument \code{start.year} 
+#'     (excluding the start year itself). 
+#'     * Value \dQuote{alldata} or \dQuote{a} would similarly use 
+#'     the provided data but would use all data, even if it goes beyond the start year. This allows
+#'     to use short-term deterministic projections for locations where it is available. 
+#'     * Value \dQuote{impute} or \dQuote{i} would ignore all data beyond the last observed data point 
+#'     and impute the missing time periods.
 #' @param save.as.ascii Either a number determining how many trajectories should be
 #' converted into an ASCII file, or 'all' in which case all trajectories are converted.
 #' It should be set to 0 if no conversion is desired.
@@ -103,7 +108,7 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 						replace.output=FALSE,
 						start.year=NULL, nr.traj = NULL, thin = NULL, burnin=20000, 
 						use.cummulative.threshold = FALSE, ignore.gcc.in.threshold = FALSE,
-						ignore.last.observed = FALSE,
+						post.last.observed = c("obsdata", "alldata", "impute"),
 						save.as.ascii=0, output.dir = NULL,
 						seed=NULL, verbose=TRUE, ...) {
 	if(!is.null(mcmc.set)) {
@@ -114,19 +119,21 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 		mcmc.set <- get.mig.mcmc(sim.dir, verbose=verbose)
 	}
 
+    post.last.observed <- substr(match.arg(post.last.observed), 1, 1)
+    
 	if(!is.null(seed)) set.seed(seed)
 	
 	invisible(make.mig.prediction(mcmc.set, end.year=end.year, replace.output=replace.output,  
 					start.year=start.year, nr.traj=nr.traj, burnin=burnin, thin=thin,
 					use.cummulative.threshold = use.cummulative.threshold, ignore.gcc.in.threshold = ignore.gcc.in.threshold,
-					ignore.last.observed = ignore.last.observed,
+					post.last.observed = post.last.observed,
 					save.as.ascii=save.as.ascii, output.dir=output.dir, verbose=verbose, ...))			
 }
 
 make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replace.output=FALSE,
 								nr.traj = NULL, burnin=0, thin = NULL, 
 								countries = NULL, use.cummulative.threshold = FALSE, ignore.gcc.in.threshold = FALSE,
-								ignore.last.observed = FALSE,
+								post.last.observed = "o",
 								save.as.ascii=0, output.dir = NULL, write.summary.files=TRUE, 
 							    is.mcmc.set.thinned=FALSE, force.creating.thinned.mcmc=FALSE,
 							    write.trajectories=TRUE, 
@@ -214,10 +221,13 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 		
 	} # end country prep loop
 	
-    data.mtx.name <- if(ignore.last.observed) "mig.rates.all" else "mig.rates"
+    data.mtx.name <- if(post.last.observed != "i") "mig.rates.all" else "mig.rates"
     migrates <- meta[[data.mtx.name]]
     migrates.recon <- meta[["mig.rates.all"]]
-    if(!ignore.last.observed && present.year.index < ncol(migrates.recon)) migrates.recon[, (present.year.index + 1): ncol(migrates.recon)] <- NA
+    if(post.last.observed != "a" && present.year.index < ncol(migrates)) {
+        migrates[, (present.year.index + 1): ncol(migrates)] <- NA
+        migrates.recon[, (present.year.index + 1): ncol(migrates.recon)] <- NA
+    }
     lmigrates <- ncol(migrates)
     allTend <- lmigrates
     
@@ -231,7 +241,7 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
         Tc <- max(which(!is.na(obs.rates)))
         Tend <- min(present.year.index, Tc)
         allTend <- min(allTend, Tend)
-        if (ignore.last.observed && Tend < present.year.index) {
+        if (post.last.observed != "i" && Tend < present.year.index) {
             while(Tend < present.year.index) { # shift the end as long as there are no NAs
                 Tend <- Tend + 1
                 Tc <-  Tc + 1
@@ -241,9 +251,10 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
                     break
                 }
             }
-            if(Tend < present.year.index)
-                migrates.recon[country, (Tend + 1):lmigrates] <- NA
-        } 
+        }
+        if(Tend < present.year.index)
+            migrates.recon[country, (Tend + 1):present.year.index] <- NA
+        
         nmissing[[country]] <- present.year.index - Tend
         missing[[country]] <- (Tend+1):lmigrates
         max.nr.project <- max(max.nr.project, nr_project + nmissing[[country]])
@@ -331,7 +342,6 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 		    if (verbose) 
 		        cat('\t', nmissing[[country]], 'data points reconstructed for', country.obj$name,'\n')
 		}
-		
 		if(write.trajectories) {
 			trajectories <- mig_ps_future # save only trajectories simulated for the future time
   			save(trajectories, file = file.path(outdir, paste('traj_country', country.obj$code, '.rda', sep='')))
@@ -340,13 +350,17 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
  		PIs_cqp[country,,] <- apply(mig_ps_future, 1, quantile, quantiles.to.keep, na.rm = TRUE)
  		mean_sd[country,1,] <- apply(mig_ps_future, 1, mean, na.rm = TRUE)
  		mean_sd[country,2,] <- apply(mig_ps_future, 1, sd, na.rm = TRUE)
- 	}
+	}
+	if (lmigrates > present.year.index)
+	    migrates.recon[ , (present.year.index + 1):lmigrates] <- NA # does not need data beyond present.year as those values are now trajectories
+	
 	mcmc.set <- remove.mig.traces(mcmc.set)
 	bayesMig.prediction <- structure(list(
 				quantiles = PIs_cqp,
 				traj.mean.sd = mean_sd,
 				nr.traj=nr_simu,
 				mig.rates.reconstructed = migrates.recon,
+				nr.imputed = unlist(nmissing),
 				output.directory=outdir,
 				mcmc.set=load.mcmc.set,
 				nr.projections=nr_project,

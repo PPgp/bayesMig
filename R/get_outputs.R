@@ -143,6 +143,7 @@ get.mig.prediction <- function(mcmc=NULL, sim.dir=NULL, mcmc.dir=NULL) {
       }
     }
   }
+  if(is.null(pred$nr.imputed)) pred$nr.imputed <- rep(0, pred$mcmc.set$meta$nr.countries)
   return(pred)
 }
 

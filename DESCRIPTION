@@ -1,6 +1,6 @@
 Package: bayesMig
-Version: 0.4-2
-Date: 2023-07-13
+Version: 0.4-2.9001
+Date: 2023-07-20
 Title: Bayesian Projection of Migration
 Author: Jon Azose, Hana Sevcikova and Adrian Raftery
 Maintainer: Hana Sevcikova <hanas@uw.edu>
@@ -11,5 +11,4 @@ Description: Producing probabilistic projections of net migration rate for all c
 License: GPL (>= 2)
 URL: http://bayespop.csss.washington.edu
 RoxygenNote: 7.2.1
-LazyData: true
 Encoding: UTF-8

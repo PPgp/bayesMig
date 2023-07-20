@@ -60,7 +60,8 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   mig_observed <- get.data.matrix(mig.pred$mcmc.set$meta)[, country$index]
   mig_observed_all <- mig.pred$mcmc.set$meta$mig.rates.all[country$index, ]
 
-  Tc <- min(mig.pred$present.year.index, max(which(!is.na(mig_observed))))
+  Tc.est <- min(mig.pred$present.year.index, max(which(!is.na(mig_observed))))
+  Tc <- mig.pred$present.year.index - mig.pred$nr.imputed[country$index]
   
   mig.recon <- get.data.for.country.imputed(mig.pred, country$index)
   mig.recon <- mig.recon[!is.na(mig.recon)]
@@ -71,7 +72,7 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   
   #  imputed missing values 
   y1.part2 <- NULL
-  lpart2 <- min(dim(mig.pred$mcmc.set$meta$mig.rates)[2], mig.pred$present.year.index) - Tc
+  lpart2 <- mig.pred$nr.imputed[country$index]
   if (lpart2 > 0) {
     p2idx <- (Tc+1):min(length(mig.recon), mig.pred$present.year.index)
     y1.part2 <- mig.recon[p2idx]
@@ -104,13 +105,13 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   points.x <- x1[1:lpart1]
   points.y <- y1.part1
   if(mark.estimation.points){
-    non.est.time <- as.integer(names(mig_observed[1:Tc])[is.na(mig_observed[1:Tc])])
-    if(length(non.est.time) > 0){
-      non.est.idx <- which(points.x %in% non.est.time)
-      points(points.x[non.est.idx], points.y[non.est.idx], type=type, lwd=lwd[1], 
-             col=rgb(t(col2rgb(col[1])/255), alpha=0.1), ...)
-      points.x <- points.x[-non.est.idx]
-      points.y <- points.y[-non.est.idx]
+    est.time <- as.integer(names(mig_observed[1:Tc.est])[!is.na(mig_observed[1:Tc.est])])
+    if(length(est.time) < Tc){
+      est.idx <- which(points.x %in% est.time)
+      points(points.x, points.y, type=type, lwd=lwd[1], 
+             col=rgb(t(col2rgb(col[1])/255), alpha=0.1), ...) # first plot all points grey
+      points.x <- points.x[est.idx] # further only pass the estimation points to be plotted black
+      points.y <- points.y[est.idx]
     }
   }
   points(points.x, points.y, type=type, lwd=lwd[1], col=col[1])
