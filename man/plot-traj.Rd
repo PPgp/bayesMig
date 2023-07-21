@@ -18,7 +18,7 @@ mig.trajectories.plot(
   xlab = "Year",
   ylab = "Migration rate",
   main = NULL,
-  lwd = c(2, 2, 2, 1),
+  lwd = c(2, 2, 2, 2, 1),
   col = c("black", "green", "red", "red", "#00000020"),
   show.legend = TRUE,
   add = FALSE,

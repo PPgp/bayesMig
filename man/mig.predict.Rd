@@ -63,17 +63,20 @@ e.g. in a sub-national settings, set the \code{ignore.gcc.in.threshold} argument
 the historical cummulative thresholds. If this argument is \code{TRUE}, this distinction is not made.}
 
 \item{post.last.observed}{If a user-specific data file was used during estimation and the data 
-contained the \dQuote{last.observed} column, this argument determines how to treat the time period 
-between the last observed point and the start year of the prediction, for locations where there is
-a gap between them. Possible values are:
-* Value \dQuote{obsdata} or \dQuote{o} (default) uses any non-missing observed data 
-provided in the data file during estimation, up to the time point defined by the argument \code{start.year} 
-(excluding the start year itself). 
-* Value \dQuote{alldata} or \dQuote{a} would similarly use 
-the provided data but would use all data, even if it goes beyond the start year. This allows
-to use short-term deterministic projections for locations where it is available. 
-* Value \dQuote{impute} or \dQuote{i} would ignore all data beyond the last observed data point 
-and impute the missing time periods.}
+    contained the \dQuote{last.observed} column, this argument determines how to treat the time periods 
+    between the last observed point and the start year of the prediction, for locations where there is
+    a gap between them, or if short-term predictions were included in the file. Possible values are:
+    
+* \dQuote{obsdata} or \dQuote{o} (default) uses any non-missing observed data 
+    provided in the data file during estimation, up to the time point defined by the argument \code{start.year} 
+    (excluding the start year itself). 
+    
+* \dQuote{alldata} or \dQuote{a} would similarly use 
+    the provided data but would use all data, even if it goes beyond the start year. This allows
+    to use short-term deterministic projections for locations where it is available. 
+    
+* \dQuote{impute} or \dQuote{i} would ignore all data beyond the last observed data point 
+    and impute the missing time periods.}
 
 \item{save.as.ascii}{Either a number determining how many trajectories should be
 converted into an ASCII file, or 'all' in which case all trajectories are converted.
