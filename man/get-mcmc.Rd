@@ -6,7 +6,7 @@
 \title{Access MCMC results}
 \usage{
 get.mig.mcmc(
-  sim.dir = file.path(getwd(), "bayesMig.output"),
+  sim.dir,
   chain.ids = NULL,
   low.memory = TRUE,
   burnin = 0,
@@ -27,12 +27,17 @@ in the resulting object. By default, all available chains are included.}
 
 \item{verbose}{Logical value. Switches log messages on and off.}
 }
+\value{
+\code{get.mig.mcmc} returns an object of class \code{\link{bayesMig.mcmc.set}}.
+
+\code{has.mig.mcmc} returns a logical value indicating if a migration simulation
+    exists in the given directory.
+}
 \description{
 Function \code{get.mig.mcmc} retrieves results of an MCMC simulation and creates an object of class
 \code{\link{bayesMig.mcmc.set}}. Function \code{has.mig.mcmc} checks the existence of such results.
 }
 \examples{
-\dontrun{
 # Toy simulation
 sim.dir <- tempfile()
 m <- run.mig.mcmc(nr.chains = 1, iter = 10, output.dir = sim.dir)
@@ -44,7 +49,7 @@ summary(m)
 has.mig.mcmc(sim.dir) # should be TRUE
 
 unlink(sim.dir, recursive = TRUE)
-}
+
 }
 \seealso{
 \code{\link{run.mig.mcmc}}

@@ -16,10 +16,11 @@
 #' @param burnin Burn-in used for loading traces. Only relevant, if \code{low.memory=FALSE}.
 #' @param verbose Logical value. Switches log messages on and off.
 #' 
+#' @return \code{get.mig.mcmc} returns an object of class \code{\link{bayesMig.mcmc.set}}. 
+#' 
 #' @seealso \code{\link{run.mig.mcmc}}
 #' 
 #' @examples
-#' \dontrun{
 #' # Toy simulation
 #' sim.dir <- tempfile()
 #' m <- run.mig.mcmc(nr.chains = 1, iter = 10, output.dir = sim.dir)
@@ -31,11 +32,11 @@
 #' has.mig.mcmc(sim.dir) # should be TRUE
 #' 
 #' unlink(sim.dir, recursive = TRUE)
-#' }
+#'
 #' @export
 #' @rdname get-mcmc
 
-get.mig.mcmc <- function(sim.dir=file.path(getwd(), 'bayesMig.output'), chain.ids=NULL,
+get.mig.mcmc <- function(sim.dir, chain.ids=NULL,
                          low.memory = TRUE, burnin = 0, verbose = FALSE) {
   ############
   # Returns an object of class bayesMig.mcmc.set
@@ -148,6 +149,8 @@ get.mig.prediction <- function(mcmc=NULL, sim.dir=NULL, mcmc.dir=NULL) {
 }
 
 #' @rdname get-mcmc
+#' @return \code{has.mig.mcmc} returns a logical value indicating if a migration simulation
+#'     exists in the given directory.
 #' @export
 #' 
 has.mig.mcmc <- function(sim.dir) {
@@ -176,7 +179,7 @@ has.mig.mcmc <- function(sim.dir) {
 #' @seealso \code{\link{mig.diagnose}}, \code{\link{summary.bayesMig.convergence}}
 #' 
 #' @examples 
-#' \dontrun{
+#' \donttest{
 #' # Run a real simulation (can take long time)
 #' sim.dir <- tempfile()
 #' m <- run.mig.mcmc(nr.chains = 2, iter = 10000, thin = 10, output.dir = sim.dir)
@@ -194,8 +197,7 @@ has.mig.mcmc <- function(sim.dir) {
 #' @rdname get-convergence
 #' @export
 #' 
-get.mig.convergence <- function(sim.dir=file.path(getwd(), 'bayesMig.output'), 
-                               thin=225, burnin=10000) {
+get.mig.convergence <- function(sim.dir, thin=225, burnin=10000) {
   file.name <- file.path(sim.dir, 'diagnostics', paste('bayesMig.convergence_', 
                                                        thin, '_', burnin, '.rda', sep=''))
   if(!file.exists(file.name)){
@@ -211,7 +213,7 @@ get.mig.convergence <- function(sim.dir=file.path(getwd(), 'bayesMig.output'),
 #' @rdname get-convergence
 #' @export
 #' 
-get.mig.convergence.all <- function(sim.dir=file.path(getwd(), 'bayesMig.output')) {
+get.mig.convergence.all <- function(sim.dir) {
     return(bayesTFR:::.do.get.convergence.all('mig', 'bayesMig', sim.dir=sim.dir))
 }
 
@@ -329,15 +331,15 @@ coda.mcmc.bayesMig.mcmc <- function(mcmc, country=NULL, par.names=NULL,
 #' @param low.memory Logical indicating if the function should run in a memory-efficient mode.
 #' @param \dots Additional arguments passed to the \pkg{coda}'s \code{\link[coda]{mcmc}} function, such as \code{burnin} and \code{thin}.
 #' 
-#' @return Returns an object of class \dQuote{mcmc.list} defined in the \pkg{coda} package.
+#' @return Returns an object of class \code{mcmc.list} defined in the \pkg{coda} package.
 #' @export
 
 mig.coda.list.mcmc <- function(mcmc.list = NULL, country = NULL, chain.ids = NULL,
-                              sim.dir = file.path(getwd(), 'bayesMig.output'), 
-                              par.names = NULL, par.names.cs = NULL, 
+                              sim.dir = NULL, par.names = NULL, par.names.cs = NULL, 
                               low.memory = FALSE, ...) {
   # return a list of mcmc objects that can be analyzed using the coda package
   if (is.null(mcmc.list)) {
+    if(is.null(sim.dir)) stop("mcmc.list or sim.dir must be provided.")
     mcmc.list <- get.mig.mcmc(sim.dir, chain.ids=chain.ids, low.memory = low.memory)$mcmc.list
   } else {
     mcmc.list <- get.mcmc.list(mcmc.list)
@@ -604,6 +606,13 @@ summary.bayesMig.mcmc <- function(object, country = NULL,
 #' @param thin Thinning interval. Only used if larger than the \code{thin} argument used in \code{\link{run.mig.mcmc}}.
 #' @param burnin Number of iterations to be discarded from the beginning of each chain before computing the summary.
 #' @param \dots Additional arguments passed to the \code{\link[coda]{summary.mcmc}} function of the \pkg{coda} package.
+#' 
+#' @return Return list with elements:
+#' \describe{
+#' \item{meta}{contains meta information about the object.}
+#' \item{results}{contains result of \code{\link[coda]{summary.mcmc}}.}
+#' \item{country.name}{optional; available if \code{country} is provided as argument.}
+#' }
 #' @examples
 #' # See example in ?run.mig.mcmc
 #' @export
@@ -723,6 +732,12 @@ print.bayesMig.prediction <- function(x, ...) {
 #'     If it is \code{NULL}, only prediction meta info is included.
 #' @param compact Logical switching between a smaller and larger number of displayed quantiles.
 #' @param \dots A list of further arguments.
+#' 
+#' @return \code{summary} returns a list with objects \code{burnin}, \code{nr.traj}, \code{projection.years},
+#'     \code{country.name} containing the MCMC burn-in, number of trajectories, projected years
+#'     and name of the location, respectively. The projection results are stored in the item 
+#'     \code{projections} which is a matrix with rows being the years and columns being the mean
+#'     and various quantiles.
 #' @examples
 #' # See example in ?mig.predict
 #' @export
@@ -766,6 +781,8 @@ print.summary.bayesMig.prediction <- function(x, digits = 3, ...) {
 #'     for which there was no convergence (only country-independent parameters), 
 #'     if the status is \sQuote{red}. This argument can switch that option on.
 #' @param \dots Not used.
+#' 
+#' @return List with items that summarize an object of class \code{\link{bayesMig.convergence}}.
 #' @export
 #' 
 

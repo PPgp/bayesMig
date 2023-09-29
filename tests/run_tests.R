@@ -9,7 +9,8 @@ test.run.annual.simulation()
 
 if(!cran) {
     test.include.code.and.last.observed()
-    test.interpolation()
+    test.run.annual.national.simulation()
+    test.run.annual.national.simulation.with.interpolation()
     test.run.national.simulation()
     test.run.annual.simulation(parallel = TRUE)
     test.run.national.simulation(parallel = TRUE)

@@ -72,6 +72,18 @@ Value 0.5 corresponds to the median.}
 
 \item{palette}{Color palette to use.}
 }
+\value{
+\code{get.mig.map.parameters} returns a list with elements:
+\describe{
+\item{pred}{The \code{\link{bayesMig.prediction}} object used in the function.}
+\item{quantile}{Value of the argument \code{quantile}.}
+\item{catMethod}{If the argument \code{same.scale} is \code{TRUE}, this element 
+     contains breakpoints for categorization generated using the quantiles.
+     Otherwise, it is \code{NULL}.}
+\item{numCats}{Number of categories.}
+\item{coulourPalette}{The color palette.}
+}
+}
 \description{
 Generates a world map of the net migration rate for given quantile and 
     time period, which can be either projection or estimation time period, using different techniques: 

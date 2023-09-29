@@ -28,7 +28,7 @@ mig.trajectories.plot(
 
 mig.trajectories.plot.all(
   mig.pred,
-  output.dir = file.path(getwd(), "migTrajectories"),
+  output.dir = NULL,
   output.type = "png",
   verbose = FALSE,
   ...
@@ -67,12 +67,16 @@ they are divided by \code{pop.denom} passed to \code{\link{run.mig.mcmc}}.}
 \item{\dots}{Additional graphical parameters. In addition, for \code{mig.trajectories.plot.all} 
 any of the arguments of \code{tfr.trajectories.plot} can be passed here.}
 
-\item{output.dir}{Directory into which resulting plots are written.}
+\item{output.dir}{Directory into which resulting plots are written. By default,
+the plots are saved into directory {sim.dir}/predictions/migTrajectories.}
 
 \item{output.type}{Type of the resulting plot files. Can be "png", "pdf", "jpeg", "bmp",
 "tiff", or "postscript".}
 
 \item{verbose}{Logical value. Switches log messages on and off.}
+}
+\value{
+No return value.
 }
 \description{
 The functions plot/tabulate the posterior distribution of trajectories of net migration rates

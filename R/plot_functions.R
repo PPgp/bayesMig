@@ -37,6 +37,7 @@
 #'     Thus, \code{nr.traj} does not influence those values - it is used only to control the number 
 #'     of trajectories in the graphs.
 #'     
+#' @return No return value.
 #' @seealso \code{\link{mig.predict}}, \code{\link{summary.bayesMig.prediction}}
 #' @examples
 #' # See example in ?mig.predict
@@ -164,18 +165,20 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   }
 }
 
-#' @param output.dir Directory into which resulting plots are written.
+#' @param output.dir Directory into which resulting plots are written. By default,
+#'     the plots are saved into directory {sim.dir}/predictions/migTrajectories.
 #' @param output.type Type of the resulting plot files. Can be "png", "pdf", "jpeg", "bmp",
 #' "tiff", or "postscript".
 #' @param verbose Logical value. Switches log messages on and off.
 #' @export
 #' @rdname plot-traj
 
-mig.trajectories.plot.all <- function(mig.pred, 
-                                      output.dir=file.path(getwd(), 'migTrajectories'),
+mig.trajectories.plot.all <- function(mig.pred, output.dir = NULL,
                                       output.type="png", verbose=FALSE, ...) {
   
   # plots e0 trajectories for all countries
+  if(is.null(output.dir))
+    output.dir <- file.path(mig.pred$output.directory, 'migTrajectories')
   bayesTFR:::.do.plot.all(mig.pred$mcmc.set$meta, output.dir, mig.trajectories.plot, output.type=output.type, 
                           file.prefix='Migplot', plot.type='Mig graph', verbose=verbose, mig.pred=mig.pred, ...)
 }
@@ -210,15 +213,19 @@ mig.trajectories.table <- function(mig.pred, country, pi=c(80, 95), ...) {
 #'     one graph per parameter.  One can restrict it to specific chains by setting 
 #'     the \code{chain.ids} argument, and to specific parameters by setting the \code{par.names} 
 #'     argument.
+#' @return No return value.
 #' @export
 #' @rdname plot-traces
 #' 
 
-mig.partraces.plot <- function(mcmc.list=NULL, sim.dir=file.path(getwd(), 'bayesMig.output'), 
+mig.partraces.plot <- function(mcmc.list=NULL, sim.dir = NULL, 
                                chain.ids=NULL, par.names=mig.parameter.names(), 
                                nr.points=NULL, dev.ncol=2, ...) {
-  if (is.null(mcmc.list))
+  if (is.null(mcmc.list)){
+    if(is.null(sim.dir))
+      stop('Either mcmc.list or sim.dir must be provided.')
     mcmc.list <- get.mig.mcmc(sim.dir)
+  }
   bayesTFR:::do.plot.tfr.partraces(mcmc.list, load.mig.parameter.traces, chain.ids=chain.ids, 
                         nr.points=nr.points, par.names=par.names, dev.ncol=dev.ncol, ...)
 }
@@ -227,11 +234,14 @@ mig.partraces.plot <- function(mcmc.list=NULL, sim.dir=file.path(getwd(), 'bayes
 #' @export
 #' @rdname plot-traces
 #' 
-mig.partraces.cs.plot <- function(country, mcmc.list=NULL, sim.dir=file.path(getwd(), 'bayesMig.output'),
+mig.partraces.cs.plot <- function(country, mcmc.list=NULL, sim.dir = NULL,
                                   chain.ids=NULL, par.names=mig.parameter.names.cs(),
                                   nr.points=NULL, dev.ncol=3, ...) {
-  if (is.null(mcmc.list))
+  if (is.null(mcmc.list)){
+    if(is.null(sim.dir))
+      stop('Either mcmc.list or sim.dir must be provided.')
     mcmc.list <- get.mig.mcmc(sim.dir)
+  }
   mcmc.list <- get.mcmc.list(mcmc.list)
   country.obj <- get.country.object(country, mcmc.list[[1]]$meta)
   if (is.null(country.obj$name))
@@ -275,14 +285,18 @@ mig.partraces.cs.plot <- function(country, mcmc.list=NULL, sim.dir=file.path(get
 #'     to the one used when the thinned traces were created, namely when running 
 #'     \code{\link{mig.predict}}. In a situation with long MCMC chains, this approach can  
 #'     significantly speed-up creation of the density plots.
+#' @return No return value.
 #' @export
 #' @rdname plot-density
 #' 
-mig.pardensity.plot <- function(mcmc.list=NULL, sim.dir = file.path(getwd(), 'bayesMig.output'), 
+mig.pardensity.plot <- function(mcmc.list=NULL, sim.dir = NULL, 
                                chain.ids = NULL, par.names = mig.parameter.names(), 
                                burnin = NULL, dev.ncol = 2, low.memory = TRUE, ...) {
-  if (is.null(mcmc.list))
+  if (is.null(mcmc.list)){
+    if(is.null(sim.dir))
+      stop('Either mcmc.list or sim.dir must be provided.')
     mcmc.list <- get.mig.mcmc(sim.dir, low.memory = low.memory)
+  }
   bayesTFR:::do.plot.tfr.pardensity(mcmc.list, get.mig.parameter.traces, chain.ids = chain.ids, par.names = par.names,
                                     par.names.ext = par.names, burnin = burnin, dev.ncol = dev.ncol, ...)
 }
@@ -291,11 +305,14 @@ mig.pardensity.plot <- function(mcmc.list=NULL, sim.dir = file.path(getwd(), 'ba
 #' @export
 #' @rdname plot-density
 #' 
-mig.pardensity.cs.plot <- function(country, mcmc.list = NULL, sim.dir = file.path(getwd(), 'bayesLife.output'), 
+mig.pardensity.cs.plot <- function(country, mcmc.list = NULL, sim.dir = NULL, 
                                   chain.ids = NULL, par.names = mig.parameter.names.cs(), 
                                   burnin = NULL, dev.ncol = 3, low.memory = TRUE, ...) {
-  if (is.null(mcmc.list))
+  if (is.null(mcmc.list)){
+    if(is.null(sim.dir))
+      stop('Either mcmc.list or sim.dir must be provided.')
     mcmc.list <- get.mig.mcmc(sim.dir, low.memory=low.memory)
+  }
   mcmc.l <- get.mcmc.list(mcmc.list)
   country.obj <- get.country.object(country, mcmc.l[[1]]$meta)
   if (is.null(country.obj$name))
@@ -350,7 +367,6 @@ mig.pardensity.cs.plot <- function(country, mcmc.list = NULL, sim.dir = file.pat
 #'     Alternatively, the functions can be used to plot country-specific MCMC parameters into a world map. 
 #'     They are given by the argument \code{par.name}. One can pass any value from 
 #'     \code{\link{mig.parameter.names.cs}()}.
-#'     
 #' @seealso \code{\link[bayesTFR]{tfr.map}}
 #' @rdname map
 #' @export
@@ -401,6 +417,16 @@ bdem.map.gvis.bayesMig.prediction <- function(pred, ...) {
 }
 
 #' @param palette Color palette to use.
+#' @return \code{get.mig.map.parameters} returns a list with elements:
+#' \describe{
+#' \item{pred}{The \code{\link{bayesMig.prediction}} object used in the function.}
+#' \item{quantile}{Value of the argument \code{quantile}.}
+#' \item{catMethod}{If the argument \code{same.scale} is \code{TRUE}, this element 
+#'      contains breakpoints for categorization generated using the quantiles.
+#'      Otherwise, it is \code{NULL}.}
+#' \item{numCats}{Number of categories.}
+#' \item{coulourPalette}{The color palette.}
+#' }
 #' @export
 #' @rdname map
 #' 

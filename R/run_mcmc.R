@@ -115,7 +115,7 @@
 #' \code{\link{mig.pardensity.plot}}, \code{\link{mig.predict}}
 #' 
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # Toy simulation for US states
 #' us.mig.file <- file.path(find.package("bayesMig"), "extdata", "USmigrates.txt")
 #' sim.dir <- tempfile()
@@ -135,7 +135,7 @@
 #' }
 #' @export
 #' 
-run.mig.mcmc <- function(nr.chains=3, iter=50000, output.dir=file.path(getwd(), 'bayesMig.output'), 
+run.mig.mcmc <- function(output.dir, nr.chains=3, iter=50000, 
                          thin=1, replace.output=FALSE, annual = FALSE,
                          start.year = 1950, present.year=2020, wpp.year=2019, my.mig.file = NULL,
                          # starting values and ranges for truncations

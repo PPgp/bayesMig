@@ -5,13 +5,9 @@
 \alias{get.mig.convergence.all}
 \title{Accessing Convergence Diagnostics Object}
 \usage{
-get.mig.convergence(
-  sim.dir = file.path(getwd(), "bayesMig.output"),
-  thin = 225,
-  burnin = 10000
-)
+get.mig.convergence(sim.dir, thin = 225, burnin = 10000)
 
-get.mig.convergence.all(sim.dir = file.path(getwd(), "bayesMig.output"))
+get.mig.convergence.all(sim.dir)
 }
 \arguments{
 \item{sim.dir}{Simulation directory used for computing the diagnostics.}
@@ -36,7 +32,7 @@ Function \code{get.mig.convergence} loads an object of class
     available in \code{sim.dir}.
 }
 \examples{
-\dontrun{
+\donttest{
 # Run a real simulation (can take long time)
 sim.dir <- tempfile()
 m <- run.mig.mcmc(nr.chains = 2, iter = 10000, thin = 10, output.dir = sim.dir)

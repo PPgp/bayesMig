@@ -8,7 +8,7 @@ mig.coda.list.mcmc(
   mcmc.list = NULL,
   country = NULL,
   chain.ids = NULL,
-  sim.dir = file.path(getwd(), "bayesMig.output"),
+  sim.dir = NULL,
   par.names = NULL,
   par.names.cs = NULL,
   low.memory = FALSE,
@@ -42,7 +42,7 @@ traces of each parameter are given for all countries. Default names are those re
 \item{\dots}{Additional arguments passed to the \pkg{coda}'s \code{\link[coda]{mcmc}} function, such as \code{burnin} and \code{thin}.}
 }
 \value{
-Returns an object of class \dQuote{mcmc.list} defined in the \pkg{coda} package.
+Returns an object of class \code{mcmc.list} defined in the \pkg{coda} package.
 }
 \description{
 The functions convert MCMC traces (simulated using \code{\link{run.mig.mcmc}}) into 

@@ -11,6 +11,9 @@ mig.write.projection.summary(pred, output.dir)
 
 \item{output.dir}{Directory where output is written.}
 }
+\value{
+No return value.
+}
 \description{
 The function creates two files containing projection summaries, 
     such as the median, the lower and upper bound of the 80 and 90\% probability 

@@ -19,7 +19,7 @@ mig.diagnose(
 
 mig.raftery.diag(
   mcmc = NULL,
-  sim.dir = file.path(getwd(), "bayesMig.output"),
+  sim.dir = NULL,
   burnin = 0,
   country = NULL,
   par.names = NULL,
@@ -93,10 +93,9 @@ The \code{estimate.a.hw} function estimates an optimal value for the \code{a.hal
     argument in \code{\link{run.mig.mcmc}}.
 }
 \examples{
-\dontrun{
-mig.diagnose(sim.dir='./bayesMig.output', burnin=100, thin=1)
-}
+# See examples in ?bayesMig and ?get.mig.convergence
+
 }
 \seealso{
-\code{\link[bayesTFR]{tfr.raftery.diag}}, \code{\link[coda]{raftery.diag}}
+\code{\link[bayesTFR]{tfr.raftery.diag}}, \code{\link[coda]{raftery.diag}}, \code{\link{get.mig.convergence}}
 }

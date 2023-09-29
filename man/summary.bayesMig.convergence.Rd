@@ -15,6 +15,9 @@ if the status is \sQuote{red}. This argument can switch that option on.}
 
 \item{\dots}{Not used.}
 }
+\value{
+List with items that summarize an object of class \code{\link{bayesMig.convergence}}.
+}
 \description{
 Summary of an object of class \code{\link{bayesMig.convergence}} created 
     using the \code{\link{mig.diagnose}} function. It gives an overview about parameters 

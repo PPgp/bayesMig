@@ -7,7 +7,7 @@
 \usage{
 mig.pardensity.plot(
   mcmc.list = NULL,
-  sim.dir = file.path(getwd(), "bayesMig.output"),
+  sim.dir = NULL,
   chain.ids = NULL,
   par.names = mig.parameter.names(),
   burnin = NULL,
@@ -19,7 +19,7 @@ mig.pardensity.plot(
 mig.pardensity.cs.plot(
   country,
   mcmc.list = NULL,
-  sim.dir = file.path(getwd(), "bayesLife.output"),
+  sim.dir = NULL,
   chain.ids = NULL,
   par.names = mig.parameter.names.cs(),
   burnin = NULL,
@@ -55,6 +55,9 @@ loaded as they are needed.}
 \item{\dots}{Further arguments passed to the \code{\link{density}} function.}
 
 \item{country}{Name or numerical code of a country. It can also be given as ISO-2 or ISO-3 characters.}
+}
+\value{
+No return value.
 }
 \description{
 Functions for plotting the density of the posterior distribution of the MCMC parameters from the migration model.

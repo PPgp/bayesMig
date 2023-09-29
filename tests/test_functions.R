@@ -81,7 +81,54 @@ test.run.national.simulation <- function(parallel = FALSE) {
     unlink(sim.dir, recursive=TRUE)
 }
 
-test.interpolation <- function(parallel = FALSE) {
+test.run.annual.national.simulation <- function(parallel = FALSE) {
+    # run MCMC using wpp2022
+    test.name <- 'running annual national migration MCMC'
+    if(parallel) test.name <- paste(test.name, "(in parallel)")
+    start.test(test.name)
+    
+    sim.dir <- tempfile()
+    
+    # find small countries to be excluded (take it from bayesTFR include dataset)
+    data(include_2022, package = "bayesTFR")
+    small.countries <- subset(include_2022, include_code == 1)$country_code
+    
+    m <- run.mig.mcmc(nr.chains = 2, iter = 60, thin = 2, output.dir = sim.dir, 
+                      parallel = parallel, annual = TRUE, wpp.year = 2022,
+                      present.year = 2021, exclude.from.world = small.countries,
+                      use.cummulative.threshold = TRUE)
+    
+    stopifnot(m$meta$nr.countries.est == 203)
+    stopifnot(m$meta$nr.countries == 236)
+    stopifnot(m$mcmc.list[[1]]$finished.iter == 60)
+    stopifnot(get.total.iterations(m$mcmc.list, 0) == 120)
+    test.ok(test.name)
+    
+    # Prediction
+    test.name <- 'running annual national projections'
+    start.test(test.name)
+    pred <- mig.predict(sim.dir = sim.dir, burnin = 10, end.year = 2050)
+    spred <- summary(pred)
+    stopifnot(spred$nr.traj == 50)
+    stopifnot(nrow(get.countries.table(pred))== 236)
+    stopifnot(dim(pred$quantiles)[3] == length(seq(2021, 2050, by = 1)))
+    test.ok(test.name)
+    
+    # output
+    test.name <- 'analyzing output of annual national projections'
+    start.test(test.name)
+    tab <- mig.trajectories.table(pred, "Ireland")
+    years <- as.integer(rownames(tab))
+    should.be.years <- seq(1951, 2050, by = 1)
+    stopifnot(length(years) == length(should.be.years))
+    stopifnot(all(years == should.be.years))
+    test.ok(test.name)
+    
+    unlink(sim.dir, recursive=TRUE)
+}
+
+
+test.run.annual.national.simulation.with.interpolation <- function(parallel = FALSE) {
     # run MCMC
     test.name <- 'running annual national migration MCMC with interpolated data'
     if(parallel) test.name <- paste(test.name, "(in parallel)")
@@ -96,7 +143,7 @@ test.interpolation <- function(parallel = FALSE) {
     test.ok(test.name)
     
     # Prediction
-    test.name <- 'running annual national projections'
+    test.name <- 'running annual national projections with interpolated data'
     start.test(test.name)
     pred <- mig.predict(sim.dir = sim.dir, burnin = 10, end.year = 2050)
     spred <- summary(pred)
@@ -106,7 +153,7 @@ test.interpolation <- function(parallel = FALSE) {
     test.ok(test.name)
     
     # output
-    test.name <- 'analyzing output of annual national projections'
+    test.name <- 'analyzing output of annual national projections with interpolated data'
     start.test(test.name)
     tab <- mig.trajectories.table(pred, "Ireland")
     years <- as.integer(rownames(tab))

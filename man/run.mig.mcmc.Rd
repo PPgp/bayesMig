@@ -8,9 +8,9 @@
 \title{Run Markov chain Monte Carlo for parameters of net migration rate model}
 \usage{
 run.mig.mcmc(
+  output.dir,
   nr.chains = 3,
   iter = 50000,
-  output.dir = file.path(getwd(), "bayesMig.output"),
   thin = 1,
   replace.output = FALSE,
   annual = FALSE,
@@ -34,11 +34,11 @@ run.mig.mcmc(
 )
 }
 \arguments{
+\item{output.dir}{A file path pointing to the directory in which to store results.}
+
 \item{nr.chains}{An integer number of independent Markov chains to run.}
 
 \item{iter}{The number of iterations to run per Markov chain.}
-
-\item{output.dir}{A file path pointing to the directory in which to store results.}
 
 \item{thin}{Thinning interval. A chain with 1000 iterations thinned by 20 will return a 
 final count of 50 iterations.}
@@ -160,7 +160,7 @@ if \code{my.mig.file} is used, these locations can be determined using an additi
 excluded but location-specific parameters are generated; value 0 means the location is ignored.
 }
 \examples{
-\dontrun{
+\donttest{
 # Toy simulation for US states
 us.mig.file <- file.path(find.package("bayesMig"), "extdata", "USmigrates.txt")
 sim.dir <- tempfile()

@@ -9,6 +9,9 @@ store.bayesMig.convergence(diag, thin, burnin, output.dir)
 
 store.bayesMig.prediction(pred, output.dir = NULL)
 }
+\value{
+None
+}
 \description{
 These functions and datasets are not to be used directly by the user.
 }

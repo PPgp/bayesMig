@@ -44,17 +44,18 @@
 #'     a gap between them, or if short-term predictions were included in the file. It is also relevant
 #'     if \code{start.year} is set to a smaller value than \code{present.year} in the estimation.
 #'     Possible values are:
-#'     
-#' * \dQuote{obsdata} or \dQuote{o} (default) uses any non-missing observed data 
+#' \itemize{    
+#' \item \dQuote{obsdata} or \dQuote{o} (default) uses any non-missing observed data 
 #'     provided in the data file during estimation, up to the time point defined by the argument \code{start.year} 
 #'     (excluding the start year itself). 
 #'     
-#' * \dQuote{alldata} or \dQuote{a} would similarly use 
+#' \item \dQuote{alldata} or \dQuote{a} would similarly use 
 #'     the provided data but would use all data, even if it goes beyond the start year. This allows
 #'     to use short-term deterministic projections for locations where it is available. 
 #'     
-#' * \dQuote{impute} or \dQuote{i} would ignore all data beyond the last observed data point 
+#' \item \dQuote{impute} or \dQuote{i} would ignore all data beyond the last observed data point 
 #'     and impute the missing time periods.
+#' }
 #' @param save.as.ascii Either a number determining how many trajectories should be
 #' converted into an ASCII file, or 'all' in which case all trajectories are converted.
 #' It should be set to 0 if no conversion is desired. If this argument 
@@ -135,7 +136,7 @@
 #' @export
 
 mig.predict <- function(mcmc.set=NULL, end.year=2100,
-						sim.dir=file.path(getwd(), 'bayesMig.output'),
+						sim.dir = NULL,
 						replace.output=FALSE,
 						start.year=NULL, nr.traj = NULL, thin = NULL, burnin=20000, 
 						use.cummulative.threshold = FALSE, ignore.gcc.in.threshold = FALSE,
@@ -146,7 +147,9 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 		if (! inherits(mcmc.set, 'bayesMig.mcmc.set')) {
 			stop('Wrong type of mcmc.set. Must be of type bayesMig.mcmc.set.')
 			}
-	} else {		
+	} else {
+	    if(is.null(sim.dir))
+	        stop("Either mcmc.set or sim.dir argument must be given to locate the estimation results.")
 		mcmc.set <- get.mig.mcmc(sim.dir, verbose=verbose)
 	}
 
@@ -312,7 +315,7 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	    nperiods.for.threshold <- ifelse(meta$annual.simulation, 30, 6)
 	    mig.thresholds <-  get.migration.thresholds(meta, nperiods = nperiods.for.threshold, ignore.gcc = ignore.gcc.in.threshold)
 	    isGCC <- if(ignore.gcc.in.threshold) rep(FALSE, nr_countries_real) else is.gcc.plus(meta$regions$country_code)
-	    fun.min <- "min.multiplicative.pop.change"
+	    fun.min <- ".min.multiplicative.pop.change"
 	}
 	#########################################
 	for (s in 1:nr_simu){ # Iterate over trajectories
@@ -334,7 +337,7 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	  #########################################
 	  for (icountry in 1:nr_countries_real){ # Iterate over countries
 	  #########################################
-	    if(use.cummulative.threshold) fun.max <- paste0("max.multiplicative.pop.change", if(isGCC[icountry]) "" else ".no.gcc")
+	    if(use.cummulative.threshold) fun.max <- paste0(".max.multiplicative.pop.change", if(isGCC[icountry]) "" else ".no.gcc")
 	    for (year in 2:(max.nr.project+1)) { # Iterate over time
 	    #########################################
 	        if(!is.na(all.mig_ps[icountry, year, s])) next
@@ -430,6 +433,7 @@ get.traj.ascii.header.bayesMig.mcmc.meta <- function(meta, ...)
 #'     time and the variants.
 #' @param pred Object of class \code{bayesMig.prediction}.
 #' @param output.dir Directory where output is written.
+#' @return No return value.
 #' @seealso \code{\link[bayesTFR]{write.projection.summary}}
 #' @export
 mig.write.projection.summary <- function(pred, output.dir) {
@@ -466,13 +470,13 @@ get.data.imputed.bayesMig.prediction <- function(pred, ...)
 get.data.for.country.imputed.bayesMig.prediction <- function(pred, country.index, ...)
     return(get.data.imputed(pred)[, country.index])
 
-max.multiplicative.pop.change <- function(l, thresholds) 
+.max.multiplicative.pop.change <- function(l, thresholds) 
     thresholds$upper[l]
 
-max.multiplicative.pop.change.no.gcc <- function(l, thresholds) 
+.max.multiplicative.pop.change.no.gcc <- function(l, thresholds) 
     thresholds$upper.nogcc[l]
 
-min.multiplicative.pop.change <- function(l, thresholds) 
+.min.multiplicative.pop.change <- function(l, thresholds) 
     thresholds$lower[l]
 
 .get.rate.mult.limit <- function(rates, n, cumfun, fun, nperiods=6, ...) {

@@ -7,7 +7,7 @@
 \usage{
 mig.partraces.plot(
   mcmc.list = NULL,
-  sim.dir = file.path(getwd(), "bayesMig.output"),
+  sim.dir = NULL,
   chain.ids = NULL,
   par.names = mig.parameter.names(),
   nr.points = NULL,
@@ -18,7 +18,7 @@ mig.partraces.plot(
 mig.partraces.cs.plot(
   country,
   mcmc.list = NULL,
-  sim.dir = file.path(getwd(), "bayesMig.output"),
+  sim.dir = NULL,
   chain.ids = NULL,
   par.names = mig.parameter.names.cs(),
   nr.points = NULL,
@@ -49,6 +49,9 @@ than \code{dev.ncol}, the number of columns is automatically decreased.}
 \item{\dots}{Additional graphical parameters.}
 
 \item{country}{Name or numerical code of a country. It can also be given as ISO-2 or ISO-3 characters.}
+}
+\value{
+No return value.
 }
 \description{
 Functions for plotting the MCMC parameter traces from the migration model.

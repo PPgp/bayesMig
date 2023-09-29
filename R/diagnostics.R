@@ -33,11 +33,10 @@
 #'     same structure as \code{\link[bayesTFR]{bayesTFR.convergence}}. 
 #'     In addition it has an element \code{a.hw.est} which is the estimated value for 
 #'     the \code{a.half.width} argument in \code{\link{run.mig.mcmc}}.
-#' @seealso \code{\link[bayesTFR]{tfr.raftery.diag}}, \code{\link[coda]{raftery.diag}}
+#' @seealso \code{\link[bayesTFR]{tfr.raftery.diag}}, \code{\link[coda]{raftery.diag}}, \code{\link{get.mig.convergence}}
 #' @examples
-#' \dontrun{
-#' mig.diagnose(sim.dir='./bayesMig.output', burnin=100, thin=1)
-#' }
+#' # See examples in ?bayesMig and ?get.mig.convergence
+#' 
 #' @aliases bayesMig.convergence
 #' @rdname diagnose
 #' @export
@@ -67,7 +66,7 @@ mig.diagnose <- function(sim.dir, thin=80, burnin=2000, express=FALSE,
 #' @rdname diagnose
 #' @export
 mig.raftery.diag <- function(mcmc=NULL, 
-                             sim.dir=file.path(getwd(), 'bayesMig.output'),
+                             sim.dir = NULL,
                              burnin=0, country=NULL,
                              par.names = NULL,
                              par.names.cs = NULL,

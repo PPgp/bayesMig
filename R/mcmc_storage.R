@@ -1,5 +1,3 @@
-if(getRversion() >= "2.15.1") utils::globalVariables(c("counter"))
-
 ###############
 #MIGRATION
 ###############
@@ -13,10 +11,10 @@ store.mcmc <- local({
   
   default.buffer.size <- 100
   buffer <- buffer.cs <- NULL
+  counter <- 0
   
   buffers.insert <- function(mcmc) {
     counter <<- counter + 1
-
     for (par in par.names) {
       #Here's how we'll eventually handle parameters that we shouldn't save.
       #        if (is.element(par, mcmc$dontsave)) next
@@ -103,10 +101,6 @@ store.mcmc <- local({
     flushed <- FALSE
     if (flush.buffer || (counter >= buffer.size)) {
       do.flush.buffers(mcmc, append=append, verbose=verbose)
-      #The pair of assignments below looks very silly. 
-      #The first one is here to avoid an R CMD check note, which reads "no visible binding for '<<-' assignment to 'counter'"
-      #counter <- 0
-      #counter <<- 0 #Don't waste energy resetting the whole buffer. Just set the counter back to zero and write over it.
       flushed <- TRUE
       buffer <<- buffer.cs <<- NULL
     }
@@ -140,6 +134,7 @@ store.bayesMig.convergence <- function(diag, thin, burnin, output.dir){
 }
 
 #' @export
+#' @return None
 #' @keywords internal
 #' @rdname internal
 #' 

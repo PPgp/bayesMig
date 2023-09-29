@@ -24,6 +24,13 @@ If it is \code{NULL}, only prediction meta info is included.}
 
 \item{digits}{Minimal number of significant digits.}
 }
+\value{
+\code{summary} returns a list with objects \code{burnin}, \code{nr.traj}, \code{projection.years},
+    \code{country.name} containing the MCMC burn-in, number of trajectories, projected years
+    and name of the location, respectively. The projection results are stored in the item 
+    \code{projections} which is a matrix with rows being the years and columns being the mean
+    and various quantiles.
+}
 \description{
 Summary of an object of class \code{\link{bayesMig.prediction}}, 
     created using the function \code{\link{mig.predict}}. The summary contains the mean, 

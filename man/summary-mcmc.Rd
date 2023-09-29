@@ -50,6 +50,14 @@ The default names are given by \code{\link{mig.parameter.names.cs}()}.}
 
 \item{meta.only}{Logical. If it is \code{TRUE}, only meta information of the simulation is included.}
 }
+\value{
+Return list with elements:
+\describe{
+\item{meta}{contains meta information about the object.}
+\item{results}{contains result of \code{\link[coda]{summary.mcmc}}.}
+\item{country.name}{optional; available if \code{country} is provided as argument.}
+}
+}
 \description{
 Summary of an object \code{\link{bayesMig.mcmc.set}} or \code{\link{bayesMig.mcmc}},
     computed via \code{\link{run.mig.mcmc}}.  It can be obtained either for all locations or 

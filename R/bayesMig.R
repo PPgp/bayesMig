@@ -56,7 +56,7 @@
 #'      functions use arguments and terminology related to countries. However, a \dQuote{country}
 #'      is to be interpreted as any location included in the simulation. 
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' # Run a real simulation (can take long time)
 #' sim.dir <- tempfile()
 #' m <- run.mig.mcmc(nr.chains = 4, iter = 10000, thin = 10, output.dir = sim.dir,

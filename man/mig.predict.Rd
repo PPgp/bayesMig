@@ -8,7 +8,7 @@
 mig.predict(
   mcmc.set = NULL,
   end.year = 2100,
-  sim.dir = file.path(getwd(), "bayesMig.output"),
+  sim.dir = NULL,
   replace.output = FALSE,
   start.year = NULL,
   nr.traj = NULL,
@@ -74,17 +74,18 @@ of UN codes and user-defined codes.}
     a gap between them, or if short-term predictions were included in the file. It is also relevant
     if \code{start.year} is set to a smaller value than \code{present.year} in the estimation.
     Possible values are:
-    
-* \dQuote{obsdata} or \dQuote{o} (default) uses any non-missing observed data 
+\itemize{    
+\item \dQuote{obsdata} or \dQuote{o} (default) uses any non-missing observed data 
     provided in the data file during estimation, up to the time point defined by the argument \code{start.year} 
     (excluding the start year itself). 
     
-* \dQuote{alldata} or \dQuote{a} would similarly use 
+\item \dQuote{alldata} or \dQuote{a} would similarly use 
     the provided data but would use all data, even if it goes beyond the start year. This allows
     to use short-term deterministic projections for locations where it is available. 
     
-* \dQuote{impute} or \dQuote{i} would ignore all data beyond the last observed data point 
-    and impute the missing time periods.}
+\item \dQuote{impute} or \dQuote{i} would ignore all data beyond the last observed data point 
+    and impute the missing time periods.
+}}
 
 \item{save.as.ascii}{Either a number determining how many trajectories should be
 converted into an ASCII file, or 'all' in which case all trajectories are converted.
