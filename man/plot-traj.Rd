@@ -62,7 +62,7 @@ device (\code{FALSE}) or into an existing device (\code{TRUE}). One can use this
 trajectories from multiple countries into one graphics.}
 
 \item{scale}{Logical. If \code{TRUE}, values are scaled to be \dQuote{per population}, i.e. 
-they are divided by \code{pop.denom} passed to \code{\link{mig.predict}}.}
+they are divided by \code{pop.denom} passed to \code{\link{run.mig.mcmc}}.}
 
 \item{\dots}{Additional graphical parameters. In addition, for \code{mig.trajectories.plot.all} 
 any of the arguments of \code{tfr.trajectories.plot} can be passed here.}

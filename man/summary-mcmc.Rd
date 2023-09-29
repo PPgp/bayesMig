@@ -30,14 +30,14 @@
 \arguments{
 \item{object}{Object of class \code{\link{bayesMig.mcmc.set}} or \code{\link{bayesMig.mcmc}}.}
 
-\item{country}{Country name or code if a country-specific summary is desired. 
-The code can be either numeric or ISO-2 or ISO-3 characters. By default, summary 
-for all countries is generated.}
+\item{country}{Location name or code if a location-specific summary is desired. The code can be either numeric 
+or (if locations are countries) ISO-2 or ISO-3 characters. By default, summary 
+for all locations is generated.}
 
-\item{par.names}{Country independent parameters to be included in the summary. 
+\item{par.names}{Country independent parameters (hyperparameters) to be included in the summary. 
 The default names are given by \code{\link{mig.parameter.names}()}.}
 
-\item{par.names.cs}{Country-specific parameters to be included in the summary.
+\item{par.names.cs}{Location-specific parameters to be included in the summary.
 The default names are given by \code{\link{mig.parameter.names.cs}()}.}
 
 \item{thin}{Thinning interval. Only used if larger than the \code{thin} argument used in \code{\link{run.mig.mcmc}}.}
@@ -52,7 +52,10 @@ The default names are given by \code{\link{mig.parameter.names.cs}()}.}
 }
 \description{
 Summary of an object \code{\link{bayesMig.mcmc.set}} or \code{\link{bayesMig.mcmc}},
-    computed via \code{\link{run.mig.mcmc}}.  It can be obtained either for all countries or 
-    for a specific country, and either for all parameters or for specific parameters.
+    computed via \code{\link{run.mig.mcmc}}.  It can be obtained either for all locations or 
+    for a specific location, and either for all parameters or for specific parameters.
     The function uses the \code{\link[coda]{summary.mcmc}} function of the \pkg{coda} package.
+}
+\examples{
+# See example in ?run.mig.mcmc
 }

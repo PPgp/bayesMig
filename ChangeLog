@@ -1,3 +1,7 @@
+0.4-4 (09/28/2023)
+-----
+Improved documentation.
+
 0.4-3 (07/21/2023)
 -----
 Argument ignore.last.observed in mig.predict swapped for post.last.observed.

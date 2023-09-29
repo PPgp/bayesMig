@@ -12,8 +12,9 @@
 \arguments{
 \item{object}{Object of class \code{\link{bayesMig.prediction}}.}
 
-\item{country}{Country name or code if a country-specific summary is desired. 
-The code can be either numeric or ISO-2 or ISO-3 characters. If it is \code{NULL}, only prediction parameters are included.}
+\item{country}{Location name or code if a location-specific summary is desired. 
+The code can be either numeric or (if locations are countries) ISO-2 or ISO-3 characters. 
+If it is \code{NULL}, only prediction meta info is included.}
 
 \item{compact}{Logical switching between a smaller and larger number of displayed quantiles.}
 
@@ -24,7 +25,10 @@ The code can be either numeric or ISO-2 or ISO-3 characters. If it is \code{NULL
 \item{digits}{Minimal number of significant digits.}
 }
 \description{
-Country-specific summary of an object of class \code{\link{bayesMig.prediction}}, 
+Summary of an object of class \code{\link{bayesMig.prediction}}, 
     created using the function \code{\link{mig.predict}}. The summary contains the mean, 
     standard deviation and several commonly used quantiles of the simulated trajectories.
+}
+\examples{
+# See example in ?mig.predict
 }

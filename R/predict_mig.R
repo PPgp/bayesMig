@@ -3,7 +3,7 @@
 #' @description Using the posterior parameter samples simulated by \code{\link{run.mig.mcmc}},
 #' generate posterior trajectories for the net migration rates for all countries of
 #' the world, or all locations included in the estimation. This code \emph{does not} adjust trajectories to ensure that net
-#' migration counts sum to zero. 
+#' migration counts over all countries sum to zero. 
 #' 
 #' @param mcmc.set Object of class \code{bayesMig.mcmc.set} corresponding to sampled
 #' parameter values for net migration model. If it is \code{NULL}, the object
@@ -15,8 +15,9 @@
 #' \code{output.dir} will be replaced by results of this run.
 #' @param start.year Start year of the prediction, i.e. the first predicted year. By default the prediction is 
 #' started at the next time period after \code{present.year} set in the estimation
-#' step. If \code{start.year} is smaller than the default, projections for locations
-#' and time periods that have data available after \code{start.year} are set to those data.
+#' step. If \code{start.year} is smaller than the default, the behavior is controlled by 
+#' the \code{post.last.observed} argument: Either data post \code{start.year} is ignored (default)
+#' or the projection is set to the available data (\code{post.last.observed = "a"}).
 #' @param nr.traj Number of trajectories to be generated. 
 #' If \code{NULL}, the argument \code{thin} is taken to determine the number of 
 #' trajectories. If both are \code{NULL}, the number of trajectories
@@ -24,18 +25,25 @@
 #' @param thin Thinning interval used for determining the number of trajectories. 
 #' Only relevant if \code{nr.traj} is \code{NULL}.
 #' @param burnin Number of iterations to be discarded from the beginning of the parameter traces.
-#' @param use.cummulative.threshold If \code{TRUE} a historical cummulative threshold is applied 
-#'    derived from all rates, while for non-GCC countries the GCC countries are excluded. 
-#'    Six time periods are used in a 5-year simulation, corresponding to
-#'    30 years in an annual simulation. If this option is used in a non-country simulation,
+#' @param use.cummulative.threshold If \code{TRUE} historical cummulative thresholds are applied
+#'    to avoid sampling rates that are too extreme. The thresholds are
+#'    derived over prior rates of all locations. As a time span for deriving the limits on projected rates, 
+#'    at each projected time point, six prior time periods are used in a 5-year simulation, 
+#'    corresponding to 30 years in an annual simulation.
+#'    In a national simulation, prior rates of GCC countries (plus Western Sahara and Djibouti) are excluded 
+#'    when deriving thresholds for non-GCC countries. If this option is used in a non-country simulation,
 #'    e.g. in a sub-national settings, set the \code{ignore.gcc.in.threshold} argument to \code{TRUE}.
 #' @param ignore.gcc.in.threshold If \code{use.cummulative.threshold} is \code{TRUE}, by default the GCC countries
 #'    (plus Western Sahara and Djibouti) identified by numerical codes of the countries are excluded from computing 
-#'    the historical cummulative thresholds. If this argument is \code{TRUE}, this distinction is not made. 
+#'    the historical cummulative thresholds for non-GCC countries. If this argument is \code{TRUE}, this distinction is not made. 
+#'    It is important to set it to \code{TRUE} in a sub-national simulation to avoid any random overlaps 
+#'    of UN codes and user-defined codes.
 #' @param post.last.observed If a user-specific data file was used during estimation and the data 
 #'     contained the \dQuote{last.observed} column, this argument determines how to treat the time periods 
 #'     between the last observed point and the start year of the prediction, for locations where there is
-#'     a gap between them, or if short-term predictions were included in the file. Possible values are:
+#'     a gap between them, or if short-term predictions were included in the file. It is also relevant
+#'     if \code{start.year} is set to a smaller value than \code{present.year} in the estimation.
+#'     Possible values are:
 #'     
 #' * \dQuote{obsdata} or \dQuote{o} (default) uses any non-missing observed data 
 #'     provided in the data file during estimation, up to the time point defined by the argument \code{start.year} 
@@ -49,14 +57,16 @@
 #'     and impute the missing time periods.
 #' @param save.as.ascii Either a number determining how many trajectories should be
 #' converted into an ASCII file, or 'all' in which case all trajectories are converted.
-#' It should be set to 0 if no conversion is desired.
+#' It should be set to 0 if no conversion is desired. If this argument 
+#' is larger than zero, the resulting file can be used as input into population projection via \pkg{bayesPop},
+#' see Details.
 #' @param output.dir Directory into which the resulting prediction object and the 
 #' trajectories are stored. If it is \code{NULL}, it is set to either \code{sim.dir},
 #' or to \code{output.dir} of \code{mcmc.set$meta} if \code{mcmc.set} is given.
 #' @param seed Seed of the random number generator. If \code{NULL} no seed is set. 
 #' Can be used to generate reproducible projections.
 #' @param verbose Logical value. Switches log messages on and off.
-#' @param ... Other arguments passed to \code{\link{mig.predict}}
+#' @param \dots Further arguments passed to the underlying functions.
 #' 
 #' @details The trajectories of net migration rates for each location are generated using the model of Azose & Raftery (2015).
 #' Parameter samples  simulated via \code{\link{run.mig.mcmc}} are used from all chains, from which the given \code{burnin} 
@@ -71,22 +81,35 @@
 #' 
 #' A special case is when the argument \code{start.year} is given that is smaller than or equal to
 #' the present year. In such a case, imputed missing values before present year are treated 
-#' as ordinary predictions (trajectories are kept). All historical data between start year 
-#' and present year are used as projections.
+#' as ordinary predictions (trajectories are kept). If \code{post.last.observed} is \dQuote{a}, 
+#' all historical data between start year and present year are used as projections.
 #' 
 #' The resulting prediction object is saved into \file{\{output.dir\}/predictions}. Trajectories 
 #' for all locations are saved into the same directory in a binary format, one file per location. 
 #' At the end of the projection, if \code{save.as.ascii} is larger than 0, the function converts 
-#' the given number of trajectories into a CSV file. They are selected by equal spacing. 
-#' In addition, two summary files are created: one in a user-friendly format, the other using 
-#' a UN-specific coding.
+#' the given number of trajectories into a CSV file, called \file{ascii_trajectories.csv} also located
+#' in the \file{predictions} directory. The converted trajectories are selected by equal spacing. 
+#' In addition to the converted trajectories, two summary files are created: one in a user-friendly format, the other using 
+#' a UN-specific coding, as described in \code{\link{mig.write.projection.summary}}.
 #' 
-#' @return A list with 11 components. Key result component is an array of \code{quantiles} with dimensions
+#' If it is desired to use these predictions as input to population projections in \pkg{bayesPop},
+#' enter the full file path of the \file{ascii_trajectories.csv} file into the \code{inputs} argument 
+#' of \code{bayesPop::pop.predict} as item \code{migtraj} and set the argument \code{mig.is.rate} appropriately.
+#' 
+#' @return Object of class \code{bayesMig.prediction} which is a list with components
+#' containing details of the prediction. Key result component is an array of \code{quantiles} with dimensions
 #' (number of locations) x (number of computed quantiles) x (number of projected time points).
 #' First time point in the sequence is not a projection, but the last observed time period.
 #' 
 #' Other key result components include \code{traj.mean.sd}, a summary of means and standard deviations for each country
 #' at each time point. See \code{\link[bayesTFR]{bayesTFR.prediction}} for more detail.
+#' 
+#' @references Azose, J. J., & Raftery, A. E. (2015). 
+#' Bayesian probabilistic projection of international migration. Demography, 52(5), 1627-1650.
+#' \doi{10.1007/s13524-015-0415-0}.
+#' 
+#' Azose, J.J., Ševčíková, H., Raftery, A.E. (2016): Probabilistic population projections with migration uncertainty. 
+#' Proceedings of the National Academy of Sciences 113:6460–6465. \doi{10.1073/pnas.1606119113}.
 #' 
 #' @examples
 #' # Toy simulation for US states
@@ -97,9 +120,14 @@
 #' 
 #' # Prediction
 #' pred <- mig.predict(sim.dir = sim.dir, burnin = 5, end.year = 2050)
+#
 #' # here unrealistic results since this is a toy simulation 
 #' mig.trajectories.plot(pred, "Hawaii", pi = 80, ylim = c(-0.02, 0.02)) 
 #' mig.trajectories.table(pred, "Hawaii")
+#' summary(pred, "California")
+#' 
+#' # view locations included in the simulation
+#' get.countries.table(pred)
 #' 
 #' unlink(sim.dir, recursive = TRUE)
 #' # For projections on national level, see ?bayesMig.

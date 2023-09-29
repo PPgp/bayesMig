@@ -1,6 +1,6 @@
 # bayesMig
 
-[![R build status](https://github.com/PPgp/bayesMig/workflows/R-CMD-check/badge.svg)](https://github.com/PPgp/bayesMig/actions?workflow=R-CMD-check)
+[![R-CMD-check](https://github.com/PPgp/bayesMig/actions/workflows/check-standard.yaml/badge.svg?branch=main&event=push)](https://github.com/PPgp/bayesMig/actions/workflows/check-standard.yaml)
 
 R package for probabilistic projections of net migration rate for all countries of the world or for subnational units, using a Bayesian hierarchical model by [Azose and Raftery (2015)](https://doi.org/10.1007/s13524-015-0415-0).
 

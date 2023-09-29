@@ -80,7 +80,10 @@ Generates a world map of the net migration rate for given quantile and
     country-specific model parameters is also supported.
 }
 \details{
-\code{mig.map} creates a single map for the given time period and quantile. 
+The functions only work for national simulations where location codes 
+    correspond to the countries' UN codes.  
+    
+    \code{mig.map} creates a single map for the given time period and quantile. 
     \code{mig.map.all} generates a sequence of maps, namely one for each projection period. 
     If the package \pkg{fields} is installed, a color bar legend at the botom of the map is created.
     

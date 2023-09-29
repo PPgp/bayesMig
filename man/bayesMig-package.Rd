@@ -9,7 +9,8 @@
 Collection of functions for making probabilistic projections of net migration rate for all countries of the world,
 using a Bayesian hierarchical model (BHM) and the United Nations demographic time series. The model can be also applied
 to user-defined data for other locations, such as subnational units.
-Methodological details are provided in Azose & Raftery (2015).
+Methodological details are provided in Azose & Raftery (2015). The projected rates can be used
+as input to population projections generated via the \pkg{bayesPop} package.
 }
 \details{
 The package is implemented in a similar way as the \pkg{bayesTFR}
@@ -48,7 +49,14 @@ Existing convergence diagnostics can be accessed using the \code{\link{get.mig.c
 \code{\link{get.mig.convergence.all}} functions.
 
 Historical data on migration rates are taken from the \pkg{wpp2019} (default), \pkg{wpp2022} or \pkg{wpp2017} package,
-depending on users settings. Alternatively, users can input their own data.
+depending on users settings. Alternatively, users can input their own data. These can be either
+5-year or annual time series. An example file with historical annual US migration rates is included
+in the package. Its usage is shown in the Example of \code{\link{mig.predict}}.
+}
+\note{
+As this package has been designed for simulating migration on a national level, many
+functions use arguments and terminology related to countries. However, a \dQuote{country}
+is to be interpreted as any location included in the simulation.
 }
 \examples{
 \dontrun{
@@ -57,7 +65,8 @@ sim.dir <- tempfile()
 m <- run.mig.mcmc(nr.chains = 4, iter = 10000, thin = 10, output.dir = sim.dir,
         verbose.iter = 1000)
 
-# Prediction for all countries
+# Prediction for all countries 
+# (use argument save.as.ascii for passing predictions into bayesPop)
 pred <- mig.predict(sim.dir = sim.dir, nr.traj = 1000, burnin = 1000)
 
 # Explore results
@@ -68,6 +77,7 @@ mig.trajectories.plot(pred, country = "Germany", nr.traj = 50)
 mig.diagnose(sim.dir, burnin = 4000, thin = 1)
 
 unlink(sim.dir, recursive = TRUE)
+# For annual projections on sub-national level, see ?mig.predict.
 }
 
 }
@@ -75,6 +85,9 @@ unlink(sim.dir, recursive = TRUE)
 Azose, J. J., & Raftery, A. E. (2015).
 Bayesian probabilistic projection of international migration. Demography, 52(5), 1627-1650.
 \doi{10.1007/s13524-015-0415-0}.
+
+Azose, J.J., Ševčíková, H., Raftery, A.E. (2016): Probabilistic population projections with migration uncertainty.
+Proceedings of the National Academy of Sciences 113:6460–6465. \doi{10.1073/pnas.1606119113}.
 }
 \author{
 Jon Azose, Hana Sevcikova and Adrian Raftery

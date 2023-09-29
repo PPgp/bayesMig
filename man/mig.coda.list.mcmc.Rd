@@ -20,7 +20,7 @@ mig.coda.list.mcmc(
 If \code{NULL}, the MCMCs are
 loaded from \code{sim.dir}. Either \code{mcmc} or \code{sim.dir} must be given.}
 
-\item{country}{Country name or code. Used in connection with the \code{par.names.cs} argument
+\item{country}{Location name or code. Used in connection with the \code{par.names.cs} argument
 (see below).}
 
 \item{chain.ids}{Vector of chain identifiers. By default, all chains available in the \code{mcmc.list}
@@ -33,7 +33,7 @@ those returned by the \code{mig.parameter.names} function, which includes all co
 parameters in the BHM.}
 
 \item{par.names.cs}{Names of country-specific parameters to be included. The argument \code{country}
-is used to filter out traces that correspond to a specific country. If \code{country} is not given, 
+is used to filter out traces that correspond to a specific location. If \code{country} is not given, 
 traces of each parameter are given for all countries. Default names are those returned by 
 \code{mig.parameter.names.cs()}, which includes all country-specific parameters in the BHM.}
 

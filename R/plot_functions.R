@@ -24,7 +24,7 @@
 #'     device (\code{FALSE}) or into an existing device (\code{TRUE}). One can use this argument to plot
 #'     trajectories from multiple countries into one graphics.
 #' @param scale Logical. If \code{TRUE}, values are scaled to be \dQuote{per population}, i.e. 
-#'     they are divided by \code{pop.denom} passed to \code{\link{mig.predict}}.
+#'     they are divided by \code{pop.denom} passed to \code{\link{run.mig.mcmc}}.
 #' @param \dots Additional graphical parameters. In addition, for \code{mig.trajectories.plot.all} 
 #'     any of the arguments of \code{tfr.trajectories.plot} can be passed here.
 #'     
@@ -328,7 +328,10 @@ mig.pardensity.cs.plot <- function(country, mcmc.list = NULL, sim.dir = file.pat
 #'     to \code{\link[bayesTFR]{tfr.map.gvis}}. In \code{e0.ggmap}, \dots are arguments that can be passed 
 #'     to \code{\link[bayesTFR]{tfr.ggmap}}. In addition, functions that use the \pkg{rworldmap} package accept 
 #'     arguments passed to the \code{\link[rworldmap]{mapCountryData}} function of the \pkg{rworldmap} package.
-#' @details \code{mig.map} creates a single map for the given time period and quantile. 
+#' @details The functions only work for national simulations where location codes 
+#'     correspond to the countries' UN codes.  
+#'     
+#'     \code{mig.map} creates a single map for the given time period and quantile. 
 #'     \code{mig.map.all} generates a sequence of maps, namely one for each projection period. 
 #'     If the package \pkg{fields} is installed, a color bar legend at the botom of the map is created.
 #'     

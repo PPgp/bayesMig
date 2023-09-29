@@ -10,7 +10,7 @@ mig.parameter.names()
 mig.parameter.names.cs(country.code = NULL)
 }
 \arguments{
-\item{country.code}{Country code. If it is given, the country-specific parameter names contain 
+\item{country.code}{Location code. If it is given, the country-specific parameter names contain 
 the suffix \sQuote{_country\eqn{X}} where \eqn{X} is the \code{country.code}.}
 }
 \value{

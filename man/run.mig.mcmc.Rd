@@ -40,13 +40,12 @@ run.mig.mcmc(
 
 \item{output.dir}{A file path pointing to the directory in which to store results.}
 
-\item{thin}{Thinning interval -- A chain with 1000 iterations thinned by 20 will return a 
+\item{thin}{Thinning interval. A chain with 1000 iterations thinned by 20 will return a 
 final count of 50 iterations.}
 
 \item{replace.output}{If the specified output directory already exists, should it be overwritten?}
 
-\item{annual}{If \code{TRUE}, the model assumes the underlying data is on annual time scale. 
-In such a case, argument \code{my.mig.file} must be used to provide the annual observed data.}
+\item{annual}{If \code{TRUE}, the model assumes the underlying data is on annual time scale.}
 
 \item{start.year}{Start year for using historical data.}
 
@@ -58,7 +57,8 @@ historical migration rates using the
 \code{\link[wpp2019]{migration}} and \code{\link[wpp2019]{pop}} datasets.}
 
 \item{my.mig.file}{File name containing user-specified historical time series of migration rates 
-for all locations that should be included in the simulation. It should be a tab-separated file.}
+for all locations that should be included in the simulation. It should be a tab-separated file.
+For structure, see Details below.}
 
 \item{sigma.c.min, a.ini, mu.ini}{Settings for the parameters
 of the model (see Azose & Raftery 2015), such as minimum value and initial values.
@@ -73,12 +73,14 @@ yield satisfactory results, use the function \code{\link{estimate.a.hw}} to esti
 an appropriate value, based on an existing simulation. Also it is important to set the \code{pop.denom}
 argument correctly.}
 
-\item{exclude.from.world}{Vector of location codes that should not influence the hyperparameters. 
-However, location-specific parameters will be generated for these locations.}
+\item{exclude.from.world}{Vector of location codes that should be excluded from estimating the hyperparameters. 
+These would be for example small locations or locations with unusual patters. 
+Note that location-specific parameters are generated for all locations, regardless of this setting.}
 
 \item{pop.denom}{Denominator used to generate the input migration rates. It is used to derive an appropriate scaler 
 for the priors and conditional distributions. Typically, this will be either 1 (default) if the rates are 
-defined as per population, or 1000, if the rates are per 1000 population.}
+defined as per population, or 1000, if the rates are per 1000 population. 
+Use this argument only if user-specified rates are supplied via the \code{my.mig.file} argument.}
 
 \item{seed}{Seed of the random number generator. If \code{NULL} no seed is set. It can be used to generate reproducible results.}
 
@@ -89,7 +91,7 @@ By default it equals to the number of chains.}
 
 \item{buffer.size}{Buffer size (in number of iterations) for keeping data in the memory before flushing to disk.}
 
-\item{verbose}{Whether or not to print status updates to console window while code is running.}
+\item{verbose}{Whether or not to print status updates to console window while the code is running.}
 
 \item{verbose.iter}{If verbose is TRUE, the number of iterations to wait between printing updates.}
 
@@ -99,15 +101,17 @@ By default it equals to the number of chains.}
 An object of class \code{bayesMig.mcmc.set} which is a list with two components:
 \item{meta}{An object of class \code{bayesMig.mcmc.meta}. It contains information that is common to all chains.
     Most items are the same as in \code{\link[bayesTFR]{bayesTFR.mcmc.meta}}. In addition, \code{mig.rates}
-    is a matrix of the observed migration rates and \code{user.data} is a logical indicating 
-    if the migration rates are given by the user (\code{TRUE}) or are taken from the \pkg{wpp} package
+    is a matrix of the observed migration rates with \code{NA}s in spots that were not used 
+    for estimation. \code{mig.rates.all} is a similar matrix but contains all data, regardless
+    if used for estimation or not. Item \code{user.data} is a logical indicating 
+    if the migration rates are given by the user (\code{TRUE}) or are taken from a \pkg{wpp} package
     (\code{FALSE}).}
 \item{mcmc.list}{A list of objects of class \code{bayesMig.mcmc}, one for each MCMC. 
     Information stored here is specific to each MCMC chain, similarly to \code{\link[bayesTFR]{bayesTFR.mcmc}}.}
 }
 \description{
 Runs MCMCs for simulating the net migration rate of all countries of the
-world (or locations specified by users), using the Bayesian hierarchical model of Azose & Raftery (2015).
+world or for locations specified by users, using the Bayesian hierarchical model of Azose & Raftery (2015).
 }
 \details{
 The function creates an object of class \code{\link{bayesMig.mcmc.meta}} and 
@@ -131,9 +135,11 @@ is considered at the end of the year. If \code{wpp.year} is smaller than 2022 an
 the default dataset is interpolated from 5-year data.
 
 The argument \code{my.mig.file} can be used to overwrite the default data. It should be a tab-separated file.
-If it is used, it should contain the net migration rate for all locations to be used in the simulation, as no WPP data is used 
+If it is used, it should contain net migration rates for all locations to be used in the simulation, as no WPP data is used 
 in such a case. The structure of the file has the same format as the \code{\link[wpp2019]{migration}} dataset,
-but the values should be rates (instead of counts). Each row corresponds to a location. It does not have 
+but the values should be rates (instead of counts). Use the argument \code{pop.denom} to define the scale of the 
+denominator in these rates, i.e. if the rates are to be interpreted as per population (default) or some other scale. 
+Each row in the \code{my.mig.file} file corresponds to a location. It does not have 
 to be necessarily a country - it can be for example a subnational unit. It must contain columns 
 \dQuote{country_code} or \dQuote{code} (unique identifier of the location), \dQuote{name}, and columns representing 
 5-year time intervals (if \code{annual} is \code{FALSE}), e.g., \dQuote{1995-2000}, \dQuote{2000-2005} etc., or single years
@@ -158,10 +164,13 @@ excluded but location-specific parameters are generated; value 0 means the locat
 # Toy simulation for US states
 us.mig.file <- file.path(find.package("bayesMig"), "extdata", "USmigrates.txt")
 sim.dir <- tempfile()
-m <- run.mig.mcmc(nr.chains = 2, iter = 30, thin = 1, my.mig.file = us.mig.file, 
+m <- run.mig.mcmc(nr.chains = 3, iter = 100, thin = 1, my.mig.file = us.mig.file, 
         annual = TRUE, output.dir = sim.dir)
 summary(m)
 summary(m, "Washington")
+
+mig.partraces.plot(m)
+mig.partraces.cs.plot("California", m)
 
 # later one can access the object from disk
 m <- get.mig.mcmc(sim.dir)

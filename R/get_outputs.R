@@ -256,7 +256,7 @@ mig.parameter.names <- function() {
   return(c("a","b","mu_global","sigma2_mu"))
 }
 
-#' @param country.code Country code. If it is given, the country-specific parameter names contain 
+#' @param country.code Location code. If it is given, the country-specific parameter names contain 
 #'     the suffix \sQuote{_country\eqn{X}} where \eqn{X} is the \code{country.code}.
 #'     
 #' @return \code{mig.parameter.names.cs} returns names of the country-specific parameters.
@@ -314,7 +314,7 @@ coda.mcmc.bayesMig.mcmc <- function(mcmc, country=NULL, par.names=NULL,
 #' @param mcmc.list A list of objects of class \code{bayesMig.mcmc}, or an object of class \code{\link{bayesMig.mcmc.set}} or \code{\link{bayesMig.prediction}}.
 #' If \code{NULL}, the MCMCs are
 #' loaded from \code{sim.dir}. Either \code{mcmc} or \code{sim.dir} must be given.
-#' @param country Country name or code. Used in connection with the \code{par.names.cs} argument
+#' @param country Location name or code. Used in connection with the \code{par.names.cs} argument
 #' (see below).
 #' @param chain.ids Vector of chain identifiers. By default, all chains available in the \code{mcmc.list}
 #' object are included.
@@ -323,7 +323,7 @@ coda.mcmc.bayesMig.mcmc <- function(mcmc, country=NULL, par.names=NULL,
 #' those returned by the \code{mig.parameter.names} function, which includes all country-independent
 #' parameters in the BHM.
 #' @param par.names.cs Names of country-specific parameters to be included. The argument \code{country}
-#' is used to filter out traces that correspond to a specific country. If \code{country} is not given, 
+#' is used to filter out traces that correspond to a specific location. If \code{country} is not given, 
 #' traces of each parameter are given for all countries. Default names are those returned by 
 #' \code{mig.parameter.names.cs()}, which includes all country-specific parameters in the BHM.
 #' @param low.memory Logical indicating if the function should run in a memory-efficient mode.
@@ -575,7 +575,7 @@ summary.bayesMig.mcmc <- function(object, country = NULL,
   if(missing(par.names.cs)) par.names.cs <- mig.parameter.names.cs()
   if (!is.null(country)) {
     country.obj <- get.country.object(country, object$meta)
-    if(is.null(country.obj$name)) stop("Country ", country, " not found.")
+    if(is.null(country.obj$name)) stop("Location ", country, " not found.")
     res$country.name <- country.obj$name
     country <- country.obj$code
   } 
@@ -587,23 +587,25 @@ summary.bayesMig.mcmc <- function(object, country = NULL,
 #' @title Summary Statistics for Migration Markov Chain Monte Carlo 
 #'
 #' @description Summary of an object \code{\link{bayesMig.mcmc.set}} or \code{\link{bayesMig.mcmc}},
-#'     computed via \code{\link{run.mig.mcmc}}.  It can be obtained either for all countries or 
-#'     for a specific country, and either for all parameters or for specific parameters.
+#'     computed via \code{\link{run.mig.mcmc}}.  It can be obtained either for all locations or 
+#'     for a specific location, and either for all parameters or for specific parameters.
 #'     The function uses the \code{\link[coda]{summary.mcmc}} function of the \pkg{coda} package.
 #' 
 #' @param object Object of class \code{\link{bayesMig.mcmc.set}} or \code{\link{bayesMig.mcmc}}.
-#' @param country Country name or code if a country-specific summary is desired. 
-#'     The code can be either numeric or ISO-2 or ISO-3 characters. By default, summary 
-#'     for all countries is generated.
+#' @param country Location name or code if a location-specific summary is desired. The code can be either numeric 
+#'     or (if locations are countries) ISO-2 or ISO-3 characters. By default, summary 
+#'     for all locations is generated.
 #' @param chain.id Identifiers of MCMC chains. By default, all chains are considered.
-#' @param par.names Country independent parameters to be included in the summary. 
+#' @param par.names Country independent parameters (hyperparameters) to be included in the summary. 
 #'     The default names are given by \code{\link{mig.parameter.names}()}.
-#' @param par.names.cs Country-specific parameters to be included in the summary.
+#' @param par.names.cs Location-specific parameters to be included in the summary.
 #'     The default names are given by \code{\link{mig.parameter.names.cs}()}.
 #' @param meta.only Logical. If it is \code{TRUE}, only meta information of the simulation is included.
 #' @param thin Thinning interval. Only used if larger than the \code{thin} argument used in \code{\link{run.mig.mcmc}}.
 #' @param burnin Number of iterations to be discarded from the beginning of each chain before computing the summary.
 #' @param \dots Additional arguments passed to the \code{\link[coda]{summary.mcmc}} function of the \pkg{coda} package.
+#' @examples
+#' # See example in ?run.mig.mcmc
 #' @export
 #' @rdname summary-mcmc
 #' 
@@ -628,7 +630,7 @@ summary.bayesMig.mcmc.set <- function(object, country=NULL, chain.id=NULL,
   }
   if (!is.null(country)) {
     country.obj <- get.country.object(country, object$meta)
-    if(is.null(country.obj$name)) stop("Country ", country, " not found.")
+    if(is.null(country.obj$name)) stop("Location ", country, " not found.")
     res$country.name <- country.obj$name
     country <- country.obj$code
   }
@@ -685,7 +687,7 @@ print.bayesMig.mcmc <- function(x, ...) {
 #' @export
 print.summary.bayesMig.mcmc <- function(x, ...) {
   if(!is.null(x$country.name)){
-    cat('\nCountry:', x$country.name, '\n')
+    cat('\nLocation:', x$country.name, '\n')
     if (is.null(x$results))
       cat('\tnot used for estimation.\n')
   }
@@ -711,15 +713,18 @@ print.bayesMig.prediction <- function(x, ...) {
 
 #' @title Summary of Prediction of Net Migration Rate
 #'
-#' @description Country-specific summary of an object of class \code{\link{bayesMig.prediction}}, 
+#' @description Summary of an object of class \code{\link{bayesMig.prediction}}, 
 #'     created using the function \code{\link{mig.predict}}. The summary contains the mean, 
 #'     standard deviation and several commonly used quantiles of the simulated trajectories.
 #' 
 #' @param object Object of class \code{\link{bayesMig.prediction}}.
-#' @param country Country name or code if a country-specific summary is desired. 
-#'     The code can be either numeric or ISO-2 or ISO-3 characters. If it is \code{NULL}, only prediction parameters are included.
+#' @param country Location name or code if a location-specific summary is desired. 
+#'     The code can be either numeric or (if locations are countries) ISO-2 or ISO-3 characters. 
+#'     If it is \code{NULL}, only prediction meta info is included.
 #' @param compact Logical switching between a smaller and larger number of displayed quantiles.
 #' @param \dots A list of further arguments.
+#' @examples
+#' # See example in ?mig.predict
 #' @export
 #' @rdname summary-prediction
 #' 
@@ -741,13 +746,13 @@ print.summary.bayesMig.prediction <- function(x, digits = 3, ...) {
       x$projection.years[length(x$projection.years)], ')')
   cat('\nTrajectories:', x$nr.traj)
   cat('\nBurnin:', x$burnin)
-  
+  cat('\n')
   if(!is.null(x$country.name)) {
-    cat('\nCountry:', x$country.name, '\n')
+    cat('\nLocation:', x$country.name, '\n')
     cat('\nProjected Migration Rate:')
     cat('\n')
     print(x$projections, digits=digits, ...)
-  }
+  } 
 }
 
 #' @title Summary of Convergence Diagnostics
