@@ -6,6 +6,8 @@ R package for probabilistic projections of net migration rate for all countries 
 
 ### Installation
 
+The package can be installed from CRAN. For the latest developer version, one can use
+
 ```
 library(devtools)
 install_github("PPgp/bayesMig")
@@ -19,7 +21,7 @@ The two main functions of the package are:
 * `run.mig.mcmc`: Runs a Markov Chain Monte Carlo (MCMC) simulation. It results in posterior samples of the model parameters.
 * `mig.predict`: Using the posterior parameter samples, trajectories of future net migration rates are generated for all countries or given locations.
 
-See `?bayesMig` for more info.
+It can be used for 5-year data or annual data. See `?bayesMig` for more info.
 
 
 #### Example
