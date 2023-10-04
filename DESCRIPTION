@@ -1,10 +1,10 @@
 Package: bayesMig
-Version: 0.4-5
+Version: 0.4-6
 Date: 2023-09-29
 Title: Bayesian Projection of Migration
 Authors@R: c(person("Jon", "Azose", role = "aut"),
             person("Hana", "Sevcikova", email = "hanas@uw.edu", role = c("aut", "cre")),
-            person("Adrian", "Raftery", role = c("ctb", "fnd")))
+            person("Adrian", "Raftery", role = c("aut")))
 Depends: R (>= 3.5.0), bayesTFR
 Imports: coda, truncnorm, wpp2019
 Suggests: 

@@ -21,6 +21,7 @@
 #' @seealso \code{\link{run.mig.mcmc}}
 #' 
 #' @examples
+#' \donttest{
 #' # Toy simulation
 #' sim.dir <- tempfile()
 #' m <- run.mig.mcmc(nr.chains = 1, iter = 10, output.dir = sim.dir)
@@ -32,7 +33,7 @@
 #' has.mig.mcmc(sim.dir) # should be TRUE
 #' 
 #' unlink(sim.dir, recursive = TRUE)
-#'
+#' }
 #' @export
 #' @rdname get-mcmc
 

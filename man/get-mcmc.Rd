@@ -38,6 +38,7 @@ Function \code{get.mig.mcmc} retrieves results of an MCMC simulation and creates
 \code{\link{bayesMig.mcmc.set}}. Function \code{has.mig.mcmc} checks the existence of such results.
 }
 \examples{
+\donttest{
 # Toy simulation
 sim.dir <- tempfile()
 m <- run.mig.mcmc(nr.chains = 1, iter = 10, output.dir = sim.dir)
@@ -49,7 +50,7 @@ summary(m)
 has.mig.mcmc(sim.dir) # should be TRUE
 
 unlink(sim.dir, recursive = TRUE)
-
+}
 }
 \seealso{
 \code{\link{run.mig.mcmc}}
