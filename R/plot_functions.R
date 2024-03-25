@@ -101,7 +101,7 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
     }
     if(is.null(main)) main <- country$name
     plot(xlim, ylim, type='n', xlim=xlim, ylim=ylim, ylab=ylab, xlab=xlab, main=main, 
-         panel.first = grid())
+         panel.first = grid(), ...)
   }
   points.x <- x1[1:lpart1]
   points.y <- y1.part1

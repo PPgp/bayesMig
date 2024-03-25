@@ -1,6 +1,6 @@
 Package: bayesMig
-Version: 0.4-6
-Date: 2023-09-29
+Version: 0.4-6.9001
+Date: 2024-03-24
 Title: Bayesian Projection of Migration
 Authors@R: c(person("Jon", "Azose", role = "aut"),
             person("Hana", "Sevcikova", email = "hanas@uw.edu", role = c("aut", "cre")),
