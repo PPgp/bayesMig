@@ -22,8 +22,11 @@ mcmc.update.mu.c <- function(country, mcmc){
   
   mean <- variance*((1-mcmc$phi_c[country])/mcmc$sigma2_c[country]*sum(mig.rates.c[not.missing[-1]]-mcmc$phi_c[country]*mig.rates.c[not.missing[-bigT]]) +
                       mcmc$mu_global/mcmc$sigma2_mu)
-  #cat("Country",country,"Variance",variance,"\n")
+  #if(country == 20) cat("Country",country,"Variance",variance, "Mean", mean,
+  #                      "cnty mean part", (1-mcmc$phi_c[country])/mcmc$sigma2_c[country]*sum(mig.rates.c[not.missing[-1]]-mcmc$phi_c[country]*mig.rates.c[not.missing[-bigT]]),
+  #                      "global part", mcmc$mu_global/mcmc$sigma2_mu, "\n")
   updated.mu.c <- rnorm(n=1,mean=mean,sd=sqrt(variance))
+  #if(country == 20) stop("")
   mcmc$mu_c[country] <- updated.mu.c
   return()
 }

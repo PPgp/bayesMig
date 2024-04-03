@@ -414,6 +414,49 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	invisible(bayesMig.prediction)
 }
 
+#' @title Converting Trajectories of Migration Rates into ACSII Files
+#'
+#' @description Converts trajectories of the net migration rates stored 
+#'     in a binary format into two CSV files. 
+#' 
+#' @param sim.dir Directory containing the prediction object. It should be the same as
+#'     the \code{output.dir} argument in \code{\link{mig.predict}}.
+#' @param n Number of trajectories to be stored. It can be either a single number 
+#'     or the word \dQuote{all} in which case all available trajectories are converted.
+#'     If the number is smaller than the number of trajectories available 
+#'     in the prediction object, they are selected by equal spacing.
+#' @param output.dir Directory into which the resulting files will be stored. 
+#'     If it is \code{NULL}, the same directory is used as for the prediction.
+#' @param verbose Logical value. Switches log messages on and off.
+#' 
+#' @details The function creates two files. First, \dQuote{ascii_trajectories.csv}
+#'     is a comma-separated table with the following columns: 
+#'     \itemize{\item{\dQuote{LocID}: }{country code} 
+#'         \item{\dQuote{Period}: }{prediction interval, e.g. 2015-2020} 
+#'         \item{\dQuote{Year}: }{middle year of the prediction interval}
+#'         \item{\dQuote{Trajectory}: }{identifier of the trajectory}
+#'         \item{\dQuote{mig}: }{net migration rate}
+#'     The second file is called \dQuote{ascii_trajectories_wide.csv}, also 
+#'     a comma-separated table and it contains the same information as above 
+#'     but in a wide format. I.e. the data for one country are 
+#'     ordered in columns, thus, there is one column per country. The country columns 
+#'     are ordered alphabetically. 
+#' @note This function is automatically called from the \code{\link{mig.predict}} 
+#'     function, therefore in standard cases it will not be needed to call it directly. 
+#'     However, it can be useful for example, if different number of trajectories are to be converted, 
+#'     without having to re-run the prediction.
+#' @return No return value.
+#' @seealso \code{\link[bayesTFR]{convert.tfr.trajectories}}, 
+#'   \code{\link{mig.write.projection.summary}}, \code{\link{get.mig.trajectories}}
+#' @export
+#' 
+convert.mig.trajectories <- function(sim.dir = NULL, n = 1000, output.dir = NULL, verbose=FALSE) {
+    # Converts all trajectory rda files into UN ascii, selecting n trajectories by equal spacing.
+    if(n <= 0) return()
+    pred <- get.mig.prediction(sim.dir)
+    outdir <- if (is.null(output.dir)) pred$output.directory else output.dir
+    bayesTFR:::do.convert.trajectories(pred=pred, n=n, output.dir=outdir, verbose=verbose)
+}
 
 remove.mig.traces <- function(mcmc.set) {
 	for (i in 1:length(mcmc.set$mcmc.list))
@@ -436,9 +479,9 @@ get.traj.ascii.header.bayesMig.mcmc.meta <- function(meta, ...)
 #' @return No return value.
 #' @seealso \code{\link[bayesTFR]{write.projection.summary}}
 #' @export
-mig.write.projection.summary <- function(pred, output.dir) {
+mig.write.projection.summary <- function(pred, output.dir, ...) {
 	# one summary file
-    bayesTFR:::do.write.projection.summary(pred, output.dir)
+    bayesTFR:::do.write.projection.summary(pred, output.dir, ...)
 }
 
 get.estimation.years <- function(meta)
@@ -514,4 +557,62 @@ get.migration.thresholds <- function(meta, nperiods=6, ignore.gcc = FALSE) {
     
     df <- data.frame(upper=upper.bounds, upper.nogcc=upper.bounds.nogcc, lower=lower.bounds)
     return(df)
+}
+
+#' @export
+mig.median.set <- function(sim.dir, country, values, years=NULL, ...) {
+    pred <- get.mig.prediction(sim.dir)
+    new.pred <- bayesTFR:::.bdem.median.set(pred, type='mig', country=country, 
+                                            values=values, years=years, ...)
+    store.bayesMig.prediction(new.pred)
+    invisible(new.pred)
+}
+
+#' @export
+get.mig.shift <- function(country.code, pred) return(bayesTFR::get.tfr.shift(country.code, pred))
+
+#' @export
+mig.median.shift <- function(sim.dir, country, reset=FALSE, shift=0, 
+                             from=NULL, to=NULL) {
+    pred <- get.mig.prediction(sim.dir)
+    new.pred <- bayesTFR:::.bdem.median.shift(pred, type='mig', country=country, reset=reset, 
+                                              shift=shift, from=from, to=to)
+    store.bayesMig.prediction(new.pred)
+    invisible(new.pred)
+}
+
+#' @export
+mig.median.reset <- function(sim.dir, countries = NULL) {
+    if(is.null(countries)) {
+        pred <- get.mig.prediction(sim.dir)
+        pred$median.shift <- NULL
+        store.bayesMig.prediction(pred)
+        cat('\nMedians for all countries reset.\n')
+    } else
+        for(country in countries) pred <- mig.median.shift(sim.dir, country, reset=TRUE)
+    invisible(pred)
+}
+
+#' @export
+mig.align.predictions <- function(sim.dir1, sim.dir2, country.codes = NULL, 
+                                  years = NULL, verbose = FALSE){
+    pred1 <- get.mig.prediction(sim.dir1)
+    pred2 <- get.mig.prediction(sim.dir2)
+    cntries1 <- if(is.null(country.codes)) get.countries.table(pred1)$code else country.codes
+    cntries2 <- get.countries.table(pred2)$code
+    avail.years <- dimnames(pred2$quantiles)[[3]]
+    if(is.null(years)) 
+        years <- avail.years
+    else years <- intersect(as.character(years), avail.years)
+    for(cntry in cntries1){
+        cidx <- which(cntries2 == cntry)
+        if(length(cidx) == 0){
+            warning("Country ", cntry, " not found in sim.dir2. No adjustment for this country.")
+            next
+        }
+        adjust.to <- get.median.from.prediction(pred2, cidx, cntry)[years]
+        pred <- mig.median.set(sim.dir1, cntry, values = adjust.to, 
+                               years = as.integer(names(adjust.to)), verbose = verbose)
+    }
+    invisible(pred)
 }

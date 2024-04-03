@@ -47,6 +47,7 @@
 #' 
 mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95), 
                                   nr.traj = 50, mark.estimation.points = FALSE,
+                                  adjusted.only = TRUE, 
                                   xlim=NULL, ylim=NULL, type='b', 
                                   xlab='Year', ylab='Migration rate', main=NULL, lwd=c(2,2,2,2,1), 
                                   col=c('black', 'green', 'red', 'red','#00000020'),
@@ -84,7 +85,7 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   x1 <- as.integer(c(names(y1.part1), names(y1.part2)))
   x2 <- as.numeric(dimnames(mig.pred$quantiles)[[3]])
   trajectories <- bayesTFR:::get.trajectories(mig.pred, country$code, nr.traj=nr.traj)
-  mig.median <- get.median.from.prediction(mig.pred, country$index)
+  mig.median <- get.median.from.prediction(mig.pred, country$index, country$code)
   
   if(scale) { # scale to be interpreted as "per population"
     if(!is.null(trajectories$trajectories)) trajectories$trajectories <- trajectories$trajectories / mig.pred$mcmc.set$meta$prior.scaler
@@ -130,6 +131,7 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   }
   # plot median
   lines(x2, mig.median, type='l', col=col[3], lwd=lwd[3]) 
+
   # plot given CIs
   lty <- 2:(length(pi)+1)
   for (i in 1:length(pi)) {
@@ -143,10 +145,20 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   cols <- c()
   lwds <- c()
   lty <- c(1, lty)
-  median.legend <- 'median'
+  median.legend <- if(adjusted.only) 'median' else 'adj. median'
   legend <- c(legend, median.legend, paste(pi, '% PI', sep=''))
   cols <- c(cols, col[3], rep(col[4], length(pi)))
   lwds <- c(lwds, lwd[3], rep(lwd[4], length(pi)))
+  
+  if(!adjusted.only) { # plot unadjusted median
+      bhm.median <- bayesTFR::get.median.from.prediction(mig.pred, country$index, country$code, adjusted=FALSE)
+      lines(x2, bhm.median, type='l', col=col[3], lwd=lwd[3], lty=max(lty)+1)
+      legend <- c(legend, 'BHM median')
+      cols <- c(cols, col[3])
+      lwds <- c(lwds, lwd[3])
+      lty <- c(lty, max(lty)+1)
+  }
+  
   if(show.legend) {
     legend <- c(legend, 'observed migration')
     cols <- c(cols, col[1])

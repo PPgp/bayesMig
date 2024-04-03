@@ -4,7 +4,7 @@
 \alias{mig.write.projection.summary}
 \title{Writing Projection Summary Files}
 \usage{
-mig.write.projection.summary(pred, output.dir)
+mig.write.projection.summary(pred, output.dir, ...)
 }
 \arguments{
 \item{pred}{Object of class \code{bayesMig.prediction}.}

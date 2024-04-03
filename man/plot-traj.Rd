@@ -12,6 +12,7 @@ mig.trajectories.plot(
   pi = c(80, 95),
   nr.traj = 50,
   mark.estimation.points = FALSE,
+  adjusted.only = TRUE,
   xlim = NULL,
   ylim = NULL,
   type = "b",

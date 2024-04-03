@@ -566,6 +566,13 @@ create.thinned.mig.mcmc <- function(mcmc.set, thin=1, burnin=0, output.dir=NULL,
   invisible(structure(list(meta=meta, mcmc.list=list(thinned.mcmc)), class='bayesMig.mcmc.set'))
 }
 
+#' @export
+get.mig.trajectories <- function(mig.pred, country) {
+    # country can be a name; returns only trajectories
+    return(bayesTFR::get.tfr.trajectories(mig.pred, country=country))
+}
+
+
 
 #' @export
 #' @rdname summary-mcmc
