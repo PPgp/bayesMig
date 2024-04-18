@@ -566,6 +566,19 @@ create.thinned.mig.mcmc <- function(mcmc.set, thin=1, burnin=0, output.dir=NULL,
   invisible(structure(list(meta=meta, mcmc.list=list(thinned.mcmc)), class='bayesMig.mcmc.set'))
 }
 
+#' @title Accessing Trajectories of Net Migration Rate
+#' @description Function for accessing all future trajectories of the net migration rate 
+#'     from a prediction object in a form of an array.
+#'     
+#' @param mig.pred Object of class \code{\link{bayesMig.prediction}}.
+#' @param country Name or numerical code of a country. It can also be given as
+#'     ISO-2 or ISO-3 characters.
+#'     
+#' @details The function loads projected trajectories of net migration rate for the given country from disk
+#'     and returns it as a matrix.
+#'     
+#' @return Array of size the number of projection periods (including the present year) times the number of trajectories.
+#' @seealso \code{\link{bayesMig.prediction}}, \code{\link{get.mig.prediction}}, \code{\link{mig.trajectories.table}}
 #' @export
 get.mig.trajectories <- function(mig.pred, country) {
     # country can be a name; returns only trajectories

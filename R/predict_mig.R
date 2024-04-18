@@ -436,6 +436,7 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 #'         \item{\dQuote{Year}: }{middle year of the prediction interval}
 #'         \item{\dQuote{Trajectory}: }{identifier of the trajectory}
 #'         \item{\dQuote{mig}: }{net migration rate}
+#'     }
 #'     The second file is called \dQuote{ascii_trajectories_wide.csv}, also 
 #'     a comma-separated table and it contains the same information as above 
 #'     but in a wide format. I.e. the data for one country are 
@@ -476,6 +477,9 @@ get.traj.ascii.header.bayesMig.mcmc.meta <- function(meta, ...)
 #'     time and the variants.
 #' @param pred Object of class \code{bayesMig.prediction}.
 #' @param output.dir Directory where output is written.
+#' @param \dots Additional arguments passed to the underlying functions. 
+#'     Here, argument \code{precision} can be set to determine the number 
+#'     of significant digits (default is 4).
 #' @return No return value.
 #' @seealso \code{\link[bayesTFR]{write.projection.summary}}
 #' @export
@@ -559,7 +563,30 @@ get.migration.thresholds <- function(meta, nperiods=6, ignore.gcc = FALSE) {
     return(df)
 }
 
+#' @title Adjusting the Projection Medians
+#' 
+#' @description These functions are to be used by expert analysts. They allow to 
+#'     change the projection medians either to specific values, or shift the medians 
+#'     by a given constant or align one projection object with another.
+#'     
+#' @param sim.dir Directory containing the prediction object.
+#' @param country Name or numerical code of a country.
+#' @param values Vector of the new median values.
+#' @param years Numeric vector giving years for which to change the median. 
+#'     In \code{mig.median.set} it gives years which \code{values} correspond to.
+#'     Ideally it should be of the same length as \code{values}. If it is \code{NULL}, 
+#'     \code{values} are set starting from the first prediction time period. 
+#'     If \code{values} correspond to consecutive years, only the first year might be given here.
+#'     In \code{mig.align.predictions} it gives years for which the medians should be aligned.  
+#' @param \dots Additional arguments passed to the underlying adjustment function. 
+#'     It can be \code{verbose} to show/hide the progress of the adjustment.
+#' 
+#' @details The function \code{mig.median.set} can be used to set the medians of the
+#'     given country to specific values.
+#'    
+#' @return All functions return an updated object of class \code{\link{bayesMig.prediction}}.
 #' @export
+#' @rdname mig.adjust
 mig.median.set <- function(sim.dir, country, values, years=NULL, ...) {
     pred <- get.mig.prediction(sim.dir)
     new.pred <- bayesTFR:::.bdem.median.set(pred, type='mig', country=country, 
@@ -568,12 +595,24 @@ mig.median.set <- function(sim.dir, country, values, years=NULL, ...) {
     invisible(new.pred)
 }
 
-#' @export
+#' @export 
+#' @keywords internal
+#' @rdname internal
+#' 
 get.mig.shift <- function(country.code, pred) return(bayesTFR::get.tfr.shift(country.code, pred))
 
+#' @param reset Logical. If \code{TRUE} medians in a range of \code{from} and \code{to} are
+#'     reset to their original values.
+#' @param shift Constant by which the medians should be offset. It is not used if \code{reset} is \code{TRUE}.
+#' @param from Year from which the offset/reset should start. By default, it starts at the first prediction period.
+#' @param to Year until which the offset/reset should be done. By default, it is set to the last prediction period.
+#' 
+#' @details Function \code{mig.median.shift} can be used to offset the medians by a specific constant, or to reset
+#'     the medians to their original values. 
 #' @export
-mig.median.shift <- function(sim.dir, country, reset=FALSE, shift=0, 
-                             from=NULL, to=NULL) {
+#' @rdname mig.adjust
+mig.median.shift <- function(sim.dir, country, reset = FALSE, shift = 0, 
+                             from = NULL, to = NULL) {
     pred <- get.mig.prediction(sim.dir)
     new.pred <- bayesTFR:::.bdem.median.shift(pred, type='mig', country=country, reset=reset, 
                                               shift=shift, from=from, to=to)
@@ -581,7 +620,13 @@ mig.median.shift <- function(sim.dir, country, reset=FALSE, shift=0,
     invisible(new.pred)
 }
 
+#' @param countries Vector of country names or codes. If this argument is \code{NULL} (default), 
+#'     the reset is done for all countries.
+#'     
+#' @details Function \code{mig.median.reset} resets medians of the given countries
+#'     to the original values. By default it deletes adjustments for all countries.
 #' @export
+#' @rdname mig.adjust
 mig.median.reset <- function(sim.dir, countries = NULL) {
     if(is.null(countries)) {
         pred <- get.mig.prediction(sim.dir)
@@ -593,9 +638,22 @@ mig.median.reset <- function(sim.dir, countries = NULL) {
     invisible(pred)
 }
 
+#' @param sim.dir1 Directory with the bayesMig prediction object to be adjusted.
+#' @param sim.dir2 Directory with the bayesMig prediction object used to align the medians from \code{sim.dir1} to.
+#' @param country.codes Numerical codes of countries to adjust. By default all countries 
+#'     found in \code{sim.dir2} are adjusted in \code{sim.dir1}.
+#' @details Function \code{mig.align.predictions} shifts medians stored in \code{sim.dir1} to match 
+#'     the medians in \code{sim.dir1}.
+#'     
+#'     In all cases, if a median is modified, the corresponding offset is stored in the prediction object 
+#'     (element \code{median.shift}). All functions write the updated prediction object back to disk. All
+#'     functions in the package that use trajectories and trajectory statistics use the \code{median.shift} 
+#'     values to offset the results correspondingly, i.e. trajectories are shifted the same way as the
+#'     medians.
 #' @export
+#' @rdname mig.adjust
 mig.align.predictions <- function(sim.dir1, sim.dir2, country.codes = NULL, 
-                                  years = NULL, verbose = FALSE){
+                                  years = NULL, ...){
     pred1 <- get.mig.prediction(sim.dir1)
     pred2 <- get.mig.prediction(sim.dir2)
     cntries1 <- if(is.null(country.codes)) get.countries.table(pred1)$code else country.codes
@@ -612,7 +670,7 @@ mig.align.predictions <- function(sim.dir1, sim.dir2, country.codes = NULL,
         }
         adjust.to <- get.median.from.prediction(pred2, cidx, cntry)[years]
         pred <- mig.median.set(sim.dir1, cntry, values = adjust.to, 
-                               years = as.integer(names(adjust.to)), verbose = verbose)
+                               years = as.integer(names(adjust.to)), ...)
     }
     invisible(pred)
 }

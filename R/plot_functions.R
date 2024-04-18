@@ -14,6 +14,8 @@
 #' @param pi Probability interval (as percentage) to be included in the output. It can be a single number or a vector.
 #' @param nr.traj Number of trajectories to be plotted. If \code{NULL}, all trajectories are plotted, otherwise they are thinned evenly.
 #' @param mark.estimation.points Logical. If \code{TRUE}, points that were not used in the estimation are shown in a lighter color.
+#' @param adjusted.only Logical. By default, if the projection median is adjusted using e.g. \code{\link{mig.median.set}}, 
+#'     the function plots theadjusted median. If this argument is \code{FALSE} the original (non-adjusted) median is plotted as well.
 #' @param xlim,ylim,type,xlab,ylab Graphical parameters passed to the \code{\link{plot}} function.
 #' @param main Main title for the plot(s). In \code{mig.trajectories.plot.all} any occurrence of the string 
 #'     \dQuote{XXX} is replaced by the name of the appropriate country.

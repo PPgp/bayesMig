@@ -33,7 +33,19 @@ Converts trajectories of the net migration rates stored
     in a binary format into two CSV files.
 }
 \details{
-
+The function creates two files. First, \dQuote{ascii_trajectories.csv}
+    is a comma-separated table with the following columns: 
+    \itemize{\item{\dQuote{LocID}: }{country code} 
+        \item{\dQuote{Period}: }{prediction interval, e.g. 2015-2020} 
+        \item{\dQuote{Year}: }{middle year of the prediction interval}
+        \item{\dQuote{Trajectory}: }{identifier of the trajectory}
+        \item{\dQuote{mig}: }{net migration rate}
+    }
+    The second file is called \dQuote{ascii_trajectories_wide.csv}, also 
+    a comma-separated table and it contains the same information as above 
+    but in a wide format. I.e. the data for one country are 
+    ordered in columns, thus, there is one column per country. The country columns 
+    are ordered alphabetically.
 }
 \note{
 This function is automatically called from the \code{\link{mig.predict}} 

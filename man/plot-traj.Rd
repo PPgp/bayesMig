@@ -48,6 +48,9 @@ mig.trajectories.table(mig.pred, country, pi = c(80, 95), ...)
 
 \item{mark.estimation.points}{Logical. If \code{TRUE}, points that were not used in the estimation are shown in a lighter color.}
 
+\item{adjusted.only}{Logical. By default, if the projection median is adjusted using e.g. \code{\link{mig.median.set}}, 
+the function plots theadjusted median. If this argument is \code{FALSE} the original (non-adjusted) median is plotted as well.}
+
 \item{xlim, ylim, type, xlab, ylab}{Graphical parameters passed to the \code{\link{plot}} function.}
 
 \item{main}{Main title for the plot(s). In \code{mig.trajectories.plot.all} any occurrence of the string 
