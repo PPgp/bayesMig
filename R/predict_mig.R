@@ -140,6 +140,7 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 						replace.output=FALSE,
 						start.year=NULL, nr.traj = NULL, thin = NULL, burnin=20000, 
 						use.cummulative.threshold = FALSE, ignore.gcc.in.threshold = FALSE,
+						fixed.thresholds = NULL,
 						post.last.observed = c("obsdata", "alldata", "impute"),
 						save.as.ascii=0, output.dir = NULL,
 						seed=NULL, verbose=TRUE, ...) {
@@ -160,14 +161,14 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 	invisible(make.mig.prediction(mcmc.set, end.year=end.year, replace.output=replace.output,  
 					start.year=start.year, nr.traj=nr.traj, burnin=burnin, thin=thin,
 					use.cummulative.threshold = use.cummulative.threshold, ignore.gcc.in.threshold = ignore.gcc.in.threshold,
-					post.last.observed = post.last.observed,
+					fixed.thresholds = fixed.thresholds, post.last.observed = post.last.observed,
 					save.as.ascii=save.as.ascii, output.dir=output.dir, verbose=verbose, ...))			
 }
 
 make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replace.output=FALSE,
 								nr.traj = NULL, burnin=0, thin = NULL, 
 								countries = NULL, use.cummulative.threshold = FALSE, ignore.gcc.in.threshold = FALSE,
-								post.last.observed = "o",
+								fixed.thresholds = NULL, post.last.observed = "o",
 								save.as.ascii=0, output.dir = NULL, write.summary.files=TRUE, 
 							    is.mcmc.set.thinned=FALSE, force.creating.thinned.mcmc=FALSE,
 							    write.trajectories=TRUE, 
@@ -317,6 +318,16 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	    isGCC <- if(ignore.gcc.in.threshold) rep(FALSE, nr_countries_real) else is.gcc.plus(meta$regions$country_code)
 	    fun.min <- ".min.multiplicative.pop.change"
 	}
+	fthresholds <- list(upper = rep(NA, nr_countries_real), lower = rep(NA, nr_countries_real))
+	if(!is.null(fixed.thresholds)){
+	    for(ttp in names(fthresholds)){
+	        if(! ttp %in% names(fixed.thresholds)) next
+	        for(cntry in names(fixed.thresholds[[ttp]])){
+	           country.obj <- get.country.object(as.integer(cntry), meta)
+	           fthresholds[[ttp]][country.obj$index] <- fixed.thresholds[[ttp]][[cntry]]
+	        }
+	    }
+	}
 	#########################################
 	for (s in 1:nr_simu){ # Iterate over trajectories
 	#########################################
@@ -345,6 +356,10 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	        if(use.cummulative.threshold){
 	            xmin <- .get.rate.mult.limit(all.mig_ps[icountry,1:(year-1),s], year-1, fun.min, max, nperiods=nperiods.for.threshold, thresholds = mig.thresholds)
 	            xmax <- .get.rate.mult.limit(all.mig_ps[icountry,1:(year-1),s], year-1, fun.max, min, nperiods=nperiods.for.threshold, thresholds = mig.thresholds)
+	            if(!is.na(fthresholds$lower[icountry]))
+	                xmin <- min(xmin, fthresholds$lower[icountry])
+	            if(!is.na(fthresholds$upper[icountry]))
+	                xmax <- min(xmax, fthresholds$upper[icountry])
 	            if(xmin > xmax) {
 	                avg <- (xmin + xmax)/2.
 	                xmin <- avg - 1e-3
@@ -497,11 +512,11 @@ get.projection.summary.header.bayesMig.prediction <- function(pred, ...)
 
 #' @export
 get.friendly.variant.names.bayesMig.prediction <- function(pred, ...)
-  return(c('median', 'lower 80', 'upper 80', 'lower 95', 'upper 95','constant'))
+  return(c('median', 'lower 80', 'upper 80', 'lower 95', 'upper 95', 'mean', 'constant'))
 
 #' @export
 get.UN.variant.names.bayesMig.prediction <- function(pred, ...) 
-    return(c('BHM median', 'BHM80 lower',  'BHM80 upper', 'BHM95 lower',  'BHM95 upper', 'Zero migration'))
+    return(c('BHM median', 'BHM80 lower',  'BHM80 upper', 'BHM95 lower',  'BHM95 upper', 'BHM mean', 'Zero migration'))
 
 
 get.mig.periods <- function(meta) {
@@ -562,6 +577,7 @@ get.migration.thresholds <- function(meta, nperiods=6, ignore.gcc = FALSE) {
     df <- data.frame(upper=upper.bounds, upper.nogcc=upper.bounds.nogcc, lower=lower.bounds)
     return(df)
 }
+
 
 #' @title Adjusting the Projection Medians
 #' 
