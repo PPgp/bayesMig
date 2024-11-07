@@ -12,7 +12,7 @@
 #' Maintainer: Hana Sevcikova <hanas@uw.edu>
 #' 
 #' @docType package
-#' @import coda truncnorm wpp2019
+#' @import coda truncnorm wpp2019 data.table
 #' @import grDevices graphics stats utils bayesTFR
 #' @importFrom utils data
 #' 
