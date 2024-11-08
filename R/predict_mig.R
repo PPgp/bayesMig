@@ -449,7 +449,8 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 #' 
 #' @details The function creates two files. First, \dQuote{ascii_trajectories.csv}
 #'     is a comma-separated table with the following columns: 
-#'     \itemize{\item{\dQuote{LocID}: }{country code} 
+#'     \describe{
+#'         \item{\dQuote{LocID}: }{country code} 
 #'         \item{\dQuote{Period}: }{prediction interval, e.g. 2015-2020} 
 #'         \item{\dQuote{Year}: }{middle year of the prediction interval}
 #'         \item{\dQuote{Trajectory}: }{identifier of the trajectory}

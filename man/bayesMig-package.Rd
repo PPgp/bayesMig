@@ -59,7 +59,7 @@ functions use arguments and terminology related to countries. However, a \dQuote
 is to be interpreted as any location included in the simulation.
 }
 \examples{
-\donttest{
+\dontrun{
 # Run a real simulation (can take long time)
 sim.dir <- tempfile()
 m <- run.mig.mcmc(nr.chains = 4, iter = 10000, thin = 10, output.dir = sim.dir,
@@ -88,6 +88,13 @@ Bayesian probabilistic projection of international migration. Demography, 52(5),
 
 Azose, J.J., Ševčíková, H., Raftery, A.E. (2016): Probabilistic population projections with migration uncertainty.
 Proceedings of the National Academy of Sciences 113:6460–6465. \doi{10.1073/pnas.1606119113}.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{http://bayespop.csss.washington.edu}
+}
+
 }
 \author{
 Jon Azose, Hana Sevcikova and Adrian Raftery

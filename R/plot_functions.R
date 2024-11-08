@@ -15,7 +15,9 @@
 #' @param nr.traj Number of trajectories to be plotted. If \code{NULL}, all trajectories are plotted, otherwise they are thinned evenly.
 #' @param mark.estimation.points Logical. If \code{TRUE}, points that were not used in the estimation are shown in a lighter color.
 #' @param adjusted.only Logical. By default, if the projection median is adjusted using e.g. \code{\link{mig.median.set}}, 
-#'     the function plots theadjusted median. If this argument is \code{FALSE} the original (non-adjusted) median is plotted as well.
+#'     the function plots the adjusted median. If this argument is \code{FALSE} the original (non-adjusted) median is plotted as well.
+#' @param traj.index Vector of trajectory indices to show. If not given, the trajectories are selected using equidistant spacing.
+#' @param show.mean,show.median Logical indicating if the mean or/and the median of the distribution should be shown.
 #' @param xlim,ylim,type,xlab,ylab Graphical parameters passed to the \code{\link{plot}} function.
 #' @param main Main title for the plot(s). In \code{mig.trajectories.plot.all} any occurrence of the string 
 #'     \dQuote{XXX} is replaced by the name of the appropriate country.
@@ -49,7 +51,8 @@
 #' 
 mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95), 
                                   nr.traj = 50, mark.estimation.points = FALSE,
-                                  adjusted.only = TRUE, 
+                                  adjusted.only = TRUE, traj.index = NULL,
+                                  show.mean = FALSE, show.median = TRUE,
                                   xlim=NULL, ylim=NULL, type='b', 
                                   xlab='Year', ylab='Migration rate', main=NULL, lwd=c(2,2,2,2,1), 
                                   col=c('black', 'green', 'red', 'red','#00000020'),
@@ -86,13 +89,36 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
 
   x1 <- as.integer(c(names(y1.part1), names(y1.part2)))
   x2 <- as.numeric(dimnames(mig.pred$quantiles)[[3]])
+  if(!is.null(traj.index)) nr.traj <- length(traj.index)
   trajectories <- bayesTFR:::get.trajectories(mig.pred, country$code, nr.traj=nr.traj)
-  mig.median <- get.median.from.prediction(mig.pred, country$index, country$code)
+  if(!is.null(traj.index) && !is.null(trajectories$trajectories)) trajectories$index <- traj.index
+  
+  # extract median & mean
+  mig.median <- mig.mean <- mig.main.proj <- NULL
+  if(show.median)
+    mig.median <- bayesTFR::get.median.from.prediction(mig.pred, country$index, country$code)
+  if(show.mean)
+    mig.mean <- bayesTFR::get.mean.from.prediction(mig.pred, country$index, country$code)  
   
   if(scale) { # scale to be interpreted as "per population"
     if(!is.null(trajectories$trajectories)) trajectories$trajectories <- trajectories$trajectories / mig.pred$mcmc.set$meta$prior.scaler
     mig.pred$quantiles <- mig.pred$quantiles / mig.pred$mcmc.set$meta$prior.scaler
-    mig.median <- mig.median / mig.pred$mcmc.set$meta$prior.scaler
+    if(!is.null(mig.median))
+      mig.median <- mig.median / mig.pred$mcmc.set$meta$prior.scaler
+    if(!is.null(mig.mean))
+      mig.mean <- mig.mean / mig.pred$mcmc.set$meta$prior.scaler
+  }
+  
+  # set the main projection (solid line)
+  main.proj.name <- ""
+  if(!is.null(mig.median)){
+    mig.main.proj <- mig.median
+    main.proj.name <- "median"
+  } else {
+    if(!is.null(mig.mean)){
+      mig.main.proj <- mig.mean
+      main.proj.name <- "mean"
+    }
   }
   
   # plot historical data: observed
@@ -131,41 +157,69 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
       lines(x2, trajectories$trajectories[,trajectories$index[i]], type='l', col=col[5], lwd=lwd[5])
     }
   }
-  # plot median
-  lines(x2, mig.median, type='l', col=col[3], lwd=lwd[3]) 
-
+  # plot main projection
+  lty <- c()
+  if(!is.null(mig.main.proj)){
+    lines(x2, mig.main.proj, type='l', col=col[3], lwd=lwd[3]) 
+    lty <- 1
+  }
+  
   # plot given CIs
-  lty <- 2:(length(pi)+1)
-  for (i in 1:length(pi)) {
-    cqp <- bayesTFR:::get.traj.quantiles(mig.pred, country$index, country$code, trajectories$trajectories, pi[i])
-    if (!is.null(cqp)) {
-      lines(x2, cqp[1,], type='l', col=col[4], lty=lty[i], lwd=lwd[4])
-      lines(x2, cqp[2,], type='l', col=col[4], lty=lty[i], lwd=lwd[4])
+  if(length(pi) > 0){
+    pi.lty <- 2:(length(pi)+1)
+    lty <- c(lty, pi.lty)
+    for (i in 1:length(pi)) {
+      cqp <- bayesTFR:::get.traj.quantiles(mig.pred, country$index, country$code, trajectories$trajectories, pi[i])
+      if (!is.null(cqp)) {
+        lines(x2, cqp[1,], type='l', col=col[4], lty=pi.lty[i], lwd=lwd[4])
+        lines(x2, cqp[2,], type='l', col=col[4], lty=pi.lty[i], lwd=lwd[4])
+      }
     }
   }
+  max.lty <- if(length(lty) == 0) 1 else max(lty)
   legend <- c()
   cols <- c()
   lwds <- c()
-  lty <- c(1, lty)
-  median.legend <- if(adjusted.only) 'median' else 'adj. median'
-  legend <- c(legend, median.legend, paste(pi, '% PI', sep=''))
-  cols <- c(cols, col[3], rep(col[4], length(pi)))
-  lwds <- c(lwds, lwd[3], rep(lwd[4], length(pi)))
-  
-  if(!adjusted.only) { # plot unadjusted median
-      bhm.median <- bayesTFR::get.median.from.prediction(mig.pred, country$index, country$code, adjusted=FALSE)
-      lines(x2, bhm.median, type='l', col=col[3], lwd=lwd[3], lty=max(lty)+1)
-      legend <- c(legend, 'BHM median')
+  if(!adjusted.only) { # plot unadjusted median & mean
+      if(main.proj.name == "mean"){
+          bhm.main <- bayesTFR::get.mean.from.prediction(mig.pred, country$index, country$code, adjusted=FALSE)
+          bhm.main.name <- 'BHM mean'
+      } else {
+          bhm.main <- bayesTFR::get.median.from.prediction(mig.pred, country$index, country$code, adjusted=FALSE)
+          bhm.main.name <- 'BHM median'
+      }
+      lines(x2, bhm.main, type='l', col=col[3], lwd=lwd[3], lty=max.lty+1)
+      legend <- c(legend, bhm.main.name)
       cols <- c(cols, col[3])
       lwds <- c(lwds, lwd[3])
-      lty <- c(lty, max(lty)+1)
+      lty <- c(max.lty+1, lty)
+      max.lty <- max(lty)
+  }
+  if(main.proj.name != ""){
+    main.legend <- if(adjusted.only) main.proj.name else paste('adj.', main.proj.name)
+    legend <- c(legend, main.legend)
+    cols <- c(cols, col[3])
+    lwds <- c(lwds, lwd[3])
+  }
+  legend <- c(legend, if(length(pi) > 0) paste0(pi, '% PI') else c())
+  cols <- c(cols, rep(col[4], length(pi)))
+  lwds <- c(lwds, rep(lwd[4], length(pi)))
+  
+  if(show.median && show.mean){
+    # plot both mean and median
+    lines(x2, mig.mean, type='l', col=col[3], lwd=1, lty=max(lty)+1)
+    legend <- c(legend, 'mean')
+    cols <- c(cols, col[3])
+    lwds <- c(lwds, 1)
+    lty <- c(lty, max.lty+1)
+    max.lty <- max(lty)
   }
   
   if(show.legend) {
+    pch <- c(rep(-1, length(legend), 1))
     legend <- c(legend, 'observed migration')
     cols <- c(cols, col[1])
     lty <- c(lty, 1)
-    pch <- c(rep(-1, length(legend)-1), 1)
     lwds <- c(lwds, lwd[1])
     
     if(lpart2 > 0) {
@@ -180,7 +234,7 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
 }
 
 #' @param output.dir Directory into which resulting plots are written. By default,
-#'     the plots are saved into directory {sim.dir}/predictions/migTrajectories.
+#'     the plots are saved into directory \{sim.dir\}/predictions/migTrajectories.
 #' @param output.type Type of the resulting plot files. Can be "png", "pdf", "jpeg", "bmp",
 #' "tiff", or "postscript".
 #' @param verbose Logical value. Switches log messages on and off.

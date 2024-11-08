@@ -106,7 +106,7 @@ mig.align.predictions <- function(sim.dir1, sim.dir2, country.codes = NULL,
             warning("Country ", cntry, " not found in sim.dir2. No adjustment for this country.")
             next
         }
-        adjust.to <- get.median.from.prediction(pred2, cidx, cntry)[years]
+        adjust.to <- bayesTFR::get.median.from.prediction(pred2, cidx, cntry)[years]
         pred <- mig.median.set(sim.dir1, cntry, values = adjust.to, 
                                years = as.integer(names(adjust.to)), ...)
     }

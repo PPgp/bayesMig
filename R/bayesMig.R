@@ -56,7 +56,7 @@
 #'      functions use arguments and terminology related to countries. However, a \dQuote{country}
 #'      is to be interpreted as any location included in the simulation. 
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Run a real simulation (can take long time)
 #' sim.dir <- tempfile()
 #' m <- run.mig.mcmc(nr.chains = 4, iter = 10000, thin = 10, output.dir = sim.dir,
@@ -85,4 +85,4 @@
 #' Proceedings of the National Academy of Sciences 113:6460–6465. \doi{10.1073/pnas.1606119113}.
 #' @name bayesMig-package
 #' @aliases bayesMig
-NULL
+"_PACKAGE"
