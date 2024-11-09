@@ -1,11 +1,11 @@
 Package: bayesMig
-Version: 0.4-6.9006
+Version: 1.0-0
 Date: 2024-11-08
 Title: Bayesian Projection of Migration
 Authors@R: c(person("Jon", "Azose", role = "aut"),
             person("Hana", "Sevcikova", email = "hanas@uw.edu", role = c("aut", "cre")),
             person("Adrian", "Raftery", role = c("aut")))
-Depends: R (>= 3.5.0), bayesTFR
+Depends: R (>= 3.5.0), bayesTFR (>= 7.4.4)
 Imports: coda, truncnorm, wpp2019, data.table
 Suggests: 
 Description: Producing probabilistic projections of net migration rate for all countries of the world

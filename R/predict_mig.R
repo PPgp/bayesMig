@@ -461,10 +461,13 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 #'     but in a wide format. I.e. the data for one country are 
 #'     ordered in columns, thus, there is one column per country. The country columns 
 #'     are ordered alphabetically. 
+#'     
+#'     If the prediction object has been adjusted via any of the \link[=mig.median.set]{adjustment functions}, 
+#'     the exported trajectories are also adjusted. 
 #' @note This function is automatically called from the \code{\link{mig.predict}} 
 #'     function, therefore in standard cases it will not be needed to call it directly. 
 #'     However, it can be useful for example, if different number of trajectories are to be converted, 
-#'     without having to re-run the prediction.
+#'     without having to re-run the prediction, or if the trajectories were adjusted.
 #' @return No return value.
 #' @seealso \code{\link[bayesTFR]{convert.tfr.trajectories}}, 
 #'   \code{\link{mig.write.projection.summary}}, \code{\link{get.mig.trajectories}}
