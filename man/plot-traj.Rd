@@ -12,6 +12,10 @@ mig.trajectories.plot(
   pi = c(80, 95),
   nr.traj = 50,
   mark.estimation.points = FALSE,
+  adjusted.only = TRUE,
+  traj.index = NULL,
+  show.mean = FALSE,
+  show.median = TRUE,
   xlim = NULL,
   ylim = NULL,
   type = "b",
@@ -47,6 +51,13 @@ mig.trajectories.table(mig.pred, country, pi = c(80, 95), ...)
 
 \item{mark.estimation.points}{Logical. If \code{TRUE}, points that were not used in the estimation are shown in a lighter color.}
 
+\item{adjusted.only}{Logical. By default, if the projection median is adjusted using e.g. \code{\link{mig.median.set}}, 
+the function plots the adjusted median. If this argument is \code{FALSE} the original (non-adjusted) median is plotted as well.}
+
+\item{traj.index}{Vector of trajectory indices to show. If not given, the trajectories are selected using equidistant spacing.}
+
+\item{show.mean, show.median}{Logical indicating if the mean or/and the median of the distribution should be shown.}
+
 \item{xlim, ylim, type, xlab, ylab}{Graphical parameters passed to the \code{\link{plot}} function.}
 
 \item{main}{Main title for the plot(s). In \code{mig.trajectories.plot.all} any occurrence of the string 
@@ -68,7 +79,7 @@ they are divided by \code{pop.denom} passed to \code{\link{run.mig.mcmc}}.}
 any of the arguments of \code{tfr.trajectories.plot} can be passed here.}
 
 \item{output.dir}{Directory into which resulting plots are written. By default,
-the plots are saved into directory {sim.dir}/predictions/migTrajectories.}
+the plots are saved into directory \{sim.dir\}/predictions/migTrajectories.}
 
 \item{output.type}{Type of the resulting plot files. Can be "png", "pdf", "jpeg", "bmp",
 "tiff", or "postscript".}

@@ -4,12 +4,16 @@
 \alias{mig.write.projection.summary}
 \title{Writing Projection Summary Files}
 \usage{
-mig.write.projection.summary(pred, output.dir)
+mig.write.projection.summary(pred, output.dir, ...)
 }
 \arguments{
 \item{pred}{Object of class \code{bayesMig.prediction}.}
 
 \item{output.dir}{Directory where output is written.}
+
+\item{\dots}{Additional arguments passed to the underlying functions. 
+Here, argument \code{precision} can be set to determine the number 
+of significant digits (default is 4).}
 }
 \value{
 No return value.

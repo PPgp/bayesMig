@@ -38,6 +38,9 @@
 #'    the historical cummulative thresholds for non-GCC countries. If this argument is \code{TRUE}, this distinction is not made. 
 #'    It is important to set it to \code{TRUE} in a sub-national simulation to avoid any random overlaps 
 #'    of UN codes and user-defined codes.
+#' @param fixed.thresholds List with optional elements \dQuote{lower} and \dQuote{upper}. Each of them is a list defining 
+#'    lower and upper bounds of the future migration rate for specific locations. The name of each item is the location code
+#'    and the value is one number defining the corresponding threshold. 
 #' @param post.last.observed If a user-specific data file was used during estimation and the data 
 #'     contained the \dQuote{last.observed} column, this argument determines how to treat the time periods 
 #'     between the last observed point and the start year of the prediction, for locations where there is
@@ -140,6 +143,7 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 						replace.output=FALSE,
 						start.year=NULL, nr.traj = NULL, thin = NULL, burnin=20000, 
 						use.cummulative.threshold = FALSE, ignore.gcc.in.threshold = FALSE,
+						fixed.thresholds = NULL,
 						post.last.observed = c("obsdata", "alldata", "impute"),
 						save.as.ascii=0, output.dir = NULL,
 						seed=NULL, verbose=TRUE, ...) {
@@ -160,14 +164,14 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 	invisible(make.mig.prediction(mcmc.set, end.year=end.year, replace.output=replace.output,  
 					start.year=start.year, nr.traj=nr.traj, burnin=burnin, thin=thin,
 					use.cummulative.threshold = use.cummulative.threshold, ignore.gcc.in.threshold = ignore.gcc.in.threshold,
-					post.last.observed = post.last.observed,
+					fixed.thresholds = fixed.thresholds, post.last.observed = post.last.observed,
 					save.as.ascii=save.as.ascii, output.dir=output.dir, verbose=verbose, ...))			
 }
 
 make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replace.output=FALSE,
 								nr.traj = NULL, burnin=0, thin = NULL, 
 								countries = NULL, use.cummulative.threshold = FALSE, ignore.gcc.in.threshold = FALSE,
-								post.last.observed = "o",
+								fixed.thresholds = NULL, post.last.observed = "o",
 								save.as.ascii=0, output.dir = NULL, write.summary.files=TRUE, 
 							    is.mcmc.set.thinned=FALSE, force.creating.thinned.mcmc=FALSE,
 							    write.trajectories=TRUE, 
@@ -317,6 +321,16 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	    isGCC <- if(ignore.gcc.in.threshold) rep(FALSE, nr_countries_real) else is.gcc.plus(meta$regions$country_code)
 	    fun.min <- ".min.multiplicative.pop.change"
 	}
+	fthresholds <- list(upper = rep(NA, nr_countries_real), lower = rep(NA, nr_countries_real))
+	if(!is.null(fixed.thresholds)){
+	    for(ttp in names(fthresholds)){
+	        if(! ttp %in% names(fixed.thresholds)) next
+	        for(cntry in names(fixed.thresholds[[ttp]])){
+	           country.obj <- get.country.object(as.integer(cntry), meta)
+	           fthresholds[[ttp]][country.obj$index] <- fixed.thresholds[[ttp]][[cntry]]
+	        }
+	    }
+	}
 	#########################################
 	for (s in 1:nr_simu){ # Iterate over trajectories
 	#########################################
@@ -345,6 +359,10 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	        if(use.cummulative.threshold){
 	            xmin <- .get.rate.mult.limit(all.mig_ps[icountry,1:(year-1),s], year-1, fun.min, max, nperiods=nperiods.for.threshold, thresholds = mig.thresholds)
 	            xmax <- .get.rate.mult.limit(all.mig_ps[icountry,1:(year-1),s], year-1, fun.max, min, nperiods=nperiods.for.threshold, thresholds = mig.thresholds)
+	            if(!is.na(fthresholds$lower[icountry]))
+	                xmin <- min(xmin, fthresholds$lower[icountry])
+	            if(!is.na(fthresholds$upper[icountry]))
+	                xmax <- min(xmax, fthresholds$upper[icountry])
 	            if(xmin > xmax) {
 	                avg <- (xmin + xmax)/2.
 	                xmin <- avg - 1e-3
@@ -414,6 +432,54 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	invisible(bayesMig.prediction)
 }
 
+#' @title Converting Trajectories of Migration Rates into ACSII Files
+#'
+#' @description Converts trajectories of the net migration rates stored 
+#'     in a binary format into two CSV files. 
+#' 
+#' @param sim.dir Directory containing the prediction object. It should be the same as
+#'     the \code{output.dir} argument in \code{\link{mig.predict}}.
+#' @param n Number of trajectories to be stored. It can be either a single number 
+#'     or the word \dQuote{all} in which case all available trajectories are converted.
+#'     If the number is smaller than the number of trajectories available 
+#'     in the prediction object, they are selected by equal spacing.
+#' @param output.dir Directory into which the resulting files will be stored. 
+#'     If it is \code{NULL}, the same directory is used as for the prediction.
+#' @param verbose Logical value. Switches log messages on and off.
+#' 
+#' @details The function creates two files. First, \dQuote{ascii_trajectories.csv}
+#'     is a comma-separated table with the following columns: 
+#'     \describe{
+#'         \item{\dQuote{LocID}: }{country code} 
+#'         \item{\dQuote{Period}: }{prediction interval, e.g. 2015-2020} 
+#'         \item{\dQuote{Year}: }{middle year of the prediction interval}
+#'         \item{\dQuote{Trajectory}: }{identifier of the trajectory}
+#'         \item{\dQuote{mig}: }{net migration rate}
+#'     }
+#'     The second file is called \dQuote{ascii_trajectories_wide.csv}, also 
+#'     a comma-separated table and it contains the same information as above 
+#'     but in a wide format. I.e. the data for one country are 
+#'     ordered in columns, thus, there is one column per country. The country columns 
+#'     are ordered alphabetically. 
+#'     
+#'     If the prediction object has been adjusted via any of the \link[=mig.median.set]{adjustment functions}, 
+#'     the exported trajectories are also adjusted. 
+#' @note This function is automatically called from the \code{\link{mig.predict}} 
+#'     function, therefore in standard cases it will not be needed to call it directly. 
+#'     However, it can be useful for example, if different number of trajectories are to be converted, 
+#'     without having to re-run the prediction, or if the trajectories were adjusted.
+#' @return No return value.
+#' @seealso \code{\link[bayesTFR]{convert.tfr.trajectories}}, 
+#'   \code{\link{mig.write.projection.summary}}, \code{\link{get.mig.trajectories}}
+#' @export
+#' 
+convert.mig.trajectories <- function(sim.dir = NULL, n = 1000, output.dir = NULL, verbose=FALSE) {
+    # Converts all trajectory rda files into UN ascii, selecting n trajectories by equal spacing.
+    if(n <= 0) return()
+    pred <- get.mig.prediction(sim.dir)
+    outdir <- if (is.null(output.dir)) pred$output.directory else output.dir
+    bayesTFR:::do.convert.trajectories(pred=pred, n=n, output.dir=outdir, verbose=verbose)
+}
 
 remove.mig.traces <- function(mcmc.set) {
 	for (i in 1:length(mcmc.set$mcmc.list))
@@ -433,12 +499,15 @@ get.traj.ascii.header.bayesMig.mcmc.meta <- function(meta, ...)
 #'     time and the variants.
 #' @param pred Object of class \code{bayesMig.prediction}.
 #' @param output.dir Directory where output is written.
+#' @param \dots Additional arguments passed to the underlying functions. 
+#'     Here, argument \code{precision} can be set to determine the number 
+#'     of significant digits (default is 4).
 #' @return No return value.
 #' @seealso \code{\link[bayesTFR]{write.projection.summary}}
 #' @export
-mig.write.projection.summary <- function(pred, output.dir) {
+mig.write.projection.summary <- function(pred, output.dir, ...) {
 	# one summary file
-    bayesTFR:::do.write.projection.summary(pred, output.dir)
+    bayesTFR:::do.write.projection.summary(pred, output.dir, ...)
 }
 
 get.estimation.years <- function(meta)
@@ -450,11 +519,11 @@ get.projection.summary.header.bayesMig.prediction <- function(pred, ...)
 
 #' @export
 get.friendly.variant.names.bayesMig.prediction <- function(pred, ...)
-  return(c('median', 'lower 80', 'upper 80', 'lower 95', 'upper 95','constant'))
+  return(c('median', 'lower 80', 'upper 80', 'lower 95', 'upper 95', 'mean', 'constant'))
 
 #' @export
 get.UN.variant.names.bayesMig.prediction <- function(pred, ...) 
-    return(c('BHM median', 'BHM80 lower',  'BHM80 upper', 'BHM95 lower',  'BHM95 upper', 'Zero migration'))
+    return(c('BHM median', 'BHM80 lower',  'BHM80 upper', 'BHM95 lower',  'BHM95 upper', 'BHM mean', 'Zero migration'))
 
 
 get.mig.periods <- function(meta) {
@@ -515,3 +584,4 @@ get.migration.thresholds <- function(meta, nperiods=6, ignore.gcc = FALSE) {
     df <- data.frame(upper=upper.bounds, upper.nogcc=upper.bounds.nogcc, lower=lower.bounds)
     return(df)
 }
+

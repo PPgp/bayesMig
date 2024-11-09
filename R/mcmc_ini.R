@@ -25,11 +25,11 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
     annual <- meta$annual.simulation
     #If the user input their own migration file:
      if(is.null(my.mig.file)){
-       if(! wpp.year %in% c(2017, 2019, 2022)){
+       if(! (wpp.year %in% c(2017, 2019) ||  wpp.year >= 2022)){
          stop("Only 2017, 2019 and 2022 revisions of WPP are currently supported by bayesMig.")
        }
        if(annual && wpp.year < 2022) 
-         warning("If annual is TRUE and wpp.year is not 2022, 5-year data will be interpolated. Otherwise supply annual my.mig.file.")
+         warning("If annual is TRUE and wpp.year is not >= 2022, 5-year data will be interpolated. Otherwise supply annual my.mig.file.")
      }
     migdata <- get.wpp.mig.data (start.year = start.year, present.year = present.year, 
                              wpp.year = wpp.year, my.mig.file = my.mig.file, 

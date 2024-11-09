@@ -12,7 +12,7 @@
 #' Maintainer: Hana Sevcikova <hanas@uw.edu>
 #' 
 #' @docType package
-#' @import coda truncnorm wpp2019
+#' @import coda truncnorm wpp2019 data.table
 #' @import grDevices graphics stats utils bayesTFR
 #' @importFrom utils data
 #' 
@@ -47,7 +47,9 @@
 #' Existing convergence diagnostics can be accessed using the \code{\link{get.mig.convergence}} and
 #' \code{\link{get.mig.convergence.all}} functions.
 #' 
-#' Historical data on migration rates are taken from the \pkg{wpp2019} (default), \pkg{wpp2022} or \pkg{wpp2017} package, 
+#' Historical data on migration rates are taken from the \pkg{wpp2019} (default), 
+#' \href{https://github.com/PPgp/wpp2024}{\pkg{wpp2024}} , \href{https://github.com/PPgp/wpp2022}{\pkg{wpp2022}} 
+#' or \pkg{wpp2017} package, 
 #' depending on users settings. Alternatively, users can input their own data. These can be either 
 #' 5-year or annual time series. An example file with historical annual US migration rates is included
 #' in the package. Its usage is shown in the Example of \code{\link{mig.predict}}.
@@ -56,7 +58,7 @@
 #'      functions use arguments and terminology related to countries. However, a \dQuote{country}
 #'      is to be interpreted as any location included in the simulation. 
 #' @examples
-#' \donttest{
+#' \dontrun{
 #' # Run a real simulation (can take long time)
 #' sim.dir <- tempfile()
 #' m <- run.mig.mcmc(nr.chains = 4, iter = 10000, thin = 10, output.dir = sim.dir,
@@ -85,4 +87,4 @@
 #' Proceedings of the National Academy of Sciences 113:6460–6465. \doi{10.1073/pnas.1606119113}.
 #' @name bayesMig-package
 #' @aliases bayesMig
-NULL
+"_PACKAGE"

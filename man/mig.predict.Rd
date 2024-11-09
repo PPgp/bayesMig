@@ -16,6 +16,7 @@ mig.predict(
   burnin = 20000,
   use.cummulative.threshold = FALSE,
   ignore.gcc.in.threshold = FALSE,
+  fixed.thresholds = NULL,
   post.last.observed = c("obsdata", "alldata", "impute"),
   save.as.ascii = 0,
   output.dir = NULL,
@@ -67,6 +68,10 @@ e.g. in a sub-national settings, set the \code{ignore.gcc.in.threshold} argument
 the historical cummulative thresholds for non-GCC countries. If this argument is \code{TRUE}, this distinction is not made. 
 It is important to set it to \code{TRUE} in a sub-national simulation to avoid any random overlaps 
 of UN codes and user-defined codes.}
+
+\item{fixed.thresholds}{List with optional elements \dQuote{lower} and \dQuote{upper}. Each of them is a list defining 
+lower and upper bounds of the future migration rate for specific locations. The name of each item is the location code
+and the value is one number defining the corresponding threshold.}
 
 \item{post.last.observed}{If a user-specific data file was used during estimation and the data 
     contained the \dQuote{last.observed} column, this argument determines how to treat the time periods 
