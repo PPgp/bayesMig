@@ -72,6 +72,8 @@ do.meta.ini <- function(meta, burnin=200, verbose=FALSE) {
   meta$sigma.mu.range <- NULL
   meta$a.up <- NULL
 
+  meta$start.year <- max(start.year, as.integer(rownames(migdata$mig.matrix)[1]))
+  
   return(c(meta, list(
     country.indices.est = 1:migdata$nr.countries.estimation,
     nr.countries.est = migdata$nr.countries.estimation,
