@@ -134,6 +134,10 @@ get.mig.prediction <- function(mcmc=NULL, sim.dir=NULL, mcmc.dir=NULL) {
   bayesMig.prediction$output.directory <- output.dir
 
   pred <- bayesMig.prediction
+  if(!is.null(pred$median.shift)) { # rename median.shift to traj.shift
+    pred$traj.shift <- pred$median.shift
+    pred$median.shift <- NULL
+  }
   # re-route mcmcs if necessary
   if(!is.null(mcmc.dir) || !has.mig.mcmc(pred$mcmc.set$meta$output.dir)) {
     if((!is.null(mcmc.dir) && !is.na(mcmc.dir)) || is.null(mcmc.dir)) {

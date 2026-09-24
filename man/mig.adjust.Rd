@@ -2,15 +2,20 @@
 % Please edit documentation in R/mig_adjust.R
 \name{mig.median.set}
 \alias{mig.median.set}
+\alias{mig.mean.set}
+\alias{mig.traj.shift}
 \alias{mig.median.shift}
+\alias{mig.shift.reset}
 \alias{mig.median.reset}
 \alias{mig.align.predictions}
 \alias{mig.shift.prediction.to.wpp}
-\title{Adjusting the Projection Medians}
+\title{Adjusting the Projection Medians and Means}
 \usage{
 mig.median.set(sim.dir, country, values, years = NULL, ...)
 
-mig.median.shift(
+mig.mean.set(sim.dir, country, values, years = NULL, ...)
+
+mig.traj.shift(
   sim.dir,
   country,
   reset = FALSE,
@@ -19,13 +24,18 @@ mig.median.shift(
   to = NULL
 )
 
-mig.median.reset(sim.dir, countries = NULL)
+mig.median.shift(...)
+
+mig.shift.reset(sim.dir, countries = NULL)
+
+mig.median.reset(...)
 
 mig.align.predictions(
   sim.dir1,
   sim.dir2,
   country.codes = NULL,
   years = NULL,
+  stat = c("median", "mean"),
   ...
 )
 
@@ -36,14 +46,14 @@ mig.shift.prediction.to.wpp(sim.dir, ...)
 
 \item{country}{Name or numerical code of a country.}
 
-\item{values}{Vector of the new median values.}
+\item{values}{Vector of the new median (or mean) values.}
 
-\item{years}{Numeric vector giving years for which to change the median. 
-In \code{mig.median.set} it gives years which \code{values} correspond to.
+\item{years}{Numeric vector giving years for which to change the median (or mean). 
+In \code{mig.median.set} and \code{mig.mean.set} it gives years which \code{values} correspond to.
 Ideally it should be of the same length as \code{values}. If it is \code{NULL}, 
 \code{values} are set starting from the first prediction time period. 
 If \code{values} correspond to consecutive years, only the first year might be given here.
-In \code{mig.align.predictions} it gives years for which the medians should be aligned.}
+In \code{mig.align.predictions} it gives years for which the medians (or means) should be aligned.}
 
 \item{\dots}{Additional arguments passed to the underlying adjustment functions, such as 
 \code{verbose} to show/hide the progress of the adjustment.
@@ -51,10 +61,10 @@ For \code{mig.shift.prediction.to.wpp} it can be \code{stat} with values \dQuote
 or \dQuote{mean} to specify which statistics should be adjusted; 
 \code{wpp.year} to adjust it to if it differs from the wpp year of the simulation.}
 
-\item{reset}{Logical. If \code{TRUE} medians in a range of \code{from} and \code{to} are
-reset to their original values.}
+\item{reset}{Logical. If \code{TRUE} the distribution in a range of \code{from} and \code{to} is
+reset to its original values.}
 
-\item{shift}{Constant by which the medians should be offset. It is not used if \code{reset} is \code{TRUE}.}
+\item{shift}{Constant by which the trajectories should be offset. It is not used if \code{reset} is \code{TRUE}.}
 
 \item{from}{Year from which the offset/reset should start. By default, it starts at the first prediction period.}
 
@@ -65,42 +75,50 @@ the reset is done for all countries.}
 
 \item{sim.dir1}{Directory with the bayesMig prediction object to be adjusted.}
 
-\item{sim.dir2}{Directory with the bayesMig prediction object used to align the medians from \code{sim.dir1} to.}
+\item{sim.dir2}{Directory with the bayesMig prediction object used to align the medians (or means) from \code{sim.dir1} to.}
 
 \item{country.codes}{Numerical codes of countries to adjust. By default all countries 
 found in \code{sim.dir2} are adjusted in \code{sim.dir1}.}
+
+\item{stat}{Statistic to be aligned in \code{mig.align.predictions}. Either \dQuote{median} (default) 
+or \dQuote{mean}.}
 }
 \value{
 All functions return an updated object of class \code{\link{bayesMig.prediction}}.
 }
 \description{
 These functions are to be used by expert analysts. They allow to 
-    change the projection medians either to specific values, or shift the medians 
-    by a given constant or align one projection object with another.
+    change the projection medians or means either to specific values, or shift the 
+    distribution by a given constant or align one projection object with another.
 }
 \details{
 The function \code{mig.median.set} can be used to set the medians of the
     given country to specific values.
 
-Function \code{mig.median.shift} can be used to offset the medians by a specific constant, or to reset
-    the medians to their original values.
+The function \code{mig.mean.set} can be used to set the means of the
+    given country to specific values.
 
-Function \code{mig.median.reset} resets medians of the given countries
+Function \code{mig.traj.shift} can be used to offset the trajectories (and thus the medians and means) 
+    by a specific constant, or to reset the distribution to its original values. 
+    The function \code{mig.median.shift} is obsolete, replaced by \code{mig.traj.shift}.
+
+Function \code{mig.shift.reset} resets the distribution of the given countries
     to the original values. By default it deletes adjustments for all countries.
+    The function \code{mig.median.reset} is obsolete, replaced by \code{mig.shift.reset}.
 
-Function \code{mig.align.predictions} shifts medians stored in \code{sim.dir1} to match 
-    the medians in \code{sim.dir1}.
+Function \code{mig.align.predictions} shifts medians (or means if \code{stat} is \dQuote{mean}) 
+    stored in \code{sim.dir1} to match the medians (or means) in \code{sim.dir2}.
     
-    In all cases, if a median is modified, the corresponding offset is stored in the prediction object 
-    (element \code{median.shift}). All functions write the updated prediction object back to disk. All
-    functions in the package that use trajectories and trajectory statistics use the \code{median.shift} 
+    In all cases, if a median or mean is modified, the corresponding offset is stored in the prediction object 
+    (element \code{traj.shift}). All functions write the updated prediction object back to disk. All
+    functions in the package that use trajectories and trajectory statistics use the \code{traj.shift} 
     values to offset the results correspondingly, i.e. trajectories are shifted the same way as the
-    medians.
+    medians and means.
 
 Function \code{mig.shift.prediction.to.wpp} shifts the projected medians or means 
     (if \code{stat} is \dQuote{mean}), so that they correspond to the values found in the \code{migproj1dt} or \code{migproj5dt}
     datasets of the \pkg{wpp} package that either corresponds to the package used for the simulation itself 
     or is given by the \code{wpp.year} argument. Currently, the function only works for \pkg{wpp2024}.
-    Note that regardless if it is an adjustment of the median or mean, the corresponding offset is always 
-    converted to a shift of the median.
+    Note that regardless if it is an adjustment of the median or mean, the corresponding offset is 
+    applied to all trajectories.
 }

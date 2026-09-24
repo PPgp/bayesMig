@@ -208,3 +208,156 @@ test.include.code.and.last.observed <- function(parallel = FALSE) {
     unlink(migfile)
     unlink(sim.dir, recursive=TRUE)
 }
+
+test.adjustments <- function() {
+    sim.dir <- tempfile()
+    us.mig.file <- file.path(find.package("bayesMig"), "extdata", "USmigrates.txt")
+    m <- run.mig.mcmc(nr.chains = 1, iter = 30, thin = 1, my.mig.file = us.mig.file, 
+                      output.dir = sim.dir, present.year = 2017, annual = TRUE, verbose = FALSE)
+    pred <- mig.predict(sim.dir = sim.dir, burnin = 10, end.year = 2030, verbose = FALSE)
+    projs <- summary(pred, country = 'Hawaii')$projections
+    shifted.cols <- c(1, 3:ncol(projs)) # all but SD
+    years <- rownames(projs)
+    
+    test.name <- 'shifting the trajectories'
+    start.test(test.name)
+    mig.traj.shift(sim.dir, country = 'Hawaii', shift = 0.01, from = 2020, to = 2025)
+    shifted.pred <- get.mig.prediction(sim.dir)
+    shifted.projs <- summary(shifted.pred, country = 'Hawaii')$projections
+    sidx <- years %in% as.character(2020:2025)
+    stopifnot(all.equal(projs[sidx, shifted.cols] + 0.01, shifted.projs[sidx, shifted.cols]))
+    stopifnot(all(projs[!sidx, shifted.cols] == shifted.projs[!sidx, shifted.cols]))
+    stopifnot(all(projs[, 2] == shifted.projs[, 2])) # SD does not change
+    test.ok(test.name)
+    
+    test.name <- 'resetting the trajectories'
+    start.test(test.name)
+    shifted.pred <- mig.traj.shift(sim.dir, country = 'Hawaii', reset = TRUE)
+    shifted.projs <- summary(shifted.pred, country = 'Hawaii')$projections
+    stopifnot(all(projs[, shifted.cols] == shifted.projs[, shifted.cols]))
+    stopifnot(is.null(get.mig.shift(get.country.object('Hawaii', m$meta)$code, shifted.pred)))
+    test.ok(test.name)
+    
+    test.name <- 'setting the median'
+    start.test(test.name)
+    expert.values <- c(0.01, 0.015, 0.02)
+    cobj <- get.country.object('Hawaii', m$meta)
+    sidx <- years %in% as.character(2020:2022)
+    shift <- expert.values - pred$quantiles[cobj$index, '0.5', sidx]
+    mod.pred <- mig.median.set(sim.dir, country = 'Hawaii', values = expert.values, years = 2020)
+    mod.projs <- summary(mod.pred, country = 'Hawaii')$projections
+    stopifnot(all.equal(mod.projs[sidx, "50%"], expert.values, check.attributes = FALSE))
+    stopifnot(all.equal(mod.projs[sidx, shifted.cols], projs[sidx, shifted.cols] + shift))
+    stopifnot(all(mod.projs[!sidx, shifted.cols] == projs[!sidx, shifted.cols]))
+    test.ok(test.name)
+    
+    test.name <- 'setting the mean'
+    start.test(test.name)
+    shift <- expert.values - pred$traj.mean.sd[cobj$index, 1, sidx]
+    mig.shift.reset(sim.dir, countries = 'Hawaii') # reset first
+    mod.pred <- mig.mean.set(sim.dir, country = 'Hawaii', values = expert.values, years = 2020)
+    mod.projs <- summary(mod.pred, country = 'Hawaii')$projections
+    stopifnot(all.equal(mod.projs[sidx, "mean"], expert.values, check.attributes = FALSE))
+    stopifnot(all.equal(mod.projs[sidx, shifted.cols], projs[sidx, shifted.cols] + shift))
+    stopifnot(all(mod.projs[!sidx, shifted.cols] == projs[!sidx, shifted.cols]))
+    # the mean of the adjusted trajectories matches as well
+    traj <- get.mig.trajectories(mod.pred, country = 'Hawaii')
+    stopifnot(all.equal(rowMeans(traj)[as.character(2020:2022)], expert.values, check.attributes = FALSE))
+    test.ok(test.name)
+    
+    test.name <- 'aligning predictions'
+    start.test(test.name)
+    # a second, independent simulation to be aligned with the (mean-adjusted) first one
+    sim.dir2 <- tempfile()
+    run.mig.mcmc(nr.chains = 1, iter = 30, thin = 1, my.mig.file = us.mig.file, 
+                 output.dir = sim.dir2, present.year = 2017, annual = TRUE, verbose = FALSE)
+    pred2 <- mig.predict(sim.dir = sim.dir2, burnin = 10, end.year = 2030, verbose = FALSE)
+    projs2 <- summary(pred2, country = 'Hawaii')$projections
+    aligned.pred <- mig.align.predictions(sim.dir2, sim.dir, country.codes = cobj$code, verbose = FALSE)
+    aligned.projs <- summary(aligned.pred, country = 'Hawaii')$projections
+    stopifnot(all.equal(aligned.projs[, "50%"], mod.projs[, "50%"]))
+    stopifnot(!isTRUE(all.equal(aligned.projs[sidx, "mean"], mod.projs[sidx, "mean"]))) # means are not aligned
+    test.ok(test.name)
+    
+    test.name <- 'aligning predictions by means'
+    start.test(test.name)
+    mig.shift.reset(sim.dir2)
+    aligned.pred <- mig.align.predictions(sim.dir2, sim.dir, country.codes = cobj$code, 
+                                          stat = "mean", verbose = FALSE)
+    aligned.projs <- summary(aligned.pred, country = 'Hawaii')$projections
+    stopifnot(all.equal(aligned.projs[, "mean"], mod.projs[, "mean"]))
+    stopifnot(!isTRUE(all.equal(aligned.projs[sidx, "50%"], mod.projs[sidx, "50%"]))) # medians are not aligned
+    # align only selected years
+    mig.shift.reset(sim.dir2)
+    aligned.pred <- mig.align.predictions(sim.dir2, sim.dir, country.codes = cobj$code, 
+                                          years = 2021:2022, stat = "mean", verbose = FALSE)
+    aligned.projs <- summary(aligned.pred, country = 'Hawaii')$projections
+    aidx <- years %in% as.character(2021:2022)
+    stopifnot(all.equal(aligned.projs[aidx, "mean"], mod.projs[aidx, "mean"]))
+    stopifnot(all(aligned.projs[!aidx, "mean"] == projs2[!aidx, "mean"]))
+    unlink(sim.dir2, recursive = TRUE)
+    test.ok(test.name)
+    
+    test.name <- 'resetting all countries'
+    start.test(test.name)
+    mig.traj.shift(sim.dir, country = 'Alaska', shift = 0.01)
+    stopifnot(length(get.mig.prediction(sim.dir)$traj.shift) == 2)
+    mig.shift.reset(sim.dir)
+    new.pred <- get.mig.prediction(sim.dir)
+    stopifnot(is.null(new.pred$traj.shift))
+    test.ok(test.name)
+    
+    test.name <- 'converting old median.shift'
+    start.test(test.name)
+    old.shift <- rep(0.01, dim(new.pred$quantiles)[3])
+    new.pred$median.shift <- list()
+    new.pred$median.shift[[as.character(cobj$code)]] <- old.shift
+    store.bayesMig.prediction(new.pred)
+    conv.pred <- get.mig.prediction(sim.dir)
+    stopifnot(is.null(conv.pred$median.shift))
+    stopifnot(all(get.mig.shift(cobj$code, conv.pred) == old.shift))
+    test.ok(test.name)
+    
+    unlink(sim.dir, recursive = TRUE)
+}
+
+test.shift.to.wpp <- function(wpp.year = 2024) {
+    sim.dir <- tempfile()
+    m <- run.mig.mcmc(nr.chains = 1, iter = 30, thin = 1, output.dir = sim.dir, 
+                      wpp.year = 2019, verbose = FALSE)
+    pred <- mig.predict(sim.dir = sim.dir, burnin = 10, end.year = 2050, verbose = FALSE)
+    
+    # WPP rates for Mexico
+    e <- new.env()
+    data("migproj5dt", package = paste0("wpp", wpp.year), envir = e)
+    data("popproj5dt", package = paste0("wpp", wpp.year), envir = e)
+    wppmig <- data.table::data.table(e$migproj5dt)[country_code == 484]
+    wpppop <- data.table::data.table(e$popproj5dt)[country_code == 484]
+    wppmig[, year := year + 2] # align migration and pop years
+    wpp <- merge(wppmig[, c("year", "mig"), with = FALSE], wpppop[, c("year", "pop"), with = FALSE], by = "year")
+    wpp[, rate := mig / (pop - mig)][, year := year - 2]
+    
+    test.name <- 'shifting medians to WPP'
+    start.test(test.name)
+    shifted.pred <- mig.shift.prediction.to.wpp(sim.dir, wpp.year = wpp.year, verbose = FALSE)
+    shifted.projs <- summary(shifted.pred, country = 'Mexico')$projections
+    dat <- merge(wpp, data.table::data.table(year = as.integer(rownames(shifted.projs)), 
+                                             median = shifted.projs[, "50%"]), by = "year")
+    stopifnot(nrow(dat) > 0)
+    stopifnot(all.equal(dat$rate, dat$median))
+    stopifnot(length(shifted.pred$traj.shift) > 0)
+    stopifnot(is.null(shifted.pred$median.shift))
+    test.ok(test.name)
+    
+    test.name <- 'shifting means to WPP'
+    start.test(test.name)
+    shifted.pred <- mig.shift.prediction.to.wpp(sim.dir, wpp.year = wpp.year, stat = "mean", verbose = FALSE)
+    shifted.projs <- summary(shifted.pred, country = 'Mexico')$projections
+    dat <- merge(wpp, data.table::data.table(year = as.integer(rownames(shifted.projs)), 
+                                             mean = shifted.projs[, "mean"]), by = "year")
+    stopifnot(nrow(dat) > 0)
+    stopifnot(all.equal(dat$rate, dat$mean))
+    test.ok(test.name)
+    
+    unlink(sim.dir, recursive = TRUE)
+}

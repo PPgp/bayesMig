@@ -1,10 +1,18 @@
-0.4-6.9xxx (11/08/2024)
+1.0-0.900x (09/24/2026)
+-----
+Implemented adjustment functions. Use of mig.mean.set allows to adjust predictive means.
+
+Functions mig.median.shift and mig.median.reset renamed to mig.traj.shift and mig.shift.reset,
+respectively. Shifts are stored in the prediction object as traj.shift (previously median.shift),
+consistent with bayesTFR >= 7.4-7.
+
+mig.align.predictions() got argument stat to align predictions by means.
+
+1.0-0 (11/09/2024)
 -----
 Support for wpp2024.
 
 mig.trajectories.plot() passes ... into plot().
-
-Implemented adjustment functions.
 
 Argument fixed.thresholds added.
 

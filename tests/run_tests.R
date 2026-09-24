@@ -6,8 +6,10 @@ source('test_functions.R')
 cran <- TRUE
 
 test.run.annual.simulation()
+test.adjustments()
 
 if(!cran) {
+    test.shift.to.wpp()
     test.include.code.and.last.observed()
     test.run.annual.national.simulation()
     test.run.annual.national.simulation.with.interpolation()
