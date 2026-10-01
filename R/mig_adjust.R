@@ -129,6 +129,7 @@ mig.align.predictions <- function(sim.dir1, sim.dir2, country.codes = NULL,
     pred2 <- get.mig.prediction(sim.dir2)
     cntries1 <- if(is.null(country.codes)) get.countries.table(pred1)$code else country.codes
     cntries2 <- get.countries.table(pred2)$code
+    pred <- pred1 # returned if no country is adjusted
     avail.years <- dimnames(pred2$quantiles)[[3]]
     if(is.null(years)) 
         years <- avail.years
@@ -182,10 +183,10 @@ mig.align.predictions <- function(sim.dir1, sim.dir2, country.codes = NULL,
         to.match <- merge(data.table::data.table(year = pred.years, median = pred$quantiles[icntry, "0.5", ]), 
                           migrates.wpp[country_code == cntry, c("year", "wpp"), with = FALSE], 
                           by = "year", all.x = TRUE)
-        if(stat == "mean") to.match[["median"]] <- to.match[["median"]] + pred$traj.mean.sd[icntry, 1, ] - to.match[["median"]] # difference between the mean and median
+        if(stat == "mean") to.match[["median"]] <- pred$traj.mean.sd[icntry, 1, ] # match the mean instead of the median
         to.match$wpp[is.na(to.match$wpp)] <- to.match$median[is.na(to.match$wpp)] # no shift for years that don't match
         to.match$shift <- to.match$wpp - to.match$median
-        if(sum(to.match$shift) != 0)
+        if(any(to.match$shift != 0))
             pred$traj.shift[[as.character(cntry)]] <- to.match$shift
     }
     if(verbose) cat("\n")

@@ -221,7 +221,11 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 		write.to.disk <- TRUE
 		if(!file.exists(outdir)) 
 			dir.create(outdir, recursive=TRUE)
-	} else write.to.disk <- FALSE
+	} else {
+	    write.to.disk <- FALSE
+	    if(write.trajectories && !file.exists(outdir)) 
+	        dir.create(outdir, recursive=TRUE)
+	}
 	
 	if(is.mcmc.set.thinned) {
 		thinned.mcmc <- mcmc.set
@@ -311,9 +315,11 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	all.mig_ps <- array(NA, dim=c(nr_countries_real, max.nr.project + 1, nr_simu))
 	fps.end.obs.index <- dim(migrates.recon)[2] - allTend + 1
 	
-	for (country in prediction.countries) {
+	# rows of all.mig_ps correspond to prediction.countries; other per-country objects are indexed by the meta index
+	for (icountry in 1:nr_countries_real) {
+	    country <- prediction.countries[icountry]
 	    for(year in 1:fps.end.obs.index) 
-	        all.mig_ps[country, year,] = all.data.list[[country]][allTend + year-1]
+	        all.mig_ps[icountry, year,] = all.data.list[[country]][allTend + year-1]
 	}
 	mu.c <- phi.c <- sigma.c <- rep(NA, nr_countries)
 
@@ -326,10 +332,10 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	if(use.cumulative.threshold){
 	    nperiods.for.threshold <- ifelse(meta$annual.simulation, 30, 6)
 	    mig.thresholds <-  get.migration.thresholds(meta, nperiods = nperiods.for.threshold, ignore.gcc = ignore.gcc.in.threshold)
-	    isGCC <- if(ignore.gcc.in.threshold) rep(FALSE, nr_countries_real) else is.gcc.plus(meta$regions$country_code)
+	    isGCC <- if(ignore.gcc.in.threshold) rep(FALSE, nr_countries) else is.gcc.plus(meta$regions$country_code)
 	    fun.min <- ".min.multiplicative.pop.change"
 	}
-	fthresholds <- list(upper = rep(NA, nr_countries_real), lower = rep(NA, nr_countries_real))
+	fthresholds <- list(upper = rep(NA, nr_countries), lower = rep(NA, nr_countries))
 	if(!is.null(fixed.thresholds)){
 	    for(ttp in names(fthresholds)){
 	        if(! ttp %in% names(fixed.thresholds)) next
@@ -359,29 +365,30 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	  #########################################
 	  for (icountry in 1:nr_countries_real){ # Iterate over countries
 	  #########################################
-	    if(use.cumulative.threshold) fun.max <- paste0(".max.multiplicative.pop.change", if(isGCC[icountry] || ignore.gcc.in.threshold) "" else ".no.gcc")
+	    country <- prediction.countries[icountry]
+	    if(use.cumulative.threshold) fun.max <- paste0(".max.multiplicative.pop.change", if(isGCC[country] || ignore.gcc.in.threshold) "" else ".no.gcc")
 	    for (year in 2:(max.nr.project+1)) { # Iterate over time
 	    #########################################
 	        if(!is.na(all.mig_ps[icountry, year, s])) next
-	        determ.part <- mu.c[icountry] + phi.c[icountry]*(all.mig_ps[icountry,year-1,s] - mu.c[icountry])
+	        determ.part <- mu.c[country] + phi.c[country]*(all.mig_ps[icountry,year-1,s] - mu.c[country])
 	        xmin <- -Inf
 	        xmax <- Inf
 	        if(use.cumulative.threshold){
 	            xmin <- .get.rate.mult.limit(all.mig_ps[icountry,1:(year-1),s], year-1, fun.min, max, nperiods=nperiods.for.threshold, thresholds = mig.thresholds)
 	            xmax <- .get.rate.mult.limit(all.mig_ps[icountry,1:(year-1),s], year-1, fun.max, min, nperiods=nperiods.for.threshold, thresholds = mig.thresholds)
 	        }
-	        if(!is.na(fthresholds$lower[icountry]))
-	            xmin <- max(xmin, fthresholds$lower[icountry])
-	        if(!is.na(fthresholds$upper[icountry]))
-	            xmax <- min(xmax, fthresholds$upper[icountry])
+	        if(!is.na(fthresholds$lower[country]))
+	            xmin <- max(xmin, fthresholds$lower[country])
+	        if(!is.na(fthresholds$upper[country]))
+	            xmax <- min(xmax, fthresholds$upper[country])
 	        if(is.finite(xmin) || is.finite(xmax)){
 	            if(xmin > xmax) {
 	                avg <- (xmin + xmax)/2.
 	                xmin <- avg - 1e-3
 	                xmax <- avg + 1e-3 
 	            }
-	            error <- rtruncnorm(n=1, a=xmin-determ.part, b=xmax-determ.part, mean=0,sd=sigma.c[icountry])
-	        } else error <- rnorm(n=1, mean=0,sd=sigma.c[icountry])
+	            error <- rtruncnorm(n=1, a=xmin-determ.part, b=xmax-determ.part, mean=0,sd=sigma.c[country])
+	        } else error <- rnorm(n=1, mean=0,sd=sigma.c[country])
 	        all.mig_ps[icountry,year,s] <- determ.part + error
 	    } # end countries loop
 	  } # end time loop
@@ -418,13 +425,15 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	if (lmigrates > present.year.index)
 	    migrates.recon[ , (present.year.index + 1):lmigrates] <- NA # does not need data beyond present.year as those values are now trajectories
 	
+	nr.imputed <- rep(0L, nr_countries)
+	nr.imputed[prediction.countries] <- unlist(nmissing[prediction.countries])
 	mcmc.set <- remove.mig.traces(mcmc.set)
 	bayesMig.prediction <- structure(list(
 				quantiles = PIs_cqp,
 				traj.mean.sd = mean_sd,
 				nr.traj=nr_simu,
 				mig.rates.reconstructed = migrates.recon,
-				nr.imputed = unlist(nmissing),
+				nr.imputed = nr.imputed,
 				output.directory=outdir,
 				mcmc.set=load.mcmc.set,
 				nr.projections=nr_project,

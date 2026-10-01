@@ -93,21 +93,18 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   trajectories <- bayesTFR:::get.trajectories(mig.pred, country$code, nr.traj=nr.traj)
   if(!is.null(traj.index) && !is.null(trajectories$trajectories)) trajectories$index <- traj.index
   
+  if(scale) { # scale to be interpreted as "per population"
+    # trajectories are loaded above with the shift already applied, so they are scaled separately
+    if(!is.null(trajectories$trajectories)) trajectories$trajectories <- trajectories$trajectories / mig.pred$mcmc.set$meta$prior.scaler
+    mig.pred <- .scale.mig.prediction(mig.pred)
+  }
+  
   # extract median & mean
   mig.median <- mig.mean <- mig.main.proj <- NULL
   if(show.median)
     mig.median <- bayesTFR::get.median.from.prediction(mig.pred, country$index, country$code)
   if(show.mean)
     mig.mean <- bayesTFR::get.mean.from.prediction(mig.pred, country$index, country$code)  
-  
-  if(scale) { # scale to be interpreted as "per population"
-    if(!is.null(trajectories$trajectories)) trajectories$trajectories <- trajectories$trajectories / mig.pred$mcmc.set$meta$prior.scaler
-    mig.pred$quantiles <- mig.pred$quantiles / mig.pred$mcmc.set$meta$prior.scaler
-    if(!is.null(mig.median))
-      mig.median <- mig.median / mig.pred$mcmc.set$meta$prior.scaler
-    if(!is.null(mig.mean))
-      mig.mean <- mig.mean / mig.pred$mcmc.set$meta$prior.scaler
-  }
   
   # set the main projection (solid line)
   main.proj.name <- ""
@@ -231,6 +228,17 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
     }
     legend('bottomleft', legend=legend, lty=lty, bty='n', col=cols, pch=pch, lwd=lwds)
   }
+}
+
+.scale.mig.prediction <- function(mig.pred) {
+  # Divide all stored statistics and shifts of the prediction by the prior scaler,
+  # so that they are interpreted as "per population".
+  scaler <- mig.pred$mcmc.set$meta$prior.scaler
+  mig.pred$quantiles <- mig.pred$quantiles / scaler
+  mig.pred$traj.mean.sd <- mig.pred$traj.mean.sd / scaler
+  if(!is.null(mig.pred$traj.shift))
+    mig.pred$traj.shift <- lapply(mig.pred$traj.shift, function(x) x / scaler)
+  return(mig.pred)
 }
 
 #' @param output.dir Directory into which resulting plots are written. By default,

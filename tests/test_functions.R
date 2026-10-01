@@ -265,6 +265,24 @@ test.adjustments <- function() {
     stopifnot(all.equal(rowMeans(traj)[as.character(2020:2022)], expert.values, check.attributes = FALSE))
     test.ok(test.name)
     
+    test.name <- 'scaling a shifted prediction'
+    start.test(test.name)
+    scaler <- 5 # artificial, since the prior scaler of this simulation is 1
+    mod.pred$mcmc.set$meta$prior.scaler <- scaler
+    sc.pred <- bayesMig:::.scale.mig.prediction(mod.pred)
+    for(adj in c(TRUE, FALSE)) {
+        stopifnot(all.equal(get.median.from.prediction(sc.pred, cobj$index, cobj$code, adjusted = adj),
+                            get.median.from.prediction(mod.pred, cobj$index, cobj$code, adjusted = adj) / scaler))
+        stopifnot(all.equal(get.mean.from.prediction(sc.pred, cobj$index, cobj$code, adjusted = adj),
+                            get.mean.from.prediction(mod.pred, cobj$index, cobj$code, adjusted = adj) / scaler))
+        stopifnot(all.equal(bayesTFR:::get.traj.quantiles(sc.pred, cobj$index, cobj$code, pi = 80, adjusted = adj),
+                            bayesTFR:::get.traj.quantiles(mod.pred, cobj$index, cobj$code, pi = 80, adjusted = adj) / scaler))
+    }
+    pdf(NULL)
+    mig.trajectories.plot(mod.pred, 'Hawaii', scale = TRUE, show.mean = TRUE, adjusted.only = FALSE)
+    dev.off()
+    test.ok(test.name)
+    
     test.name <- 'aligning predictions'
     start.test(test.name)
     # a second, independent simulation to be aligned with the (mean-adjusted) first one
@@ -295,6 +313,21 @@ test.adjustments <- function() {
     aidx <- years %in% as.character(2021:2022)
     stopifnot(all.equal(aligned.projs[aidx, "mean"], mod.projs[aidx, "mean"]))
     stopifnot(all(aligned.projs[!aidx, "mean"] == projs2[!aidx, "mean"]))
+    test.ok(test.name)
+    
+    test.name <- 'aligning predictions with no matching country'
+    start.test(test.name)
+    before <- get.mig.prediction(sim.dir2)
+    warned <- FALSE
+    aligned.pred <- withCallingHandlers(
+        mig.align.predictions(sim.dir2, sim.dir, country.codes = 99999, verbose = FALSE),
+        warning = function(w) {
+            warned <<- TRUE
+            invokeRestart("muffleWarning")
+        })
+    stopifnot(warned)
+    stopifnot(inherits(aligned.pred, "bayesMig.prediction"))
+    stopifnot(identical(aligned.pred$traj.shift, before$traj.shift))
     unlink(sim.dir2, recursive = TRUE)
     test.ok(test.name)
     
@@ -424,6 +457,27 @@ test.thresholds <- function() {
         })
     stopifnot(warned)
     stopifnot(identical(pred.old$quantiles, pred.cum$quantiles))
+    test.ok(test.name)
+    
+    test.name <- 'prediction for a subset of locations'
+    start.test(test.name)
+    subset <- c(3, 5)
+    th.sub <- list(lower = setNames(list(0.001), codes[5]), upper = setNames(list(0.004), codes[5]))
+    out.dir <- tempfile() # does not exist yet
+    pred.sub <- bayesMig:::make.mig.prediction(m, countries = subset, burnin = 5, end.year = 2050,
+                                               fixed.thresholds = th.sub, use.cumulative.threshold = TRUE,
+                                               ignore.gcc.in.threshold = TRUE, output.dir = out.dir, 
+                                               verbose = FALSE)
+    stopifnot(all(!is.na(pred.sub$quantiles[subset, , ])))
+    stopifnot(all(is.na(pred.sub$quantiles[-subset, , ])))
+    stopifnot(length(pred.sub$nr.imputed) == length(codes))
+    # fixed thresholds of location 5 apply to its projections (first time point is the present year)
+    q5 <- pred.sub$quantiles[5, , -1]
+    stopifnot(all(q5["0", ] >= 0.001 - eps) && all(q5["1", ] <= 0.004 + eps))
+    # trajectories written only for the subset
+    stopifnot(all(file.exists(file.path(out.dir, "predictions", paste0("traj_country", codes[subset], ".rda")))))
+    stopifnot(length(list.files(file.path(out.dir, "predictions"), pattern = "^traj_country")) == length(subset))
+    unlink(out.dir, recursive = TRUE)
     test.ok(test.name)
     
     unlink(sim.dir, recursive = TRUE)

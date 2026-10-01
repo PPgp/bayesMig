@@ -19,6 +19,14 @@ fixed.thresholds in mig.predict() applied also when use.cumulative.threshold is 
 mig.predict() with use.cumulative.threshold=TRUE failed with an error if ignore.gcc.in.threshold=TRUE
 or if the historical data were shorter than the threshold window.
 
+mig.shift.prediction.to.wpp() could ignore a country's shift if its values summed to zero.
+
+mig.align.predictions() failed with an error if none of the countries were found in sim.dir2.
+
+mig.trajectories.plot() with scale=TRUE did not scale shifts and the unadjusted mean.
+
+Internal make.mig.prediction() failed when called for a subset of countries.
+
 1.0-0 (11/09/2024)
 -----
 Support for wpp2024.
