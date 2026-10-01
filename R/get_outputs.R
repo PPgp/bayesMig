@@ -311,7 +311,8 @@ coda.mcmc.bayesMig.mcmc <- function(mcmc, country=NULL, par.names=NULL,
   if(missing(par.names)) par.names <- mig.parameter.names()
   if(missing(par.names.cs)) par.names.cs <- mig.parameter.names.cs()
   return(bayesTFR:::coda.mcmc.bayesTFR.mcmc(mcmc, country = country, par.names = par.names, 
-                                            par.names.cs = par.names.cs, ...))
+                                            par.names.cs = par.names.cs, burnin = burnin,
+                                            thin = thin, ...))
 }
 
 #' @title Conversion to coda-formatted objects

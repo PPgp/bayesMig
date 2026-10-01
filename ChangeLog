@@ -8,6 +8,17 @@ consistent with bayesTFR >= 7.4-7.
 
 mig.align.predictions() got argument stat to align predictions by means.
 
+Argument use.cummulative.threshold of mig.predict() renamed to use.cumulative.threshold (fixed typo).
+The old name is deprecated but still works.
+
+Bug fixes: summary() of MCMC objects ignored burnin and thin; legend symbols in mig.trajectories.plot();
+lower bound in fixed.thresholds of mig.predict() was not applied correctly.
+
+fixed.thresholds in mig.predict() applied also when use.cumulative.threshold is FALSE.
+
+mig.predict() with use.cumulative.threshold=TRUE failed with an error if ignore.gcc.in.threshold=TRUE
+or if the historical data were shorter than the threshold window.
+
 1.0-0 (11/09/2024)
 -----
 Support for wpp2024.

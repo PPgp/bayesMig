@@ -74,7 +74,7 @@ mig.traj.shift <- function(sim.dir, country, reset = FALSE, shift = 0,
 #' @export
 #' @rdname mig.adjust
 mig.median.shift <- function(...) {
-    lifecycle::deprecate_warn("1.0-0", "mig.median.shift()", "mig.traj.shift()")
+    lifecycle::deprecate_warn("1.0-1", "mig.median.shift()", "mig.traj.shift()")
     mig.traj.shift(...)
 }
 
@@ -100,7 +100,7 @@ mig.shift.reset <- function(sim.dir, countries = NULL) {
 #' @export
 #' @rdname mig.adjust
 mig.median.reset <- function(...) {
-    lifecycle::deprecate_warn("1.0-0", "mig.median.reset()", "mig.shift.reset()")
+    lifecycle::deprecate_warn("1.0-1", "mig.median.reset()", "mig.shift.reset()")
     mig.shift.reset(...)
 }
 

@@ -95,8 +95,7 @@ test.run.annual.national.simulation <- function(parallel = FALSE) {
     
     m <- run.mig.mcmc(nr.chains = 2, iter = 60, thin = 2, output.dir = sim.dir, 
                       parallel = parallel, annual = TRUE, wpp.year = 2022,
-                      present.year = 2021, exclude.from.world = small.countries,
-                      use.cummulative.threshold = TRUE)
+                      present.year = 2021, exclude.from.world = small.countries)
     
     stopifnot(m$meta$nr.countries.est == 203)
     stopifnot(m$meta$nr.countries == 236)
@@ -107,7 +106,8 @@ test.run.annual.national.simulation <- function(parallel = FALSE) {
     # Prediction
     test.name <- 'running annual national projections'
     start.test(test.name)
-    pred <- mig.predict(sim.dir = sim.dir, burnin = 10, end.year = 2050)
+    pred <- mig.predict(sim.dir = sim.dir, burnin = 10, end.year = 2050,
+                        use.cumulative.threshold = TRUE)
     spred <- summary(pred)
     stopifnot(spred$nr.traj == 50)
     stopifnot(nrow(get.countries.table(pred))== 236)
@@ -357,6 +357,73 @@ test.shift.to.wpp <- function(wpp.year = 2024) {
                                              mean = shifted.projs[, "mean"]), by = "year")
     stopifnot(nrow(dat) > 0)
     stopifnot(all.equal(dat$rate, dat$mean))
+    test.ok(test.name)
+    
+    unlink(sim.dir, recursive = TRUE)
+}
+
+test.thresholds <- function() {
+    us.mig.file <- file.path(find.package("bayesMig"), "extdata", "USmigrates.txt")
+    sim.dir <- tempfile()
+    m <- run.mig.mcmc(nr.chains = 1, iter = 30, thin = 1, my.mig.file = us.mig.file, 
+                      output.dir = sim.dir, present.year = 2017, annual = TRUE, verbose = FALSE)
+    codes <- get.countries.table(m)$code
+    eps <- 1e-12
+    # projected trajectories only (first row is the present year)
+    proj <- function(pred, code) get.mig.trajectories(pred, code)[-1, , drop = FALSE]
+    # end.year beyond the length of the data, so that cumulative thresholds 
+    # for the longest windows are not available
+    do.predict <- function(...) mig.predict(sim.dir = sim.dir, burnin = 5, end.year = 2050, 
+                                            replace.output = TRUE, verbose = FALSE, seed = 1, ...)
+    
+    test.name <- 'fixed thresholds without cumulative thresholds'
+    start.test(test.name)
+    # lower bound above zero checks that the lower bound tightens the distribution
+    th <- list(lower = setNames(list(0.001, -0.002), codes[1:2]), 
+               upper = setNames(list(0.004), codes[1]))
+    pred <- do.predict(fixed.thresholds = th)
+    tr1 <- proj(pred, codes[1])
+    tr2 <- proj(pred, codes[2])
+    stopifnot(all(!is.na(tr1)) && all(!is.na(tr2)))
+    stopifnot(all(tr1 >= 0.001 - eps) && all(tr1 <= 0.004 + eps))
+    stopifnot(all(tr2 >= -0.002 - eps))
+    # without thresholds the same locations exceed the bounds
+    pred.nothr <- do.predict()
+    stopifnot(any(proj(pred.nothr, codes[1]) < 0.001 | proj(pred.nothr, codes[1]) > 0.004))
+    stopifnot(any(proj(pred.nothr, codes[2]) < -0.002))
+    test.ok(test.name)
+    
+    test.name <- 'cumulative thresholds'
+    start.test(test.name)
+    # a warning would indicate missing bounds (e.g. min() over NA thresholds)
+    pred.cum <- withCallingHandlers(
+        do.predict(use.cumulative.threshold = TRUE, ignore.gcc.in.threshold = TRUE),
+        warning = function(w) stop("Unexpected warning: ", conditionMessage(w)))
+    stopifnot(all(!is.na(pred.cum$quantiles)))
+    stopifnot(!identical(pred.cum$quantiles, pred.nothr$quantiles))
+    test.ok(test.name)
+    
+    test.name <- 'combining fixed and cumulative thresholds'
+    start.test(test.name)
+    pred <- do.predict(use.cumulative.threshold = TRUE, ignore.gcc.in.threshold = TRUE,
+                       fixed.thresholds = th)
+    tr1 <- proj(pred, codes[1])
+    stopifnot(all(!is.na(tr1)))
+    stopifnot(all(tr1 >= 0.001 - eps) && all(tr1 <= 0.004 + eps))
+    stopifnot(all(proj(pred, codes[2]) >= -0.002 - eps))
+    test.ok(test.name)
+    
+    test.name <- 'deprecated argument use.cummulative.threshold'
+    start.test(test.name)
+    warned <- FALSE
+    pred.old <- withCallingHandlers(
+        do.predict(use.cummulative.threshold = TRUE, ignore.gcc.in.threshold = TRUE),
+        lifecycle_warning_deprecated = function(w) {
+            warned <<- TRUE
+            invokeRestart("muffleWarning")
+        })
+    stopifnot(warned)
+    stopifnot(identical(pred.old$quantiles, pred.cum$quantiles))
     test.ok(test.name)
     
     unlink(sim.dir, recursive = TRUE)

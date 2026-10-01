@@ -7,6 +7,7 @@ cran <- TRUE
 
 test.run.annual.simulation()
 test.adjustments()
+test.thresholds()
 
 if(!cran) {
     test.shift.to.wpp()

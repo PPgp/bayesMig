@@ -25,7 +25,7 @@
 #' @param thin Thinning interval used for determining the number of trajectories. 
 #' Only relevant if \code{nr.traj} is \code{NULL}.
 #' @param burnin Number of iterations to be discarded from the beginning of the parameter traces.
-#' @param use.cummulative.threshold If \code{TRUE} historical cummulative thresholds are applied
+#' @param use.cumulative.threshold If \code{TRUE} historical cumulative thresholds are applied
 #'    to avoid sampling rates that are too extreme. The thresholds are
 #'    derived over prior rates of all locations. As a time span for deriving the limits on projected rates, 
 #'    at each projected time point, six prior time periods are used in a 5-year simulation, 
@@ -33,14 +33,16 @@
 #'    In a national simulation, prior rates of GCC countries (plus Western Sahara and Djibouti) are excluded 
 #'    when deriving thresholds for non-GCC countries. If this option is used in a non-country simulation,
 #'    e.g. in a sub-national settings, set the \code{ignore.gcc.in.threshold} argument to \code{TRUE}.
-#' @param ignore.gcc.in.threshold If \code{use.cummulative.threshold} is \code{TRUE}, by default the GCC countries
+#' @param ignore.gcc.in.threshold If \code{use.cumulative.threshold} is \code{TRUE}, by default the GCC countries
 #'    (plus Western Sahara and Djibouti) identified by numerical codes of the countries are excluded from computing 
-#'    the historical cummulative thresholds for non-GCC countries. If this argument is \code{TRUE}, this distinction is not made. 
+#'    the historical cumulative thresholds for non-GCC countries. If this argument is \code{TRUE}, this distinction is not made. 
 #'    It is important to set it to \code{TRUE} in a sub-national simulation to avoid any random overlaps 
 #'    of UN codes and user-defined codes.
+#' @param use.cummulative.threshold Deprecated, use \code{use.cumulative.threshold} instead.
 #' @param fixed.thresholds List with optional elements \dQuote{lower} and \dQuote{upper}. Each of them is a list defining 
 #'    lower and upper bounds of the future migration rate for specific locations. The name of each item is the location code
 #'    and the value is one number defining the corresponding threshold. 
+#'    The thresholds are applied regardless of the value of \code{use.cumulative.threshold}. If it is \code{TRUE}, the more restrictive of the fixed and cumulative bounds is used.
 #' @param post.last.observed If a user-specific data file was used during estimation and the data 
 #'     contained the \dQuote{last.observed} column, this argument determines how to treat the time periods 
 #'     between the last observed point and the start year of the prediction, for locations where there is
@@ -142,11 +144,17 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 						sim.dir = NULL,
 						replace.output=FALSE,
 						start.year=NULL, nr.traj = NULL, thin = NULL, burnin=20000, 
-						use.cummulative.threshold = FALSE, ignore.gcc.in.threshold = FALSE,
+						use.cumulative.threshold = FALSE, ignore.gcc.in.threshold = FALSE,
 						fixed.thresholds = NULL,
 						post.last.observed = c("obsdata", "alldata", "impute"),
 						save.as.ascii=0, output.dir = NULL,
-						seed=NULL, verbose=TRUE, ...) {
+						seed=NULL, verbose=TRUE, ...,
+						use.cummulative.threshold = lifecycle::deprecated()) {
+	if(lifecycle::is_present(use.cummulative.threshold)) {
+	    lifecycle::deprecate_warn("1.0-1", "mig.predict(use.cummulative.threshold)", 
+	                              "mig.predict(use.cumulative.threshold)")
+	    use.cumulative.threshold <- use.cummulative.threshold
+	}
 	if(!is.null(mcmc.set)) {
 		if (! inherits(mcmc.set, 'bayesMig.mcmc.set')) {
 			stop('Wrong type of mcmc.set. Must be of type bayesMig.mcmc.set.')
@@ -163,14 +171,14 @@ mig.predict <- function(mcmc.set=NULL, end.year=2100,
 	
 	invisible(make.mig.prediction(mcmc.set, end.year=end.year, replace.output=replace.output,  
 					start.year=start.year, nr.traj=nr.traj, burnin=burnin, thin=thin,
-					use.cummulative.threshold = use.cummulative.threshold, ignore.gcc.in.threshold = ignore.gcc.in.threshold,
+					use.cumulative.threshold = use.cumulative.threshold, ignore.gcc.in.threshold = ignore.gcc.in.threshold,
 					fixed.thresholds = fixed.thresholds, post.last.observed = post.last.observed,
 					save.as.ascii=save.as.ascii, output.dir=output.dir, verbose=verbose, ...))			
 }
 
 make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replace.output=FALSE,
 								nr.traj = NULL, burnin=0, thin = NULL, 
-								countries = NULL, use.cummulative.threshold = FALSE, ignore.gcc.in.threshold = FALSE,
+								countries = NULL, use.cumulative.threshold = FALSE, ignore.gcc.in.threshold = FALSE,
 								fixed.thresholds = NULL, post.last.observed = "o",
 								save.as.ascii=0, output.dir = NULL, write.summary.files=TRUE, 
 							    is.mcmc.set.thinned=FALSE, force.creating.thinned.mcmc=FALSE,
@@ -315,7 +323,7 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 		verbose.iter <- max(1, nr_simu/100)
 		if(interactive()) cat('\n')
 	}
-	if(use.cummulative.threshold){
+	if(use.cumulative.threshold){
 	    nperiods.for.threshold <- ifelse(meta$annual.simulation, 30, 6)
 	    mig.thresholds <-  get.migration.thresholds(meta, nperiods = nperiods.for.threshold, ignore.gcc = ignore.gcc.in.threshold)
 	    isGCC <- if(ignore.gcc.in.threshold) rep(FALSE, nr_countries_real) else is.gcc.plus(meta$regions$country_code)
@@ -351,18 +359,22 @@ make.mig.prediction <- function(mcmc.set, start.year=NULL, end.year=2100, replac
 	  #########################################
 	  for (icountry in 1:nr_countries_real){ # Iterate over countries
 	  #########################################
-	    if(use.cummulative.threshold) fun.max <- paste0(".max.multiplicative.pop.change", if(isGCC[icountry]) "" else ".no.gcc")
+	    if(use.cumulative.threshold) fun.max <- paste0(".max.multiplicative.pop.change", if(isGCC[icountry] || ignore.gcc.in.threshold) "" else ".no.gcc")
 	    for (year in 2:(max.nr.project+1)) { # Iterate over time
 	    #########################################
 	        if(!is.na(all.mig_ps[icountry, year, s])) next
 	        determ.part <- mu.c[icountry] + phi.c[icountry]*(all.mig_ps[icountry,year-1,s] - mu.c[icountry])
-	        if(use.cummulative.threshold){
+	        xmin <- -Inf
+	        xmax <- Inf
+	        if(use.cumulative.threshold){
 	            xmin <- .get.rate.mult.limit(all.mig_ps[icountry,1:(year-1),s], year-1, fun.min, max, nperiods=nperiods.for.threshold, thresholds = mig.thresholds)
 	            xmax <- .get.rate.mult.limit(all.mig_ps[icountry,1:(year-1),s], year-1, fun.max, min, nperiods=nperiods.for.threshold, thresholds = mig.thresholds)
-	            if(!is.na(fthresholds$lower[icountry]))
-	                xmin <- min(xmin, fthresholds$lower[icountry])
-	            if(!is.na(fthresholds$upper[icountry]))
-	                xmax <- min(xmax, fthresholds$upper[icountry])
+	        }
+	        if(!is.na(fthresholds$lower[icountry]))
+	            xmin <- max(xmin, fthresholds$lower[icountry])
+	        if(!is.na(fthresholds$upper[icountry]))
+	            xmax <- min(xmax, fthresholds$upper[icountry])
+	        if(is.finite(xmin) || is.finite(xmax)){
 	            if(xmin > xmax) {
 	                avg <- (xmin + xmax)/2.
 	                xmin <- avg - 1e-3
@@ -554,14 +566,14 @@ get.data.for.country.imputed.bayesMig.prediction <- function(pred, country.index
         p <- prod(1+rates[(n-i+2):n])
         res <- c(res, do.call(cumfun, c(list(i, ...)))/p)
     }
-    return(do.call(fun, list(res))-1)
+    return(do.call(fun, list(res, na.rm = TRUE))-1) # thresholds are NA for periods longer than the data
 }
 
 is.gcc.plus <- function(country) # GCC plus Western Sahara & Djibouti
     return(country %in% c(634, 784, 414, 48, 512, 682, 732, 262)) # Qatar, UAE, Kuwait, Bahrain, Oman, SA, Western Sahara, Djibouti
 
 get.migration.thresholds <- function(meta, nperiods=6, ignore.gcc = FALSE) {
-    # Setting cummulative thresholds
+    # Setting cumulative thresholds
     rates <- meta$mig.rates.all
     # GCC plus Western Sahara & Djibouti
     if(!ignore.gcc)

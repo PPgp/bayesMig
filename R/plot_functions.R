@@ -216,7 +216,7 @@ mig.trajectories.plot <- function(mig.pred, country, pi=c(80, 95),
   }
   
   if(show.legend) {
-    pch <- c(rep(-1, length(legend), 1))
+    pch <- c(rep(-1, length(legend)), 1)
     legend <- c(legend, 'observed migration')
     cols <- c(cols, col[1])
     lty <- c(lty, 1)

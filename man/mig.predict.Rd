@@ -14,7 +14,7 @@ mig.predict(
   nr.traj = NULL,
   thin = NULL,
   burnin = 20000,
-  use.cummulative.threshold = FALSE,
+  use.cumulative.threshold = FALSE,
   ignore.gcc.in.threshold = FALSE,
   fixed.thresholds = NULL,
   post.last.observed = c("obsdata", "alldata", "impute"),
@@ -22,7 +22,8 @@ mig.predict(
   output.dir = NULL,
   seed = NULL,
   verbose = TRUE,
-  ...
+  ...,
+  use.cummulative.threshold = lifecycle::deprecated()
 )
 }
 \arguments{
@@ -54,7 +55,7 @@ Only relevant if \code{nr.traj} is \code{NULL}.}
 
 \item{burnin}{Number of iterations to be discarded from the beginning of the parameter traces.}
 
-\item{use.cummulative.threshold}{If \code{TRUE} historical cummulative thresholds are applied
+\item{use.cumulative.threshold}{If \code{TRUE} historical cumulative thresholds are applied
 to avoid sampling rates that are too extreme. The thresholds are
 derived over prior rates of all locations. As a time span for deriving the limits on projected rates, 
 at each projected time point, six prior time periods are used in a 5-year simulation, 
@@ -63,15 +64,16 @@ In a national simulation, prior rates of GCC countries (plus Western Sahara and 
 when deriving thresholds for non-GCC countries. If this option is used in a non-country simulation,
 e.g. in a sub-national settings, set the \code{ignore.gcc.in.threshold} argument to \code{TRUE}.}
 
-\item{ignore.gcc.in.threshold}{If \code{use.cummulative.threshold} is \code{TRUE}, by default the GCC countries
+\item{ignore.gcc.in.threshold}{If \code{use.cumulative.threshold} is \code{TRUE}, by default the GCC countries
 (plus Western Sahara and Djibouti) identified by numerical codes of the countries are excluded from computing 
-the historical cummulative thresholds for non-GCC countries. If this argument is \code{TRUE}, this distinction is not made. 
+the historical cumulative thresholds for non-GCC countries. If this argument is \code{TRUE}, this distinction is not made. 
 It is important to set it to \code{TRUE} in a sub-national simulation to avoid any random overlaps 
 of UN codes and user-defined codes.}
 
 \item{fixed.thresholds}{List with optional elements \dQuote{lower} and \dQuote{upper}. Each of them is a list defining 
 lower and upper bounds of the future migration rate for specific locations. The name of each item is the location code
-and the value is one number defining the corresponding threshold.}
+and the value is one number defining the corresponding threshold. 
+The thresholds are applied regardless of the value of \code{use.cumulative.threshold}. If it is \code{TRUE}, the more restrictive of the fixed and cumulative bounds is used.}
 
 \item{post.last.observed}{If a user-specific data file was used during estimation and the data 
     contained the \dQuote{last.observed} column, this argument determines how to treat the time periods 
@@ -108,6 +110,8 @@ Can be used to generate reproducible projections.}
 \item{verbose}{Logical value. Switches log messages on and off.}
 
 \item{\dots}{Further arguments passed to the underlying functions.}
+
+\item{use.cummulative.threshold}{Deprecated, use \code{use.cumulative.threshold} instead.}
 }
 \value{
 Object of class \code{bayesMig.prediction} which is a list with components
