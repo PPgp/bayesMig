@@ -14,3 +14,5 @@ License: GPL (>= 2)
 URL: http://bayespop.csss.washington.edu
 RoxygenNote: 7.3.2
 Encoding: UTF-8
+Remotes: PPgp/bayesTFR
+
